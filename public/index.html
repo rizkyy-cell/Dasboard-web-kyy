@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* VARIABEL TEMA WARNA AKSEN */
+            /* VARIABEL TEMA WARNA AKSEN */
     :root {
       --tg-bg: #0e1621;
       --tg-panel: #17212b;
@@ -25,7 +25,9 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--tg-bg);
       color: var(--tg-text);
+      /* Perbaikan tinggi menggunakan lvh/dvh agar pas di semua browser HP */
       height: 100vh;
+      height: 100dvh; 
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -175,15 +177,32 @@
     .btn-no { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
     .btn-yes { background: var(--tg-accent); color: white; }
 
-    /* BOTTOM NAV */
-    .bottom-nav-wrapper { position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 94%; max-width: 460px; height: 72px; background-color: rgba(23, 33, 43, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); z-index: 20; display: flex; align-items: center; position: relative; }
-    .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.4s ease; width: 20%; }
+    /* BOTTOM NAV - SUDAH FIX KEPOTONG & RESPONSIF GESTURE BAR HP */
+    .bottom-nav-wrapper { 
+      position: fixed; 
+      bottom: max(20px, env(safe-area-inset-bottom)); /* Naik sedikit biar ga nabrak home bar */
+      left: 50%; 
+      transform: translateX(-50%); 
+      width: 92%; 
+      max-width: 440px; 
+      height: 68px; 
+      background-color: rgba(23, 33, 43, 0.92); /* Sedikit lebih tebal biar ga transparan tembus teks belakang */
+      backdrop-filter: blur(25px); 
+      -webkit-backdrop-filter: blur(25px); 
+      border-radius: 24px; 
+      border: 1px solid rgba(255, 255, 255, 0.15); 
+      box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7); 
+      z-index: 9999; /* Memastikan dia selalu di layer paling atas */
+      display: flex; 
+      align-items: center; 
+    }
+    .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.3s ease; }
     .nav-item.active { color: #ffffff; }
-    .nav-item svg { width: 23px; height: 23px; fill: currentColor; margin-bottom: 4px; transition: transform 0.3s; }
-    .nav-item.active svg { transform: translateY(-2px) scale(1.1); }
+    .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin-bottom: 3px; transition: transform 0.3s; }
+    .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
     .nav-label { font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: 0.3px;}
-    .nav-sliding-indicator { position: absolute; top: 50%; left: 0; transform: translateY(-50%) translateX(0); height: 58px; width: 20%; z-index: 2; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
-    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 6px; right: 6px; bottom: 0; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; }
+    .nav-sliding-indicator { position: absolute; top: 50%; left: 0; transform: translateY(-50%) translateX(0); height: 54px; width: 20%; z-index: 2; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
+    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px; }
 
     /* DESIGN ETALASE STORE */
     .store-container { width: 100%; padding: 5px 0 20px 0; }
@@ -195,6 +214,7 @@
     .store-product-price { font-size: 15px; font-weight: 700; color: #00ff7f; line-height: 1.5; }
     .store-buy-btn { background: linear-gradient(135deg, var(--tg-accent), #4b0082); color: white; text-align: center; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 14.5px; display: block; margin-top: 5px; }
     .store-cr-text { text-align: center; font-size: 11px; color: #627284; margin: 30px 0 10px 0; }
+
   </style>
 </head>
 <body>

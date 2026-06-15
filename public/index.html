@@ -141,6 +141,11 @@
     .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px; }
 
     .store-container { width: 100%; padding: 5px 0 20px 0; }
+
+    /* SCROLL TO TOP */
+    .scroll-top-btn { position: fixed; bottom: 100px; right: 18px; width: 44px; height: 44px; background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15); transition: opacity 0.3s, transform 0.3s; opacity: 0; pointer-events: none; color: rgba(255,255,255,0.8); font-size: 16px; }
+    .scroll-top-btn.visible { opacity: 1; pointer-events: all; }
+    .scroll-top-btn:active { transform: scale(0.92); }
   </style>
 </head>
 <body>
@@ -228,6 +233,24 @@
             <a href="https://sociabuzz.com/rizkyy_25/tribe" target="_blank" class="btn-social" id="btn-socia"><svg viewBox="0 0 24 24"><path d="M14.5,7.5C14.5,6.1 13.4,5 12,5C10.6,5 9.5,6.1 9.5,7.5C9.5,10.3 16,9.2 16,14.5C16,16.7 14.2,18.5 12,18.5C9.8,18.5 8,16.7 8,14.5H10.5C10.5,15.3 11.2,16 12,16C12.8,16 13.5,15.3 13.5,14.5C13.5,11.7 7,12.8 7,7.5C7,5.3 8.8,3.5 12,3.5C15.2,3.5 17,5.3 17,7.5H14.5Z"/></svg></a>
             <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
         </div>
+    </div>
+  </div>
+
+  <!-- SCROLL TO TOP -->
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="scrollToTop()">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- POPUP BELI SEKARANG -->
+  <div id="buyPopup" class="glass-popup-overlay hidden">
+    <div class="glass-popup-card">
+      <div style="font-size:36px; margin-bottom:10px;">🛍️</div>
+      <div class="popup-title" id="buyPopupTitle">Beli Produk?</div>
+      <div class="popup-desc" id="buyPopupDesc">Kamu akan diarahkan ke WhatsApp penjual.</div>
+      <div class="popup-actions">
+        <button class="btn-popup btn-no" onclick="closeBuyPopup()">Batal</button>
+        <button class="btn-popup btn-yes" id="confirmBuyBtn">Beli Sekarang</button>
+      </div>
     </div>
   </div>
 
@@ -341,7 +364,7 @@
                         <div class="mod-box-size" style="color:#00ff7f; background:none;">${prod.harga}${stockBadge}</div>
                     </div>
                     <div class="mod-box-desc">${prod.deskripsi || 'Tidak ada deskripsi.'}</div>
-                    <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="window.open('${prod.link_wa}', '_blank')">Beli Sekarang</button>
+                    <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerBuyPopup('${sanitize(prod.nama_produk)}', '${sanitize(prod.harga)}', '${prod.link_wa}')">Beli Sekarang</button>
                 </div>`;
         });
     }
@@ -414,6 +437,44 @@
         // Load Saklar Sosmed dari Database
         muatSosmedDiPublik();
     }
+    function tampilkanAlert(pesan, jenis = 'sukses') {
+    const toast = document.getElementById('custom-toast');
+    document.getElementById('toast-message').innerText = pesan;
+    if (jenis === 'error') { toast.style.background = '#ef4444'; document.getElementById('toast-icon').className = 'fas fa-exclamation-circle'; }
+    else { toast.style.background = '#10b981'; document.getElementById('toast-icon').className = 'fas fa-check-circle'; }
+    toast.style.top = '20px';
+    setTimeout(() => { toast.style.top = '-100px'; }, 3000);
+    }
+    // POPUP BELI SEKARANG
+    function triggerBuyPopup(nama, harga, url) {
+        document.getElementById('buyPopupTitle').innerText = nama;
+        document.getElementById('buyPopupDesc').innerHTML = `Harga: <b style="color:var(--tg-accent)">${harga}</b><br><br>Kamu akan diarahkan ke WhatsApp penjual untuk melanjutkan pembelian.`;
+        document.getElementById('confirmBuyBtn').onclick = () => { closeBuyPopup(); window.open(url, '_blank'); };
+        document.getElementById('buyPopup').classList.remove('hidden');
+    }
+    function closeBuyPopup() { document.getElementById('buyPopup').classList.add('hidden'); }
+
+    // SCROLL TO TOP
+    function scrollToTop() {
+        const active = document.querySelector('.page-content.active');
+        if (active) active.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.page-content').forEach(el => {
+            el.addEventListener('scroll', () => {
+                const btn = document.getElementById('scrollTopBtn');
+                if (el.scrollTop > 150 && el.classList.contains('active')) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            });
+        });
+    });
   </script>
+  <div id="custom-toast" style="position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:14px 24px;border-radius:14px;font-weight:bold;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(16,185,129,0.3);z-index:999999;transition:top 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
+  <i class="fas fa-check-circle" id="toast-icon"></i>
+  <span id="toast-message">Sukses!</span>
+  </div>
 </body>
 </html>

@@ -324,7 +324,7 @@
         container.innerHTML = '';
         data.forEach(prod => {
             // Logika memunculkan stok di etalase publik
-            let stockBadge = prod.stok ? `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stok: ${prod.stok}</span>` : '';
+            let stockBadge = prod.stok ? `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stok: ${prod.stock}</span>` : '';
             let iconHtml = prod.img_url ? `<img src="${prod.img_url}" onerror="this.outerHTML='🛍️'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '🛍️';
             
             container.innerHTML += `

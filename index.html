@@ -331,7 +331,10 @@
         container.innerHTML = '';
         data.forEach(prod => {
             // SINKRONISASI: Sekarang resmi memanggil prod.stock dari database baru lu
-            let stockBadge = prod.stock ? `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stock: ${prod.stock}</span>` : '';
+            let stockBadge =
+`<span style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px;font-size:10px;margin-left:6px;color:#fff;">
+Stock: ${prod.stock ?? '0'}
+</span>`;
             let iconHtml = prod.img_url ? `<img src="${prod.img_url}" onerror="this.outerHTML='🛍️'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '🛍️';
             
             container.innerHTML += `

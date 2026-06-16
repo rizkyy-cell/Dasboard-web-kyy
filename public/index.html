@@ -65,8 +65,10 @@
     .header-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.4; pointer-events: none; }
     .header-overlay-content { position: relative; z-index: 2; width: 100%; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; }
     .tg-title { font-size: 20px; font-weight: 800; text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8); letter-spacing: 0.5px; color: var(--tg-accent); transition: color 0.3s ease; }
-    .tg-header-icons svg { width: 24px; height: 24px; fill: #ffffff; cursor: pointer; transition: transform 0.2s; }
-    .tg-header-icons svg:active { transform: scale(0.85); }
+
+    .tg-header-icons { display: flex; align-items: center; gap: 15px; }
+    .tg-header-icons svg, .tg-header-icons i { font-size: 20px; color: #ffffff; fill: #ffffff; cursor: pointer; transition: transform 0.2s; }
+    .tg-header-icons svg:active, .tg-header-icons i:active { transform: scale(0.85); }
 
     /* SEARCH & TABS */
     .search-box-container { background-color: var(--tg-bg); padding: 5px 15px 10px 15px; display: none; flex-shrink: 0; animation: slideDown 0.3s ease; }
@@ -98,6 +100,7 @@
 
     /* MOD BOX ITEM (APP & STORE) */
     .mod-box-item { background: rgba(23, 33, 43, 0.8); margin: 12px 15px; padding: 18px; border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    .mod-box-item:active { transform: scale(0.99); }
     .mod-box-header { display: flex; justify-content: space-between; align-items: center; }
     .mod-box-title-group { display: flex; align-items: center; gap: 12px; }
     .mod-box-icon { font-size: 26px; width: 48px; height: 48px; background: rgba(255,255,255,0.05); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -123,6 +126,7 @@
     /* VIP PROFILE RGB CARD */
     @keyframes rgbGlow { 0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; } 33% { color: #00ff00; text-shadow: 0 0 10px #00ff00; } 66% { color: #0000ff; text-shadow: 0 0 10px #0000ff; } 100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; } }
     .vip-card { background: linear-gradient(145deg, #1f2937, #111827); border: 1px solid rgba(255,215,0,0.4); padding: 35px 20px; border-radius: 24px; text-align: center; margin: 15px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; }
+    .rgb-text { animation: rgbGlow 3s linear infinite; font-size: 22px; font-weight: 900; margin-bottom: 5px; position: relative; z-index: 2; }
     
     .social-buttons { display: flex; gap: 12px; justify-content: center; width: 100%; flex-wrap: wrap; margin-top: 15px; position: relative; z-index: 2; }
     .btn-social { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; transition: transform 0.2s; }
@@ -132,6 +136,7 @@
     .glass-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s ease; }
     .glass-popup-overlay.hidden { display: none !important; opacity: 0; }
     .glass-popup-card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); padding: 25px; border-radius: 24px; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.8); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .popup-title { font-size: 20px; font-weight: 800; color: white; margin-bottom: 10px; }
     .popup-desc { font-size: 14px; color: #D1D5DB; margin-bottom: 22px; line-height: 1.5; }
     .popup-actions { display: flex; gap: 12px; justify-content: center; }
@@ -147,21 +152,55 @@
     .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
     .nav-label { font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: 0.3px;}
     .nav-sliding-indicator { position: absolute; top: 50%; left: 0; transform: translateY(-50%) translateX(0); height: 54px; width: 20%; z-index: 2; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
-    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 18px; }
+    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.15); animation: liquidGlow 3s ease-in-out infinite; }
+@keyframes liquidGlow {
+  0%, 100% { border-radius: 24px 14px 28px 18px / 18px 26px 14px 24px; }
+  33% { border-radius: 14px 28px 16px 26px / 26px 14px 24px 16px; }
+  66% { border-radius: 26px 16px 24px 14px / 14px 28px 16px 26px; }
+}
+
+  33% { border-radius: 16px 22px 18px 24px / 22px 16px 20px 18px; }
+  66% { border-radius: 22px 18px 16px 22px / 16px 24px 18px 16px; }
+}
 
     .store-container { width: 100%; padding: 5px 0 20px 0; }
   </style>
 </head>
 <body>
 
-  <div class="header-wrapper">
+  <!-- POPUP NOTIFICATIONS INBOX OVERLAY -->
+  <div id="inboxModalOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99999; display: none; align-items: center; justify-content: center;">
+    <div style="background: #17212b; border: 1px solid rgba(255,255,255,0.12); padding: 20px; border-radius: 24px; max-width: 400px; width: 90%; max-height: 80vh; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <div style="color: #3390ec; font-weight: bold; font-size: 16px;"><i class="fas fa-bell"></i> Notifications</div>
+            <i class="fas fa-times" style="color: #7f91a4; cursor: pointer; font-size: 18px;" onclick="tutupModalInbox()"></i>
+        </div>
+        <div id="inbox-list-container" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; padding-right: 5px;">
+            <!-- List item notifikasi masuk dari database di sini -->
+        </div>
+    </div>
+  </div>
+
+  <!-- TOMBOL PANAH AUTO SCROLL KE ATAS -->
+  <button id="btnScrollToTop" style="position: fixed; bottom: 100px; right: 20px; width: 45px; height: 45px; background: #3390ec; color: white; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; display: none; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: opacity 0.3s;" onclick="scrollToTop()">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+    <div class="header-wrapper">
     <header class="tg-header-banner">
       <video autoplay loop muted playsinline webkit-playsinline class="header-video"><source src="background-profile.mp4" type="video/mp4"></video>
-      <div class="header-overlay-content">
+      <div class="header-overlay-content" style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between;">
+        
         <div class="tg-title" id="header-title">Dashboard Web</div>
-        <div class="tg-header-icons">
-          <svg id="searchIconBtn" viewBox="0 0 24 24" onclick="toggleSearch()"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        
+        <div class="tg-header-icons" style="display: flex; align-items: center; gap: 15px;">
+          <div style="position: relative; display: inline-block; cursor: pointer; transform: translateY(1px);" onclick="bukaModalInbox()">
+              <i class="fas fa-envelope" style="font-size: 20px; color: #ffffff;"></i>
+              <span id="inbox-badge" style="position: absolute; top: -7px; right: -8px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 50%; display: none;">0</span>
+          </div>
+          <svg id="searchIconBtn" viewBox="0 0 24 24" onclick="toggleSearch()" style="width: 22px; height: 22px; fill: #ffffff; cursor: pointer;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </div>
+
       </div>
     </header>
   </div>
@@ -199,8 +238,8 @@
 
   <div class="page-content" id="page-store">
     <div class="store-container">
-        <h2 style="text-align: center; font-size: 16px; margin-bottom:2 px; letter-spacing: 1px; color:var(--tg-accent);">ETALASE APP PREMIUM</h2> 
-        <h2 style="text-align: center; font-size: 9px; letter-spacing: 1px; color">bukan aplikasi mod</h2> 
+        <h2 style="text-align: center; font-size: 16px; margin-bottom: 2px; letter-spacing: 1px; color:var(--tg-accent);">ETALASE APP PREMIUM</h2> 
+        <h2 style="text-align: center; font-size: 9px; letter-spacing: 1px; color: var(--tg-text-muted);">bukan aplikasi mod</h2> 
         <div id="container-store-list"></div>
         <div style="text-align: center; font-size: 11px; color: #627284; margin: 30px 0 10px 0;">© 2026 REZKYY STORE. All Rights Reserved.</div>
     </div>
@@ -232,9 +271,7 @@
 
   <div class="page-content" id="page-profil">
     <div class="vip-card">
-        
         <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity: 0.25;"><source src="banner-profile.mp4" type="video/mp4"></video>
-        
         <div style="position: relative; z-index: 2;">
             <img src="profile.jpg" style="width:100px; height:100px; border-radius:50%; border: 3px solid gold; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
             <div class="rgb-text">Rizky Kurniawan</div>
@@ -261,7 +298,7 @@
     <div class="nav-item" onclick="switchNav('profil', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profil</span></div>
   </div>
 
-  <!-- POP-UP GLASSMORPHISM DOWNLOAD & BELI (SUDAH DITAMBAHKAN ID) -->
+  <!-- POP-UP GLASSMORPHISM DOWNLOAD & BELI -->
   <div id="downloadPopup" class="glass-popup-overlay hidden">
     <div class="glass-popup-card">
         <div id="popup-icon" style="font-size:36px; margin-bottom:10px;">📥</div>
@@ -284,6 +321,11 @@
         <button class="btn-popup btn-yes" onclick="submitBug()">Hubungi</button>
       </div>
     </div>
+  </div>
+
+  <div id="custom-toast" style="position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:14px 24px;border-radius:14px;font-weight:bold;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(16,185,129,0.3);z-index:999999;transition:top 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
+    <i class="fas fa-check-circle" id="toast-icon"></i>
+    <span id="toast-message">Sukses!</span>
   </div>
 
   <script>
@@ -333,7 +375,6 @@
         if(error || !data || data.length === 0) { container.innerHTML = `<p style="text-align:center;color:var(--tg-text-muted);padding:20px;">Aplikasi kosong.</p>`; return; }
         container.innerHTML = '';
         data.forEach(app => {
-            // FILTER PENCARIAN APP MOD AKTIF
             if (searchQueryStr && !app.nama_app.toLowerCase().includes(searchQueryStr)) return;
 
             let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
@@ -355,7 +396,6 @@
         if(error || !data || data.length === 0) { container.innerHTML = `<p style="text-align:center;color:var(--tg-text-muted);padding:20px;">Etalase jualan kosong.</p>`; return; }
         container.innerHTML = '';
         data.forEach(prod => {
-            // FILTER PENCARIAN STORE AKTIF
             if (searchQueryStr && !prod.nama_produk.toLowerCase().includes(searchQueryStr)) return;
 
             let stockBadge = `<span style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px;font-size:10px;margin-left:6px;color:#fff;">Stock: ${prod.stock ?? '0'}</span>`;
@@ -377,32 +417,64 @@
     }
 
     function switchNav(page, index, el) {
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      document.querySelectorAll('.page-content').forEach(content => content.classList.remove('active'));
-      document.getElementById('indicator').style.transform = `translateY(-50%) translateX(${index * 100}%)`;
-      if(el) el.classList.add('active');
-      document.getElementById('page-' + page).classList.add('active');
-
-      const searchIcon = document.getElementById('searchIconBtn');
+  const indicator = document.getElementById('indicator');
+  const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
+  
+  if (currentIndex !== -1 && currentIndex !== index) {
+    // 1. Efek Membelah & Mengecil pas mulai jalan
+    indicator.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 1, 1)';
+    indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scale(0.4, 0.7)`;
+    
+    setTimeout(() => {
+      // 2. Efek Meluncur & Membal (Bounce App Store)
+      indicator.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1.1, 0.9)`;
       
-      if (['home', 'appmod', 'store'].includes(page)) {
-          searchIcon.style.display = 'block';
+      setTimeout(() => {
+        // 3. Stabil kembali ke ukuran normal di tab tujuan
+        indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
+      }, 250);
+    }, 150);
+  } else {
+    if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
+  }
+
+  // Mengatur class active pada menu bottom nav
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.page-content').forEach(content => content.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.getElementById('page-' + page).classList.add('active');
+
+  // Logika memunculkan ikon search hanya di halaman tertentu
+  const searchIcon = document.getElementById('searchIconBtn');
+  if (['home', 'appmod', 'store'].includes(page)) {
+      searchIcon.style.display = 'block';
+  } else {
+      searchIcon.style.display = 'none';
+      document.getElementById('searchBoxWrapper').classList.remove('show');
+  }
+
+  // Logika ganti teks header dan ambil data database Supabase sesuai tab
+  if (page === 'home') { 
+      document.getElementById('karya-tabs-header').style.display = 'block'; 
+      document.getElementById('header-title').innerText = 'Dashboard Web'; 
+      ambilDataWeb(); 
+  } else {
+      document.getElementById('karya-tabs-header').style.display = 'none';
+      if(page === 'appmod') { 
+          document.getElementById('header-title').innerText = 'App Mod'; 
+          ambilDataApp(); 
+      } else if(page === 'store') { 
+          document.getElementById('header-title').innerText = 'My Store'; 
+          ambilDataStore(); 
+      } else if(page === 'pengaturan') {
+          document.getElementById('header-title').innerText = 'Pengaturan';
       } else {
-          searchIcon.style.display = 'none';
-          document.getElementById('searchBoxWrapper').classList.remove('show');
+          document.getElementById('header-title').innerText = 'Profile';
       }
+  }
+}
 
-      if (page === 'home') { document.getElementById('karya-tabs-header').style.display = 'block'; document.getElementById('header-title').innerText = 'Dashboard Web'; ambilDataWeb(); } 
-      else {
-        document.getElementById('karya-tabs-header').style.display = 'none';
-        if(page === 'appmod') { document.getElementById('header-title').innerText = 'App Mod'; ambilDataApp(); }
-        else if(page === 'store') { document.getElementById('header-title').innerText = 'My Store'; ambilDataStore(); }
-        else if(page === 'pengaturan') document.getElementById('header-title').innerText = 'Pengaturan';
-        else document.getElementById('header-title').innerText = 'Profile';
-      }
-    }
-
-    // FUNGSI POP-UP DOWNLOAD YANG SUDAH DIPERBAIKI
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 
         document.getElementById('popup-icon').innerText = "📥";
@@ -412,17 +484,6 @@
         document.getElementById('downloadPopup').classList.remove('hidden'); 
     }
 
-    // FUNGSI POP-UP DOWNLOAD YANG SUDAH DIPERBAIKI
-    function triggerDownloadNotif(title, size, url) { 
-        activeDownloadUrl = url; 
-        document.getElementById('popup-icon').innerText = "📥";
-        document.querySelector('#downloadPopup .popup-title').innerText = "Ingin download?";
-        document.getElementById('popupDownloadDetails').innerHTML = `Mengunduh <b>${title}</b><br><br>📦 Size: <span style="color:var(--tg-accent); font-weight:bold;">${size}</span>`; 
-        document.getElementById('confirmDownloadBtn').innerText = "Download";
-        document.getElementById('downloadPopup').classList.remove('hidden'); 
-    }
-
-    // FUNGSI POP-UP STORE YANG SUDAH DIPERBAIKI
     function triggerStoreNotif(title, price, url) {
         activeDownloadUrl = url; 
         document.getElementById('popup-icon').innerText = "🛍️";
@@ -438,7 +499,6 @@
     function toggleSearch() { const box = document.getElementById('searchBoxWrapper'); box.classList.toggle('show'); if (box.classList.contains('show')) document.getElementById('searchInput').focus(); }
     function filterCategory(cat, el) { document.querySelectorAll('.tg-tab').forEach(e => e.classList.remove('active')); el.classList.add('active'); currentCategory = cat; renderHomeList(); }
     
-    // PENCARIAN SEKARANG AKTIF DI SEMUA TAB
     function searchKarya(val) { 
         searchQueryStr = val.toLowerCase().trim(); 
         renderHomeList(); 
@@ -490,21 +550,73 @@
         }
     }
 
+    // A. LOGIKA UTAMA NOTIFIKASI KOTAK SURAT (INBOX)
+    async function muatNotifikasiInbox() {
+        const badge = document.getElementById('inbox-badge');
+        const container = document.getElementById('inbox-list-container');
+        
+        const { data, error } = await supabaseClient.from('web_inbox').select('*').order('id', { ascending: false });
+        if (data && !error) {
+            if (data.length > 0) {
+                badge.innerText = data.length;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            container.innerHTML = '';
+            data.forEach(item => {
+                let expiredTag = item.is_expired ? '<span style="color:#ef4444; font-size:10px; font-weight:bold; display:block; margin-top:5px;">EXPIRED</span>' : '';
+                let borderStyle = item.is_expired ? 'border: 1px solid rgba(239,68,68,0.2);' : 'border: 1px solid rgba(255,255,255,0.05);';
+                
+                container.innerHTML += `
+                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; ${borderStyle} position: relative;">
+                        <div style="position: absolute; top: 12px; right: 12px; width: 6px; height: 6px; background: #ef4444; border-radius: 50%; ${item.is_expired ? 'display:none;' : ''}"></div>
+                        <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px; display:flex; align-items:center; gap:8px;">
+                            <i class="fas fa-info-circle" style="color:#3390ec;"></i> ${item.judul}
+                        </div>
+                        <div style="font-size: 12.5px; color: #7f91a4; line-height: 1.4; word-break: break-word;">${item.pesan}</div>
+                        <div style="font-size: 11px; color: #555; margin-top: 8px;">${item.tanggal}</div>
+                        ${expiredTag}
+                    </div>`;
+            });
+        }
+    }
+
+    function bukaModalInbox() {
+        document.getElementById('inboxModalOverlay').style.display = 'flex';
+        document.getElementById('inbox-badge').style.display = 'none'; 
+    }
+    
+    function tutupModalInbox() {
+        document.getElementById('inboxModalOverlay').style.display = 'none';
+    }
+
+    // B. LOGIKA TOMBOL PANAH AUTO SCROLL KE ATAS DENGAN CEPAT
+    window.onscroll = function() {
+        const btn = document.getElementById('btnScrollToTop');
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            btn.style.display = 'block';
+        } else {
+            btn.style.display = 'none';
+        }
+    };
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    }
+
     window.onload = function() {
         ambilDataWeb(); 
         ambilDataApp(); 
         ambilDataStore();
         muatSosmedDiPublik();
         muatAnnouncementDiPublik();
+        muatNotifikasiInbox();
         
         let savedTheme = localStorage.getItem('publicThemeColor');
         if (savedTheme) document.documentElement.style.setProperty('--tg-accent', savedTheme);
     }
-
   </script>
-  <div id="custom-toast" style="position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:14px 24px;border-radius:14px;font-weight:bold;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(16,185,129,0.3);z-index:999999;transition:top 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
-  <i class="fas fa-check-circle" id="toast-icon"></i>
-  <span id="toast-message">Sukses!</span>
-  </div>
 </body>
 </html>

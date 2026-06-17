@@ -85,7 +85,9 @@
 
     /* PAGE CONTENT */
     .page-content { flex: 1; overflow-y: auto; display: none; padding: 5px 0 110px 0; -webkit-overflow-scrolling: touch; }
-    .page-content.active { display: block; animation: fadeIn 0.4s ease; }
+        .page-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
+    .page-content.active { display: block; opacity: 1; transform: translateY(0); }
+
     @keyframes fadeIn { from { opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     /* CHAT ITEM (WEB) */
@@ -145,10 +147,12 @@
     .btn-yes { background: var(--tg-accent); color: white; }
 
     /* BOTTOM NAV */
-        .bottom-nav-wrapper { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 440px; height: 68px; background-color: rgba(14, 22, 33, 0.4) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 12px 45px rgba(0, 0, 0, 0.5); z-index: 9999; display: flex; align-items: center; }
+            .bottom-nav-wrapper { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 440px; height: 68px; background-color: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12) !important; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important; z-index: 9999; display: flex; align-items: center; }
 
     .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.3s ease; width: 20%; }
-    .nav-item.active { color: #ffffff; }
+        .nav-item.active { color: #ffffff; transform: scale(1.12); }
+    .nav-item { transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease; }
+
     .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin-bottom: 3px; transition: transform 0.3s; }
     .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
     .nav-label { font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: 0.3px;}
@@ -164,7 +168,62 @@
   66% { border-radius: 22px 18px 16px 22px / 16px 24px 18px 16px; }
 }
 
-    .store-container { width: 100%; padding: 5px 0 20px 0; }
+        .store-container { width: 100%; padding: 5px 0 20px 0; }
+
+    /* CSS SAKLAR TOGGLE GESER */
+    .theme-switch input:checked + .theme-slider { background-color: #34c759 !important; }
+    .theme-switch input:checked + .theme-slider:before { transform: translateX(20px) !important; }
+    .theme-slider:before { position: absolute !important; content: "" !important; height: 20px !important; width: 20px !important; left: 3px !important; bottom: 3px !important; background-color: white !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
+
+        /* ==========================================
+       PERBAIKAN TOTAL: CSS LIGHT THEME KYY
+       ========================================== */
+        /* STYLE UTUH LIGHT THEME GLOBAL DAN DETAIL STOK */
+    body.light-theme { background: #f4f6f9 !important; color: #1e293b !important; }
+    body.light-theme .tg-header-banner { background: #ffffff !important; border-bottom: 1px solid rgba(0,0,0,0.06) !important; }
+    body.light-theme #header-title { color: #1e293b !important; }
+    body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.75) !important; border-top: 1px solid rgba(0, 0, 0, 0.05) !important; box-shadow: 0 -4px 20px rgba(0,0,0,0.03) !important; }
+    body.light-theme .nav-item { color: #64748b !important; }
+    body.light-theme .nav-item.active { color: #1e293b !important; }
+    body.light-theme #header-liquid-bg { background: rgba(0, 0, 0, 0.05) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; }
+    body.light-theme #searchIconBtn { fill: #1e293b !important; }
+    body.light-theme #emailIconContainer i { color: #1e293b !important; }
+    body.light-theme .theme-slider { background-color: rgba(0,0,0,0.1) !important; }
+
+    /* PERBAIKAN CARD, TEKS, DAN LINGKARAN STOK UTK MY STORE & APP MOD     /* PERBAIKAN CARD, TEKS, DAN LINGKARAN STOK UTK MY STORE & APP MOD */
+    body.light-theme .settings-card, body.light-theme .mod-box-item, body.light-theme .chat-item {
+        background: #ffffff !important;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
+    }
+    body.light-theme .settings-title, body.light-theme .stat-label, body.light-theme .mod-box-name, body.light-theme .chat-title {
+        color: #1e293b !important;
+    }
+    /* FIX AKURAT: Memaksa teks harga hijau dan container badge stock di fungsi ambilDataStore() agar kontras di background putih */
+    body.light-theme .mod-box-size[style*="color:#00ff7f"] {
+        color: #0b9b4d !important; /* Ubah jadi hijau tua agar harganya kebaca jelas */
+    }
+    body.light-theme .mod-box-size span[style*="background:rgba(255,255,255,0.1)"] {
+        background: rgba(0, 0, 0, 0.06) !important; /* Ubah latar gelembung stock jadi abu transparan */
+        color: #1e293b !important; /* Ubah tulisan teks stock dari putih ke hitam pekat */
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    }
+
+    body.light-theme [style*="color: #ccc"], 
+    body.light-theme [style*="color: #999"], 
+    body.light-theme [style*="color: rgba(255, 255, 255"],
+    body.light-theme .product-desc,
+    body.light-theme .mod-box-desc {
+        color: #475569 !important; /* Memaksa status teks/stok abu-abu agar terlihat jelas dan kontras */
+    }
+    body.light-theme [style*="color: #ff4d4d"], body.light-theme .status-sold {
+        color: #dc2626 !important; /* Tetap merah tegas saat status SOLD */
+    }
+
+    /* ANIMASI SAKLAR GESER TOGGLE */
+    .theme-switch input:checked + .theme-slider { background-color: #34c759 !important; }
+    .theme-switch input:checked + .theme-slider:before { transform: translateX(20px) !important; }
+    .theme-slider:before { position: absolute !important; content: "" !important; height: 20px !important; width: 20px !important; left: 3px !important; bottom: 3px !important; background-color: white !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
   </style>
 </head>
 <body>
@@ -194,12 +253,16 @@
         
         <div class="tg-title" id="header-title">Dashboard Web</div>
         
-        <div class="tg-header-icons" style="display: flex; align-items: center; gap: 15px;">
-          <div style="position: relative; display: inline-block; cursor: pointer; transform: translateY(1px);" onclick="bukaModalInbox()">
-              <i class="fas fa-envelope" style="font-size: 20px; color: #ffffff;"></i>
-              <span id="inbox-badge" style="position: absolute; top: -7px; right: -8px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 50%; display: none;">0</span>
+                <div class="tg-header-icons" style="position: relative; display: flex !important; align-items: center !important; height: 38px !important; width: 82px !important; box-sizing: border-box !important; margin-right: 15px !important;">
+          
+          <div id="header-liquid-bg" style="position: absolute; top: 0; right: 0; height: 100%; width: 100%; background: rgba(255, 255, 255, 0.03) !important; backdrop-filter: blur(3px) !important; -webkit-backdrop-filter: blur(3px) !important; border: 1px solid rgba(255, 255, 255, 0.12) !important; box-shadow: inset 0 1px 0px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.1) !important; border-radius: 12px; transition: width 0.35s cubic-bezier(0.25, 1, 0.5, 1), border-radius 0.35s cubic-bezier(0.25, 1, 0.5, 1); z-index: 1; pointer-events: none;"></div>
+
+          <svg id="searchIconBtn" viewBox="0 0 24 24" onclick="toggleSearch()" style="width: 19px !important; height: 19px !important; fill: #ffffff !important; cursor: pointer !important; display: block; position: absolute; left: 10px; top: 50%; transform: translateY(-50%) scale(1); z-index: 3; transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); flex-shrink: 0;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+
+          <div id="emailIconContainer" style="position: absolute; right: 9px; top: 50%; transform: translateY(-50%); display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; z-index: 3; width: 20px; height: 20px; flex-shrink: 0;" onclick="bukaModalInbox()">
+              <i class="fas fa-envelope" style="font-size: 18px !important; color: #ffffff !important;"></i>
+              <span id="inbox-badge" style="position: absolute; top: -6px; right: -8px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 50%; display: none;">0</span>
           </div>
-          <svg id="searchIconBtn" viewBox="0 0 24 24" onclick="toggleSearch()" style="width: 22px; height: 22px; fill: #ffffff; cursor: pointer;"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
         </div>
 
       </div>
@@ -246,8 +309,10 @@
     </div>
   </div>
 
-  <div class="page-content" id="page-pengaturan">
+    <!-- PAGE 4: PENGATURAN (STRUKTUR BERSIH & TIDAK DOUBLE) -->
+    <div class="page-content" id="page-pengaturan">
     <div class="settings-container">
+      
       <div class="settings-card">
         <div class="settings-title">Aksen Warna Tema</div>
         <div class="theme-grid">
@@ -261,17 +326,32 @@
           <div class="theme-dot" style="background-color: #660eba;" onclick="changeTheme('#660eba', this)"></div>
         </div>
       </div>
+
+      <div class="settings-card" style="display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 20px !important;">
+        <div style="display: flex !important; align-items: center !important; gap: 12px !important;">
+            <i class="fas fa-moon" id="theme-icon" style="font-size: 16px !important; color: var(--tg-accent) !important;"></i>
+            <span style="color: #ffffff; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Mode Gelap</span>
+        </div>
+        <label class="theme-switch" style="position: relative !important; display: inline-block !important; width: 46px !important; height: 26px !important; margin: 0 !important;">
+            <input type="checkbox" id="theme-toggle-checkbox" onchange="toggleThemeMode()" style="opacity: 0 !important; width: 0 !important; height: 0 !important;">
+            <span class="theme-slider" style="position: absolute !important; cursor: pointer !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; background-color: rgba(255,255,255,0.1) !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 34px !important;"></span>
+        </label>
+      </div>
+
       <div class="settings-card">
         <div class="settings-title">Sistem & Keamanan File</div>
         <div class="stat-row"><span class="stat-label">Status Server</span><span style="color: #10b981; font-weight: bold;">Online ✔</span></div>
         <div class="stat-row"><span class="stat-label">Enkripsi Unduhan</span><span style="color: #10b981;">Aman (SSL)</span></div>
         <button class="btn-vt-scan" onclick="triggerVirusTotal()"><i class="fas fa-shield-alt"></i> Cek Keamanan via VirusTotal</button>
       </div>
+
     </div>
   </div>
 
+  <!-- PAGE 5: PROFIL ASLI LU -->
   <div class="page-content" id="page-profil">
     <div class="vip-card">
+
         <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity: 0.25;"><source src="banner-profile.mp4" type="video/mp4"></video>
         <div style="position: relative; z-index: 2;">
             <img src="profile.jpg" style="width:100px; height:100px; border-radius:50%; border: 3px solid gold; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
@@ -422,17 +502,14 @@
   const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
   
   if (currentIndex !== -1 && currentIndex !== index) {
-    // 1. Efek Membelah & Mengecil pas mulai jalan
     indicator.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 1, 1)';
     indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scale(0.4, 0.7)`;
     
     setTimeout(() => {
-      // 2. Efek Meluncur & Membal (Bounce App Store)
       indicator.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
       indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1.1, 0.9)`;
       
       setTimeout(() => {
-        // 3. Stabil kembali ke ukuran normal di tab tujuan
         indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
       }, 250);
     }, 150);
@@ -440,22 +517,38 @@
     if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
   }
 
-  // Mengatur class active pada menu bottom nav
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.querySelectorAll('.page-content').forEach(content => content.classList.remove('active'));
   if(el) el.classList.add('active');
   document.getElementById('page-' + page).classList.add('active');
 
-  // Logika memunculkan ikon search hanya di halaman tertentu
+  // PERBAIKAN LOGIKA TRANSLATION: HANYA LIQUID YANG BERGERAK
   const searchIcon = document.getElementById('searchIconBtn');
+  const headerBg = document.getElementById('header-liquid-bg');
+  
   if (['home', 'appmod', 'store'].includes(page)) {
-      searchIcon.style.display = 'block';
+      if(searchIcon) {
+        searchIcon.style.opacity = '1';
+        searchIcon.style.transform = 'translateY(-50%) scale(1)';
+        searchIcon.style.pointerEvents = 'auto';
+      }
+      if(headerBg) {
+        headerBg.style.width = '100%';
+        headerBg.style.borderRadius = '12px';
+      }
   } else {
-      searchIcon.style.display = 'none';
+      if(searchIcon) {
+        searchIcon.style.opacity = '0';
+        searchIcon.style.transform = 'translateY(-50%) scale(0)';
+        searchIcon.style.pointerEvents = 'none';
+      }
+      if(headerBg) {
+        headerBg.style.width = '38px'; // Menyusut pas seukuran tombol email di kanan
+        headerBg.style.borderRadius = '50%'; // Menjadi bulat simetris membungkus email
+      }
       document.getElementById('searchBoxWrapper').classList.remove('show');
   }
 
-  // Logika ganti teks header dan ambil data database Supabase sesuai tab
   if (page === 'home') { 
       document.getElementById('karya-tabs-header').style.display = 'block'; 
       document.getElementById('header-title').innerText = 'Dashboard Web'; 
@@ -475,6 +568,7 @@
       }
   }
 }
+
 
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 
@@ -607,7 +701,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
 
-    window.onload = function() {
+        window.onload = function() {
         ambilDataWeb(); 
         ambilDataApp(); 
         ambilDataStore();
@@ -615,9 +709,40 @@
         muatAnnouncementDiPublik();
         muatNotifikasiInbox();
         
-        let savedTheme = localStorage.getItem('publicThemeColor');
-        if (savedTheme) document.documentElement.style.setProperty('--tg-accent', savedTheme);
+        // Pengecekan Tema Saat Web Pertama Kali Dimuat
+        const savedTheme = localStorage.getItem('themeWebKyy') || 'dark';
+        const checkbox = document.getElementById('theme-toggle-checkbox');
+        const icon = document.getElementById('theme-icon');
+        
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+            if(checkbox) checkbox.checked = false; // saklar mati (mode terang)
+            if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; }
+        } else {
+            document.body.classList.remove('light-theme');
+            if(checkbox) checkbox.checked = true; // saklar hidup (mode gelap)
+            if(icon) { icon.className = 'fas fa-moon'; icon.style.color = '#ffffff'; }
+        }
+    };
+
+    // Fungsi Utama Eksekusi Tukar Tema Klik Saklar
+    function toggleThemeMode() {
+        const checkbox = document.getElementById('theme-toggle-checkbox');
+        const icon = document.getElementById('theme-icon');
+        
+        if (checkbox.checked) {
+            // Berubah Ke Mode Gelap (Dark Mode)
+            document.body.classList.remove('light-theme');
+            localStorage.setItem('themeWebKyy', 'dark');
+            if(icon) { icon.className = 'fas fa-moon'; icon.style.color = '#ffffff'; }
+        } else {
+            // Berubah Ke Mode Terang (Light Mode)
+            document.body.classList.add('light-theme');
+            localStorage.setItem('themeWebKyy', 'light');
+            if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; }
+        }
     }
+    
   </script>
 </body>
 </html>

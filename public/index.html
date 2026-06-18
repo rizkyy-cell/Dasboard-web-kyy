@@ -103,7 +103,7 @@
 
     /* PAGE CONTENT */
     .page-content { flex: 1; overflow-y: auto; display: none; padding: 5px 0 110px 0; -webkit-overflow-scrolling: touch; }
-        .page-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
+    .page-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
     .page-content.active { display: block; opacity: 1; transform: translateY(0); }
 
     @keyframes fadeIn { from { opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -164,18 +164,58 @@
     .btn-no { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
     .btn-yes { background: var(--tg-accent); color: white; }
 
-    /* BOTTOM NAV */
-            .bottom-nav-wrapper { position: fixed; bottom: max(20px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: 92%; max-width: 440px; height: 68px; background-color: rgba(255, 255, 255, 0.04) !important; backdrop-filter: blur(20px) !important; -webkit-backdrop-filter: blur(20px) !important; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.12) !important; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important; z-index: 9999; display: flex; align-items: center; }
+    /* BOTTOM NAV - FIX RESPONSIVE TOUCH ACTION UNTUK DRAG & SWIPE */
+    .bottom-nav-wrapper { 
+      position: fixed; 
+      bottom: max(20px, env(safe-area-inset-bottom)); 
+      left: 50%; 
+      transform: translateX(-50%); 
+      width: 92%; 
+      max-width: 440px; 
+      height: 68px; 
+      background-color: rgba(255, 255, 255, 0.04) !important; 
+      backdrop-filter: blur(20px) !important; 
+      -webkit-backdrop-filter: blur(20px) !important; 
+      border-radius: 24px; 
+      border: 1px solid rgba(255, 255, 255, 0.12) !important; 
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important; 
+      z-index: 9999; 
+      display: flex; 
+      align-items: center;
+      touch-action: pan-y !important; /* Mencegah bentrok dengan scroll vertical halaman */
+    }
 
-    .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.3s ease; width: 20%; }
-        .nav-item.active { color: #ffffff; transform: scale(1.12); }
+    .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.3s ease; width: 20%; user-select: none; -webkit-user-select: none; }
+    .nav-item.active { color: #ffffff; transform: scale(1.12); }
     .nav-item { transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease; }
 
     .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin-bottom: 3px; transition: transform 0.3s; }
     .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
     .nav-label { font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: 0.3px;}
-    .nav-sliding-indicator { position: absolute; top: 50%; left: 0; transform: translateY(-50%) translateX(0); height: 54px; width: 20%; z-index: 2; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none; }
-    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.15); animation: liquidGlow 3s ease-in-out infinite; }
+    
+    /* REPAIR: Mengizinkan perubahan scaleX & koordinat translateX secara real-time dinamis */
+    .nav-sliding-indicator { 
+      position: absolute; 
+      top: 50%; 
+      left: 0; 
+      height: 54px; 
+      width: 20%; 
+      z-index: 2; 
+      pointer-events: none; 
+      transform: translateY(-50%) translateX(0);
+      will-change: transform;
+    }
+    
+    /* Efek gelembung saat Mode Gelap (Dipertebal dikit warnanya biar mirip App Store) */
+    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.15); border-radius: 14px; }
+
+    /* Efek gelembung saat Mode Terang */
+    body.light-theme .nav-sliding-indicator::before {
+        background: rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        box-shadow: none !important;
+    }
+
 @keyframes liquidGlow {
   0%, 100% { border-radius: 24px 14px 28px 18px / 18px 26px 14px 24px; }
   33% { border-radius: 14px 28px 16px 26px / 26px 14px 24px 16px; }
@@ -476,6 +516,7 @@
     let currentCategory = 'all';
     let searchQueryStr = '';
     let activeDownloadUrl = '';
+    let isNavDragging = false; // Flag untuk melacak pergerakan jari
 
     async function ambilDataWeb() {
         const container = document.getElementById('container-web-list');
@@ -561,27 +602,32 @@
   const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
   
   if (currentIndex !== -1 && currentIndex !== index) {
-    indicator.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 1, 1)';
-    indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scale(0.4, 0.7)`;
+    const keKanan = index > currentIndex;
     
+    // FASE 1: Gelembung mencair melar memanjang (Stretch) mengikuti arah geseran jari
+    indicator.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1)';
+    if (keKanan) {
+      indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scaleX(1.35)`;
+    } else {
+      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1.35)`;
+    }
+    
+    // FASE 2: Gelembung mendarat pas di menu tujuan lalu mengkerut normal kembali (Efek Bounce Jell-O)
     setTimeout(() => {
-      indicator.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1.1, 0.9)`;
-      
-      setTimeout(() => {
-        indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
-      }, 250);
-    }, 150);
+      indicator.style.transition = 'transform 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.28)';
+      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
+    }, 130);
+    
   } else {
-    if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scale(1)`;
+    if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
   }
 
+  // SISA LOGIKA BAWAAN LU YANG GAK BOLEH HILANG (DITULIS UTUH):
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.querySelectorAll('.page-content').forEach(content => content.classList.remove('active'));
   if(el) el.classList.add('active');
   document.getElementById('page-' + page).classList.add('active');
 
-  // PERBAIKAN LOGIKA TRANSLATION: HANYA LIQUID YANG BERGERAK
   const searchIcon = document.getElementById('searchIconBtn');
   const headerBg = document.getElementById('header-liquid-bg');
   
@@ -602,13 +648,13 @@
         searchIcon.style.pointerEvents = 'none';
       }
       if(headerBg) {
-        headerBg.style.width = '38px'; // Menyusut pas seukuran tombol email di kanan
-        headerBg.style.borderRadius = '50%'; // Menjadi bulat simetris membungkus email
+        headerBg.style.width = '38px';
+        headerBg.style.borderRadius = '50%';
       }
       document.getElementById('searchBoxWrapper').classList.remove('show');
   }
 
-  if (page === 'home') { 
+      if (page === 'home') { 
       document.getElementById('karya-tabs-header').style.display = 'block'; 
       document.getElementById('header-title').innerText = 'Dashboard Web'; 
       ambilDataWeb(); 
@@ -627,7 +673,6 @@
       }
   }
 }
-
 
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 
@@ -760,8 +805,53 @@
         window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
 
-            // Jalankan pengecekan tema secepat mungkin sebelum element database selesai merender
+    // GESTURE DRAG ENGINE (HOLD AND DRAG MECHANICAL LIQUID INDICATOR)
     document.addEventListener('DOMContentLoaded', function() {
+        const wrapper = document.querySelector('.bottom-nav-wrapper');
+        const indicator = document.getElementById('indicator');
+        const items = Array.from(document.querySelectorAll('.nav-item'));
+        
+        if (!wrapper || !indicator) return;
+
+        // Mendeteksi sentuhan jari pertama kali (Hold)
+        wrapper.addEventListener('touchstart', function(e) {
+            isNavDragging = true;
+            prosesGeserNavigasi(e, wrapper, indicator, items);
+        }, { passive: true });
+
+        // Mengikuti pergeseran jari secara horizontal (Drag/Swipe)
+        wrapper.addEventListener('touchmove', function(e) {
+            if (!isNavDragging) return;
+            prosesGeserNavigasi(e, wrapper, indicator, items);
+        }, { passive: true });
+
+        // Mengunci halaman otomatis saat jari diangkat (Release)
+        wrapper.addEventListener('touchend', function(e) {
+            isNavDragging = false;
+            
+            const currentActive = wrapper.querySelector('.nav-item.active');
+            let itemTerdekat = currentActive;
+            let jarakTerkecil = Infinity;
+            
+            const indicatorRect = indicator.getBoundingClientRect();
+            const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
+
+            items.forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenter = itemRect.left + (itemRect.width / 2);
+                const selisih = Math.abs(indicatorCenter - itemCenter);
+                if (selisih < jarakTerkecil) {
+                    jarakTerkecil = selisih;
+                    itemTerdekat = item;
+                }
+            });
+
+            if (itemTerdekat) {
+                itemTerdekat.click(); // Memicu fungsi click bawaan lu secara otomatis
+            }
+        });
+
+        // Jalankan pengecekan tema secepat mungkin sebelum element database selesai merender
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark';
         const checkbox = document.getElementById('theme-toggle-checkbox');
         const icon = document.getElementById('theme-icon');
@@ -779,6 +869,31 @@
             if(themeText) themeText.innerText = 'Mode Gelap';
         }
     });
+
+    // Fungsi pengukur kalkulasi pergerakan sumbu X jari terhadap lebar bar menu bawah
+    function prosesGeserNavigasi(e, wrapper, indicator, items) {
+        const touch = e.touches[0];
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const lebarPerItem = wrapperRect.width / 5; // Total 5 item menu (masing-masing 20%)
+        
+        let relativeX = touch.clientX - wrapperRect.left;
+        
+        // Batasi gelembung cairan agar tidak jebol keluar batas kiri-kanan wrapper
+        if (relativeX < 0) relativeX = 0;
+        if (relativeX > wrapperRect.width) relativeX = wrapperRect.width;
+
+        const indeksTarget = Math.floor(relativeX / lebarPerItem);
+        const indeksAktifSekarang = items.findIndex(item => item.classList.contains('active'));
+
+        indicator.style.transition = 'transform 0.08s linear';
+        
+        if (indeksAktifSekarang !== -1 && indeksTarget !== indeksAktifSekarang) {
+            // Berikan deformasi melar (scaleX) real-time pas jari lu geser memanjang
+            indicator.style.transform = `translateY(-50%) translateX(${(relativeX - (lebarPerItem / 2)) / lebarPerItem * 100}%) scaleX(1.22)`;
+        } else {
+            indicator.style.transform = `translateY(-50%) translateX(${(relativeX - (lebarPerItem / 2)) / lebarPerItem * 100}%) scaleX(1)`;
+        }
+    }
 
     // Pertahankan window.onload khusus untuk menarik data internal & external API
     window.onload = function() {

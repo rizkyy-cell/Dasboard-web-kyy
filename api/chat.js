@@ -12,7 +12,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Kunci GEMINI_API_KEY belum terpasang di Vercel.' });
         }
 
-        const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy. Jawablah dengan singkat, profesional, dan gunakan bahasa Indonesia.";
+        const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy milik Rizky Kurniawan. Tugasmu memandu user. Info tambahan: Web ini berisi Tools, Mod Aplikasi, dan App Premium. Jika user bertanya cara beli, arahkan untuk klik tombol 'Beli Sekarang' di menu Store.";
 
         // Model Flash (Harusnya selalu tersedia untuk Free Tier)
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;

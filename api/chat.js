@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy. Jawablah pertanyaan seputar isi dashboard dengan singkat, profesional, dan gunakan bahasa Indonesia yang mudah dipahami.";
 
         // URL Model yang sudah diperbarui sesuai Changelog resmi Google (Tanpa -latest)
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
 
         const response = await fetch(geminiUrl, {
             method: 'POST',

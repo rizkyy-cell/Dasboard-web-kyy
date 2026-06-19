@@ -102,12 +102,36 @@
     .tab-badge { background-color: #0e1621; color: var(--tg-text-muted); font-size: 11px; padding: 2px 7px; border-radius: 10px; transition: all 0.3s ease; }
     .tg-tab.active .tab-badge { background-color: var(--tg-accent); color: white; }
 
-    /* PAGE CONTENT */
+        /* ==========================================
+       PAGE CONTENT & SMART TRANSITIONS
+       ========================================== */
     .page-content { flex: 1; overflow-y: auto; display: none; padding: 5px 0 110px 0; -webkit-overflow-scrolling: touch; }
-    .page-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
-    .page-content.active { display: block; opacity: 1; transform: translateY(0); }
+    
+    /* Saat halaman aktif, izinkan elemen untuk tampil sebelum dianimasikan */
+    .page-content.active { display: block; }
 
-    @keyframes fadeIn { from { opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    /* Animasi Halaman Masuk dari Kanan */
+    .slide-from-right { animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+    
+    /* Animasi Halaman Masuk dari Kiri */
+    .slide-from-left { animation: slideInLeft 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+    
+    /* Animasi Default (Muncul Lembut dari Bawah saat web pertama dibuka) */
+    .slide-up { animation: popUpFade 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+    /* Keyframes Mesin Animasinya */
+    @keyframes slideInRight {
+        0% { opacity: 0; transform: translateX(40px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInLeft {
+        0% { opacity: 0; transform: translateX(-40px); }
+        100% { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes popUpFade {
+        0% { opacity: 0; transform: translateY(15px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
 
     /* CHAT ITEM (WEB) */
     .chat-item { display: flex; align-items: center; gap: 12px; margin: 10px 15px; padding: 14px; border-radius: 14px; background: rgba(23,33,43,.6); border: 1px solid rgba(255,255,255,.06); cursor: pointer; transition: transform 0.2s; }

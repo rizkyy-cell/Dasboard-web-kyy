@@ -80,6 +80,7 @@
     .vip-card .header-video {
         border-radius: 24px !important; /* Menyesuaikan langsung dengan kelengkungan vip-card lu */
     }
+    
 
     .header-overlay-content { position: relative; z-index: 2; width: 100%; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; }
     .tg-title { font-size: 20px; font-weight: 800; text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8); letter-spacing: 0.5px; color: var(--tg-accent); transition: color 0.3s ease; }
@@ -220,10 +221,6 @@
   0%, 100% { border-radius: 24px 14px 28px 18px / 18px 26px 14px 24px; }
   33% { border-radius: 14px 28px 16px 26px / 26px 14px 24px 16px; }
   66% { border-radius: 26px 16px 24px 14px / 14px 28px 16px 26px; }
-}
-
-  33% { border-radius: 16px 22px 18px 24px / 22px 16px 20px 18px; }
-  66% { border-radius: 22px 18px 16px 22px / 16px 24px 18px 16px; }
 }
 
         .store-container { width: 100%; padding: 5px 0 20px 0; }
@@ -448,6 +445,62 @@
     .ai-btn-modal-hapus { background: #ff3b30; color: #fff; }
     .ai-btn-modal-hapus:hover { background: #e02e24; }
 
+        /* ==========================================
+       WIDGET SYSTEM MONITOR (LIQUID GLASS)
+       ========================================== */
+    .glass-sys-info {
+        background: rgba(23, 33, 43, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        margin: 0 15px 20px 15px; /* Pas di ruang kosong */
+        padding: 18px 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        transition: all 0.3s ease;
+    }
+    body.light-theme .glass-sys-info {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+    .sys-header {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--tg-accent);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+        padding-bottom: 12px;
+    }
+    body.light-theme .sys-header { border-bottom: 1px dashed rgba(0, 0, 0, 0.1); }
+    .sys-row { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; }
+    .sys-label { color: var(--tg-text-muted); display: flex; align-items: center; gap: 10px; }
+    .sys-label i { width: 16px; text-align: center; opacity: 0.8; }
+    .sys-val {
+        font-weight: 700;
+        color: #fff;
+        text-align: right;
+        max-width: 55%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: color 0.3s;
+    }
+    body.light-theme .sys-val { color: #1e293b; }
+    
+    /* Warna Indikator Ping */
+    .ping-excellent { color: #10b981 !important; text-shadow: 0 0 8px rgba(16,185,129,0.4); } /* Hijau */
+    .ping-good { color: #f59e0b !important; } /* Kuning/Oranye */
+    .ping-bad { color: #ef4444 !important; } /* Merah */
+
   </style>
 </head>
 <body>
@@ -579,7 +632,7 @@
 
         <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity: 0.25;"><source src="banner-profile.mp4" type="video/mp4"></video>
         <div style="position: relative; z-index: 2;">
-            <img src="profile.jpg" style="width:100px; height:100px; border-radius:50%; border: 3px solid gold; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
+            <img src="profile.jpg" style="width:100px; height:100px; border-radius:50%; border: 3px solid #00deff; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
             <div class="rgb-text">Rizky Kurniawan</div>
             <div style="color:var(--tg-accent); font-size:13px; font-weight:600; margin-bottom:22px; letter-spacing:1px;">Developer & Creator</div>
         </div>
@@ -592,13 +645,36 @@
             <a href="https://sociabuzz.com/rizkyy_25/tribe" target="_blank" class="btn-social" id="btn-socia"><svg viewBox="0 0 24 24"><path d="M14.5,7.5C14.5,6.1 13.4,5 12,5C10.6,5 9.5,6.1 9.5,7.5C9.5,10.3 16,9.2 16,14.5C16,16.7 14.2,18.5 12,18.5C9.8,18.5 8,16.7 8,14.5H10.5C10.5,15.3 11.2,16 12,16C12.8,16 13.5,15.3 13.5,14.5C13.5,11.7 7,12.8 7,7.5C7,5.3 8.8,3.5 12,3.5C15.2,3.5 17,5.3 17,7.5H14.5Z"/></svg></a>
                       <a href="javascript:void(0)" id="btn-tanya-cs" class="btn-social" style="border-color: rgba(51, 144, 236, 0.4); background: rgba(51, 144, 236, 0.1);"><i class="fas fa-comments" style="color:#3390ec; font-size:18px;"></i></a>
 
-            <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
+                        <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
           
         </div>
     </div>
-  </div>
+
+    <div class="glass-sys-info" id="sys-info-widget">
+        <div class="sys-header"><i class="fas fa-satellite-dish"></i> Network Monitor</div>
+        <div class="sys-row">
+            <span class="sys-label"><i class="fas fa-globe"></i> IP Address</span>
+            <span class="sys-val" id="sys-ip"><i class="fas fa-circle-notch fa-spin"></i></span>
+        </div>
+        <div class="sys-row">
+            <span class="sys-label"><i class="fas fa-mobile-alt"></i> Device</span>
+            <span class="sys-val" id="sys-device"><i class="fas fa-circle-notch fa-spin"></i></span>
+        </div>
+        <div class="sys-row">
+            <span class="sys-label"><i class="fab fa-chrome"></i> Browser</span>
+            <span class="sys-val" id="sys-browser"><i class="fas fa-circle-notch fa-spin"></i></span>
+        </div>
+        <div class="sys-row">
+            <span class="sys-label"><i class="fas fa-wifi"></i> Ping Sinyal</span>
+            <span class="sys-val" id="sys-ping"><i class="fas fa-circle-notch fa-spin"></i></span>
+        </div>
+    </div>
+    </div>
+  
+  
 
   <div class="bottom-nav-wrapper">
+
     <div class="nav-sliding-indicator" id="indicator"></div>
     <div class="nav-item active" onclick="switchNav('home', 0, this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-label">Home</span></div>
     <div class="nav-item" onclick="switchNav('appmod', 1, this)"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><span class="nav-label">App Mod</span></div>
@@ -644,8 +720,9 @@
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
         </div>
         <div class="ai-profile-pic">
-          <img src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-        </div>
+  <img src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
+</div>
+
         <div class="ai-user-info">
           <span class="ai-nama">KYY CS</span>
           <span class="ai-status">Asisten Otomatis</span>
@@ -976,6 +1053,90 @@
         }
     }
 
+        // ==========================================
+    // LOGIKA SYSTEM MONITOR (IP, DEVICE, PING)
+    // ==========================================
+    let pingIntervalId;
+
+    async function jalankanSystemMonitor() {
+        const elIp = document.getElementById('sys-ip');
+        const elDevice = document.getElementById('sys-device');
+        const elBrowser = document.getElementById('sys-browser');
+        
+        // 1. Tarik IP (Pakai try-catch untuk jaga-jaga kalau diblokir AdBlock)
+        try {
+            const res = await fetch('https://api.ipify.org?format=json', { timeout: 5000 });
+            const data = await res.json();
+            elIp.textContent = data.ip;
+        } catch (e) {
+            elIp.innerHTML = '<span style="font-size:11px; opacity:0.7; color:#ef4444;">Terlindungi (Private)</span>';
+        }
+
+        // 2. Deteksi Browser & Device dari User-Agent
+        const ua = navigator.userAgent;
+        
+        // Cek Browser
+        let namaBrowser = "Unknown Browser";
+        if(ua.includes("Firefox/")) namaBrowser = "Mozilla Firefox";
+        else if(ua.includes("SamsungBrowser/")) namaBrowser = "Samsung Internet";
+        else if(ua.includes("Opera") || ua.includes("OPR")) namaBrowser = "Opera Browser";
+        else if(ua.includes("Edg/")) namaBrowser = "Microsoft Edge";
+        else if(ua.includes("Chrome/")) namaBrowser = "Google Chrome";
+        else if(ua.includes("Safari/") && !ua.includes("Chrome/")) namaBrowser = "Apple Safari";
+        
+        // Cek Device (Memfilter string Android untuk mencari tipe HP)
+        let namaDevice = "Unknown Device";
+        if (/android/i.test(ua)) {
+            namaDevice = "Android Device"; // Fallback awal
+            const match = ua.match(/Android\s[^\;]+\;\s([^\)]+)/);
+            if (match && match[1]) {
+                namaDevice = match[1].trim().split(" Build")[0]; // Ngambil misal: "Infinix X6812"
+            }
+        } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+            namaDevice = "Apple iOS Device";
+        } else if (/Windows/.test(ua)) {
+            namaDevice = "Windows PC";
+        } else if (/Macintosh/.test(ua)) {
+            namaDevice = "Mac OS";
+        }
+        
+        elBrowser.textContent = namaBrowser;
+        elDevice.textContent = namaDevice;
+
+        // 3. Mulai Denyut Nadi PING (Real-Time tiap 2 detik)
+        mulaiRealtimePing();
+    }
+
+    function mulaiRealtimePing() {
+        const elPing = document.getElementById('sys-ping');
+        if(pingIntervalId) clearInterval(pingIntervalId);
+
+        const cekPing = () => {
+            const waktuMulai = performance.now();
+            // Menembak server cloudflare yang super ringan tanpa cache
+            fetch('https://1.1.1.1/cdn-cgi/trace', { mode: 'no-cors', cache: 'no-store' })
+                .then(() => {
+                    const waktuSelesai = performance.now();
+                    const pingMs = Math.round(waktuSelesai - waktuMulai);
+                    
+                    elPing.textContent = `${pingMs} ms`;
+                    elPing.className = 'sys-val'; // Reset class warna
+                    
+                    // Ganti warna sesuai kecepatan ping
+                    if (pingMs < 80) elPing.classList.add('ping-excellent');
+                    else if (pingMs < 180) elPing.classList.add('ping-good');
+                    else elPing.classList.add('ping-bad');
+                })
+                .catch(() => {
+                    elPing.textContent = "Offline";
+                    elPing.className = 'sys-val ping-bad';
+                });
+        };
+
+        cekPing(); // Jalankan tembakan pertama langsung
+        pingIntervalId = setInterval(cekPing, 2000); // Ulangi tiap 2 detik
+    }
+
     function bukaModalInbox() {
         document.getElementById('inboxModalOverlay').style.display = 'flex';
         document.getElementById('inbox-badge').style.display = 'none'; 
@@ -1097,6 +1258,7 @@
         muatSosmedDiPublik();
         muatAnnouncementDiPublik();
         muatNotifikasiInbox();
+        jalankanSystemMonitor();
     };
 
 

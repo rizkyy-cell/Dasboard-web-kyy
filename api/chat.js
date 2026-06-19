@@ -15,7 +15,7 @@ export default async function handler(req, res) {
         const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy. Jawablah dengan singkat, profesional, dan gunakan bahasa Indonesia.";
 
         // Model Flash (Harusnya selalu tersedia untuk Free Tier)
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`;
 
         const response = await fetch(geminiUrl, {
             method: 'POST',

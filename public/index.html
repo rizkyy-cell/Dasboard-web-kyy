@@ -1280,7 +1280,7 @@
             aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
         }
 
-        // --- C. KIRIM PESAN KE SERVERLESS API VERCEL KAMU ---
+                // --- C. KIRIM PESAN KE SERVERLESS API VERCEL KAMU ---
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
@@ -1289,9 +1289,11 @@
             });
 
             const data = await response.json();
-            bubbleLoading.remove(); // Hapus indikator mengetik
 
             if (data.balasan) {
+                // Hapus indikator mengetik HANYA JIKA sukses mendapat balasan
+                bubbleLoading.remove(); 
+
                 // Cetak balasan AI
                 const bubbleAI = document.createElement('div');
                 bubbleAI.className = 'ai-bubble-bot';
@@ -1310,14 +1312,14 @@
                     localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
                 }
             } else {
-                throw new Error("Format API berubah atau limit");
+                // Lempar pesan error dari backend Vercel ke layar
+                throw new Error(data.error || "Gagal terhubung ke Gemini API.");
             }
         } catch (error) {
-            // Jika API gagal/limit, beri tahu user
-            bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Maaf, server AI sedang sibuk. Coba lagi nanti.</span>`;
+            // Jangan hapus bubble, tapi UBAH isinya menjadi pesan error
+            bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`;
         }
     }
-
 
     // 4. Pemicu Klik Tombol Kirim
     if (aiBtnSend) {

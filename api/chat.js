@@ -12,9 +12,9 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'Kunci GEMINI_API_KEY belum terpasang di Vercel.' });
         }
 
-        const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy milik Risky Kurniawan. Jawablah pertanyaan seputar isi dashboard dengan singkat, profesional, dan gunakan bahasa Indonesia.";
+        const systemPrompt = "Kamu adalah KYY CS, asisten virtual ramah di Dashboard Web Kyy. Jawablah dengan singkat, profesional, dan gunakan bahasa Indonesia.";
 
-        // Menggunakan model Flash yang dijamin stabil dan gratis
+        // Model Flash (Harusnya selalu tersedia untuk Free Tier)
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(geminiUrl, {
@@ -29,24 +29,19 @@ export default async function handler(req, res) {
 
         const data = await response.json();
 
-        // Tangani penolakan dari Google dengan pesan yang lebih rapi
+        // BUKA TOPENG: Lempar pesan error mentah dari Google ke layar!
         if (!response.ok) {
-            const pesanAsli = data.error?.message || "";
-            if (pesanAsli.includes("Quota") || pesanAsli.includes("exceeded")) {
-                throw new Error("Limit kuota AI harian kamu sudah habis, atau model tidak didukung. Coba lagi besok!");
-            }
-            throw new Error("Koneksi ditolak oleh server Google Gemini.");
+            throw new Error(`DEBUG GOOGLE: ${data.error?.message || "Tidak ada pesan spesifik dari Google"}`);
         }
 
         if (data.candidates && data.candidates.length > 0) {
             const balasanAI = data.candidates[0].content.parts[0].text;
             return res.status(200).json({ balasan: balasanAI });
         } else {
-            throw new Error("Format balasan dari Gemini kosong.");
+            throw new Error("Format balasan kosong.");
         }
 
     } catch (error) {
-        // Pesan error sekarang akan pendek dan rapi
         return res.status(500).json({ error: error.message });
     }
 }

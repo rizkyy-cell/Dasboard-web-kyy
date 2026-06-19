@@ -1244,39 +1244,78 @@
         });
     }
 
-    // 3. Fungsi Utama Mencetak Pesan User ke Layar
-    function kirimPesanUser() {
+        // 3. Fungsi Utama Mencetak Pesan User & Menembak API Vercel
+    async function kirimPesanUser() {
         const teks = aiInputTeks.value.trim();
         if (teks === '') return;
 
-        // Buat elemen bubble chat user baru
+        // --- A. CETAK PESAN USER KE LAYAR ---
         const bubbleUser = document.createElement('div');
-        // Gunakan gaya chat user bawaan lu (bisa disesuaikan CSS-nya nanti)
         bubbleUser.className = 'ai-bubble-bot'; 
         bubbleUser.style.alignSelf = 'flex-end';
         bubbleUser.style.background = 'var(--tg-accent)';
         bubbleUser.style.borderTopLeftRadius = '18px';
         bubbleUser.style.borderTopRightRadius = '4px';
         bubbleUser.style.color = '#fff';
-
         bubbleUser.innerHTML = `
             ${teks}
             <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
         `;
 
-        // Masukkan bubble ke dalam area chat
-                if (aiChatMessages) {
+        if (aiChatMessages) {
             aiChatMessages.appendChild(bubbleUser);
-            // Otomatis scroll ke paling bawah setiap ada pesan baru
             aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-            
-            // SIMPAN RIWAYAT KE LOCALSTORAGE SETELAH MENGIRIM PESAN
             localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
         }
 
-        // Bersihkan kolom input dan kunci kembali tombol kirim
         aiInputTeks.value = '';
         aiBtnSend.disabled = true;
+
+        // --- B. TAMPILKAN INDIKATOR "MENGETIK..." ---
+        const bubbleLoading = document.createElement('div');
+        bubbleLoading.className = 'ai-bubble-bot';
+        bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS sedang mengetik...</span>`;
+        if (aiChatMessages) {
+            aiChatMessages.appendChild(bubbleLoading);
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+
+        // --- C. KIRIM PESAN KE SERVERLESS API VERCEL KAMU ---
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pesan: teks })
+            });
+
+            const data = await response.json();
+            bubbleLoading.remove(); // Hapus indikator mengetik
+
+            if (data.balasan) {
+                // Cetak balasan AI
+                const bubbleAI = document.createElement('div');
+                bubbleAI.className = 'ai-bubble-bot';
+                
+                // Konversi baris baru (\n) menjadi <br> agar teks AI rapi
+                const formatTeksAI = data.balasan.replace(/\n/g, '<br>');
+                
+                bubbleAI.innerHTML = `
+                    ${formatTeksAI}
+                    <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
+                `;
+                if (aiChatMessages) {
+                    aiChatMessages.appendChild(bubbleAI);
+                    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+                    // Simpan seluruh riwayat terbaru (User + AI) ke LocalStorage
+                    localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+                }
+            } else {
+                throw new Error("Format API berubah atau limit");
+            }
+        } catch (error) {
+            // Jika API gagal/limit, beri tahu user
+            bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Maaf, server AI sedang sibuk. Coba lagi nanti.</span>`;
+        }
     }
 
 

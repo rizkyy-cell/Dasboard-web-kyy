@@ -229,6 +229,8 @@
       pointer-events: none; 
       transform: translateY(-50%) translateX(0);
       will-change: transform;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); /* TAMBAHKAN BARIS INI */
+      
     }
     
     /* Efek gelembung saat Mode Gelap (Dipertebal dikit warnanya biar mirip App Store) */
@@ -896,78 +898,63 @@
   const indicator = document.getElementById('indicator');
   const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
   
+  // Logika Animasi Gelembung Navigasi
   if (currentIndex !== -1 && currentIndex !== index) {
     const keKanan = index > currentIndex;
-    
-    // FASE 1: Gelembung mencair melar memanjang (Stretch) mengikuti arah geseran jari
     indicator.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1)';
     if (keKanan) {
       indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scaleX(1.35)`;
     } else {
       indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1.35)`;
     }
-    
-    // FASE 2: Gelembung mendarat pas di menu tujuan lalu mengkerut normal kembali (Efek Bounce Jell-O)
     setTimeout(() => {
       indicator.style.transition = 'transform 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.28)';
       indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
     }, 130);
-    
   } else {
     if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
   }
 
-  // SISA LOGIKA BAWAAN LU YANG GAK BOLEH HILANG (DITULIS UTUH):
+  // LOGIKA ANIMASI SMART SLIDE (TRANSISI HALAMAN)
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  document.querySelectorAll('.page-content').forEach(content => content.classList.remove('active'));
+  
+  document.querySelectorAll('.page-content').forEach(content => {
+      content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
+  });
+  
   if(el) el.classList.add('active');
-  document.getElementById('page-' + page).classList.add('active');
+  
+  const targetPage = document.getElementById('page-' + page);
+  targetPage.classList.add('active');
 
+  if (currentIndex !== -1 && index > currentIndex) {
+      targetPage.classList.add('slide-from-right');
+  } else if (currentIndex !== -1 && index < currentIndex) {
+      targetPage.classList.add('slide-from-left');
+  } else {
+      targetPage.classList.add('slide-up');
+  }
+
+  // LOGIKA HEADER (Search icon & Background Header)
   const searchIcon = document.getElementById('searchIconBtn');
   const headerBg = document.getElementById('header-liquid-bg');
+  const title = document.getElementById('header-title');
   
-  if (['home', 'appmod', 'store'].includes(page)) {
-      if(searchIcon) {
-        searchIcon.style.opacity = '1';
-        searchIcon.style.transform = 'translateY(-50%) scale(1)';
-        searchIcon.style.pointerEvents = 'auto';
-      }
-      if(headerBg) {
-        headerBg.style.width = '100%';
-        headerBg.style.borderRadius = '12px';
-      }
+  if(page === 'home') {
+      if(searchIcon) searchIcon.style.opacity = '1';
+      if(headerBg) headerBg.style.width = '82px';
+      if(title) title.innerText = 'Dashboard Web';
   } else {
-      if(searchIcon) {
-        searchIcon.style.opacity = '0';
-        searchIcon.style.transform = 'translateY(-50%) scale(0)';
-        searchIcon.style.pointerEvents = 'none';
-      }
-      if(headerBg) {
-        headerBg.style.width = '38px';
-        headerBg.style.borderRadius = '50%';
-      }
-      document.getElementById('searchBoxWrapper').classList.remove('show');
+      if(searchIcon) searchIcon.style.opacity = '0';
+      if(headerBg) headerBg.style.width = '42px';
+      if(title) title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
   }
-
-      if (page === 'home') { 
-      document.getElementById('karya-tabs-header').style.display = 'block'; 
-      document.getElementById('header-title').innerText = 'Dashboard Web'; 
-      ambilDataWeb(); 
-  } else {
-      document.getElementById('karya-tabs-header').style.display = 'none';
-      if(page === 'appmod') { 
-          document.getElementById('header-title').innerText = 'App Mod'; 
-          ambilDataApp(); 
-      } else if(page === 'store') { 
-          document.getElementById('header-title').innerText = 'My Store'; 
-          ambilDataStore(); 
-      } else if(page === 'pengaturan') {
-          document.getElementById('header-title').innerText = 'Pengaturan';
-      } else {
-          document.getElementById('header-title').innerText = 'Profile';
-      }
-  }
+  
+  if(page === 'home') ambilDataWeb();
+  if(page === 'appmod') ambilDataApp();
+  if(page === 'store') ambilDataStore();
 }
+
 
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 
@@ -1184,7 +1171,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' }); 
     }
 
-    // GESTURE DRAG ENGINE (HOLD AND DRAG MECHANICAL LIQUID INDICATOR)
+        // GESTURE DRAG ENGINE (HOLD AND DRAG MECHANICAL LIQUID INDICATOR)
     document.addEventListener('DOMContentLoaded', function() {
         const wrapper = document.querySelector('.bottom-nav-wrapper');
         const indicator = document.getElementById('indicator');
@@ -1204,18 +1191,20 @@
             prosesGeserNavigasi(e, wrapper, indicator, items);
         }, { passive: true });
 
-        // Mengunci halaman otomatis saat jari diangkat (Release)
+        // Mengunci halaman saat jari diangkat (Release)
         wrapper.addEventListener('touchend', function(e) {
             isNavDragging = false;
             
-            const currentActive = wrapper.querySelector('.nav-item.active');
-            let itemTerdekat = currentActive;
-            let jarakTerkecil = Infinity;
+            // Kembalikan transition agar indikator meluncur smooth ke tombol terdekat
+            indicator.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
             
             const indicatorRect = indicator.getBoundingClientRect();
             const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
+            
+            let itemTerdekat = items[0];
+            let jarakTerkecil = Infinity;
 
-            items.forEach(item => {
+            items.forEach((item) => {
                 const itemRect = item.getBoundingClientRect();
                 const itemCenter = itemRect.left + (itemRect.width / 2);
                 const selisih = Math.abs(indicatorCenter - itemCenter);
@@ -1226,11 +1215,11 @@
             });
 
             if (itemTerdekat) {
-                itemTerdekat.click(); // Memicu fungsi click bawaan lu secara otomatis
+                itemTerdekat.click();
             }
         });
 
-        // Jalankan pengecekan tema secepat mungkin sebelum element database selesai merender
+        // Jalankan pengecekan tema secepat mungkin
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark';
         const checkbox = document.getElementById('theme-toggle-checkbox');
         const icon = document.getElementById('theme-icon');
@@ -1253,26 +1242,18 @@
     function prosesGeserNavigasi(e, wrapper, indicator, items) {
         const touch = e.touches[0];
         const wrapperRect = wrapper.getBoundingClientRect();
-        const lebarPerItem = wrapperRect.width / 5; // Total 5 item menu (masing-masing 20%)
+        const lebarPerItem = wrapperRect.width / 5;
         
         let relativeX = touch.clientX - wrapperRect.left;
-        
-        // Batasi gelembung cairan agar tidak jebol keluar batas kiri-kanan wrapper
         if (relativeX < 0) relativeX = 0;
         if (relativeX > wrapperRect.width) relativeX = wrapperRect.width;
 
-        const indeksTarget = Math.floor(relativeX / lebarPerItem);
-        const indeksAktifSekarang = items.findIndex(item => item.classList.contains('active'));
-
-        indicator.style.transition = 'transform 0.08s linear';
-        
-        if (indeksAktifSekarang !== -1 && indeksTarget !== indeksAktifSekarang) {
-            // Berikan deformasi melar (scaleX) real-time pas jari lu geser memanjang
-            indicator.style.transform = `translateY(-50%) translateX(${(relativeX - (lebarPerItem / 2)) / lebarPerItem * 100}%) scaleX(1.22)`;
-        } else {
-            indicator.style.transform = `translateY(-50%) translateX(${(relativeX - (lebarPerItem / 2)) / lebarPerItem * 100}%) scaleX(1)`;
-        }
+        // Matikan transisi saat sedang di-drag agar mengikuti jari tanpa nge-lag/mental
+        indicator.style.transition = 'none'; 
+        indicator.style.transform = `translateY(-50%) translateX(${relativeX - (lebarPerItem / 2)}px)`;
     }
+
+
 
     // Pertahankan window.onload khusus untuk menarik data internal & external API
     window.onload = function() {

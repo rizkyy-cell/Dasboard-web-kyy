@@ -188,66 +188,94 @@
     .btn-popup { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 14.5px; transition: transform 0.1s; }
     .btn-no { background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
     .btn-yes { background: var(--tg-accent); color: white; }
-
-    /* BOTTOM NAV - FIX RESPONSIVE TOUCH ACTION UNTUK DRAG & SWIPE */
+            /* ==========================================
+       BOTTOM NAV - GLOSSY LIQUID GLASS (APPLE STYLE)
+       ========================================== */
     .bottom-nav-wrapper { 
       position: fixed; 
       bottom: max(20px, env(safe-area-inset-bottom)); 
       left: 50%; 
       transform: translateX(-50%); 
-      width: 92%; 
+      width: 94%; 
       max-width: 440px; 
-      height: 68px; 
-      background-color: rgba(255, 255, 255, 0.04) !important; 
-      backdrop-filter: blur(20px) !important; 
-      -webkit-backdrop-filter: blur(20px) !important; 
-      border-radius: 24px; 
-      border: 1px solid rgba(255, 255, 255, 0.12) !important; 
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important; 
+      height: 64px; 
+      
+      /* RAHASIA KACA MENGKILAP: Gradient cahaya dari sudut kiri atas ke kanan bawah */
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.01)) !important; 
+      backdrop-filter: blur(20px) saturate(120%) !important; 
+      -webkit-backdrop-filter: blur(20px) saturate(120%) !important; 
+      
+      border-radius: 32px; 
+      /* Pantulan cahaya kuat di tepi atas (Edge highlight) layaknya kaca 3D */
+      border: 1px solid rgba(255, 255, 255, 0.05) !important; 
+      border-top: 1px solid rgba(255, 255, 255, 0.25) !important; 
+      border-left: 1px solid rgba(255, 255, 255, 0.15) !important; 
+      
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0px rgba(255, 255, 255, 0.1) !important; 
+      
       z-index: 9999; 
       display: flex; 
       align-items: center;
-      touch-action: pan-y !important; /* Mencegah bentrok dengan scroll vertical halaman */
+      padding: 0 6px; 
+      touch-action: pan-y !important;
     }
 
-    .nav-item { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--tg-text-muted); cursor: pointer; z-index: 10; position: relative; transition: color 0.3s ease; width: 20%; user-select: none; -webkit-user-select: none; }
-    .nav-item.active { color: #ffffff; transform: scale(1.12); }
-    .nav-item { transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease; }
+    .nav-item { 
+      flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+      color: rgba(255, 255, 255, 0.65); 
+      cursor: pointer; z-index: 10; position: relative; width: 20%; 
+      user-select: none; -webkit-user-select: none; 
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+    }
 
-    .nav-item svg { width: 22px; height: 22px; fill: currentColor; margin-bottom: 3px; transition: transform 0.3s; }
-    .nav-item.active svg { transform: translateY(-1px) scale(1.05); }
-    .nav-label { font-size: 10px; font-weight: 700; text-align: center; white-space: nowrap; letter-spacing: 0.3px;}
+    .nav-item.active { 
+      color: var(--tg-accent); 
+      transform: scale(1.05); 
+    }
+
+    .nav-item svg { 
+      width: 24px; height: 24px; 
+      fill: currentColor; 
+      margin-bottom: 2px; 
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+    }
     
-    /* REPAIR: Mengizinkan perubahan scaleX & koordinat translateX secara real-time dinamis */
+    .nav-label { 
+      font-size: 10.5px; font-weight: 600; text-align: center; 
+      white-space: nowrap; letter-spacing: 0.2px;
+    }
+
     .nav-sliding-indicator { 
       position: absolute; 
-      top: 50%; 
-      left: 0; 
-      height: 54px; 
-      width: 20%; 
-      z-index: 2; 
-      pointer-events: none; 
+      top: 50%; left: 6px; 
+      height: 52px; 
+      width: calc((100% - 12px) / 5); 
+      z-index: 1; pointer-events: none; 
       transform: translateY(-50%) translateX(0);
       will-change: transform;
-      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); /* TAMBAHKAN BARIS INI */
-      
+      transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     
-    /* Efek gelembung saat Mode Gelap (Dipertebal dikit warnanya biar mirip App Store) */
-    .nav-sliding-indicator::before { content: ''; position: absolute; top: 0; left: 5px; right: 5px; bottom: 0; background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.15); border-radius: 14px; }
-
-    /* Efek gelembung saat Mode Terang */
-    body.light-theme .nav-sliding-indicator::before {
-        background: rgba(0, 0, 0, 0.08) !important;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        box-shadow: none !important;
+    .nav-sliding-indicator::before { 
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(255, 255, 255, 0.05); 
+      backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+      border: 1.5px solid rgba(255, 255, 255, 0.35); 
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.15); 
+      border-radius: 26px; 
     }
 
-@keyframes liquidGlow {
-  0%, 100% { border-radius: 24px 14px 28px 18px / 18px 26px 14px 24px; }
-  33% { border-radius: 14px 28px 16px 26px / 26px 14px 24px 16px; }
-  66% { border-radius: 26px 16px 24px 14px / 14px 28px 16px 26px; }
-}
+    /* PENYESUAIAN TEMA TERANG AGAR KACA TETAP MENGKILAP */
+    body.light-theme .bottom-nav-wrapper { 
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.2)) !important; 
+      border: 1px solid rgba(255, 255, 255, 0.3) !important; 
+      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important; 
+    }
+    body.light-theme .nav-item { color: rgba(0, 0, 0, 0.5); }
+    body.light-theme .nav-item.active { color: var(--tg-accent); }
+    body.light-theme .nav-sliding-indicator::before { border: 1.5px solid rgba(0, 0, 0, 0.15); background: rgba(0,0,0,0.03); box-shadow: none; }
 
         .store-container { width: 100%; padding: 5px 0 20px 0; }
 
@@ -898,29 +926,20 @@
   const indicator = document.getElementById('indicator');
   const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
   
-  // Logika Animasi Gelembung Navigasi
-  if (currentIndex !== -1 && currentIndex !== index) {
-    const keKanan = index > currentIndex;
-    indicator.style.transition = 'transform 0.18s cubic-bezier(0.4, 0, 0.2, 1)';
-    if (keKanan) {
-      indicator.style.transform = `translateY(-50%) translateX(${currentIndex * 100}%) scaleX(1.35)`;
-    } else {
-      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1.35)`;
-    }
-    setTimeout(() => {
-      indicator.style.transition = 'transform 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.28)';
-      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
-    }, 130);
-  } else {
-    if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%) scaleX(1)`;
+  // LOGIKA FISIK APPLE SPRING BOUNCE (Tanpa efek melar jelly)
+  if(indicator) {
+      // Menggeser persis per item (100% dari ukuran gelembung)
+      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%)`;
   }
 
   // LOGIKA ANIMASI SMART SLIDE (TRANSISI HALAMAN)
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   
+  // ... (biarkan sisa kode di bawah ini aslinya, tidak perlu diubah) ...
   document.querySelectorAll('.page-content').forEach(content => {
       content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
   });
+
   
   if(el) el.classList.add('active');
   
@@ -1192,11 +1211,14 @@
         }, { passive: true });
 
         // Mengunci halaman saat jari diangkat (Release)
-        wrapper.addEventListener('touchend', function(e) {
+                wrapper.addEventListener('touchend', function(e) {
             isNavDragging = false;
             
-            // Kembalikan transition agar indikator meluncur smooth ke tombol terdekat
-            indicator.style.transition = 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            // Terapkan Apple Spring Bounce
+            indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            
+            // ... (sisa kodenya biarkan sama) ...
+
             
             const indicatorRect = indicator.getBoundingClientRect();
             const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
@@ -1238,22 +1260,29 @@
         }
     });
 
-    // Fungsi pengukur kalkulasi pergerakan sumbu X jari terhadap lebar bar menu bawah
+        // Fungsi pengukur kalkulasi pergerakan sumbu X ala iOS
     function prosesGeserNavigasi(e, wrapper, indicator, items) {
         const touch = e.touches[0];
         const wrapperRect = wrapper.getBoundingClientRect();
-        const lebarPerItem = wrapperRect.width / 5;
         
-        let relativeX = touch.clientX - wrapperRect.left;
+        // Menghitung area bersih tanpa padding (6px kiri + 6px kanan = 12px)
+        const activeAreaWidth = wrapperRect.width - 12; 
+        const lebarPerItem = activeAreaWidth / 5;
+        
+        let relativeX = touch.clientX - wrapperRect.left - 6; // Dikurangi padding kiri
         if (relativeX < 0) relativeX = 0;
-        if (relativeX > wrapperRect.width) relativeX = wrapperRect.width;
+        if (relativeX > activeAreaWidth) relativeX = activeAreaWidth;
 
-        // Matikan transisi saat sedang di-drag agar mengikuti jari tanpa nge-lag/mental
         indicator.style.transition = 'none'; 
-        indicator.style.transform = `translateY(-50%) translateX(${relativeX - (lebarPerItem / 2)}px)`;
+        
+        // Translasi harus dihitung dalam persentase (100% per item)
+        let persentaseGeser = (relativeX - (lebarPerItem / 2)) / lebarPerItem * 100;
+        
+        if (persentaseGeser < 0) persentaseGeser = 0;
+        if (persentaseGeser > 400) persentaseGeser = 400; // Maksimal index 4 (400%)
+
+        indicator.style.transform = `translateY(-50%) translateX(${persentaseGeser}%)`;
     }
-
-
 
     // Pertahankan window.onload khusus untuk menarik data internal & external API
     window.onload = function() {

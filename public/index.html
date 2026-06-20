@@ -922,58 +922,83 @@
         });
     }
 
-    function switchNav(page, index, el) {
-  const indicator = document.getElementById('indicator');
-  const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
-  
-  // LOGIKA FISIK APPLE SPRING BOUNCE (Tanpa efek melar jelly)
-  if(indicator) {
-      // Menggeser persis per item (100% dari ukuran gelembung)
-      indicator.style.transform = `translateY(-50%) translateX(${index * 100}%)`;
-  }
+            function switchNav(page, index, el) {
+      const indicator = document.getElementById('indicator');
+      const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
+      
+      // 1. Fisik Geser Gelembung Apple
+      if(indicator) {
+          indicator.style.transform = `translateY(-50%) translateX(${index * 100}%)`;
+      }
 
-  // LOGIKA ANIMASI SMART SLIDE (TRANSISI HALAMAN)
-  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-  
-  // ... (biarkan sisa kode di bawah ini aslinya, tidak perlu diubah) ...
-  document.querySelectorAll('.page-content').forEach(content => {
-      content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
-  });
+      // 2. Reset Status Navigasi dan Halaman
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.page-content').forEach(content => {
+          content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
+      });
+      
+      // 3. Pemicu Animasi Slide Halaman Baru
+      if(el) el.classList.add('active');
+      const targetPage = document.getElementById('page-' + page);
+      if(targetPage) {
+          targetPage.classList.add('active');
+          if (currentIndex !== -1 && index > currentIndex) {
+              targetPage.classList.add('slide-from-right');
+          } else if (currentIndex !== -1 && index < currentIndex) {
+              targetPage.classList.add('slide-from-left');
+          } else {
+              targetPage.classList.add('slide-up');
+          }
+      }
 
-  
-  if(el) el.classList.add('active');
-  
-  const targetPage = document.getElementById('page-' + page);
-  targetPage.classList.add('active');
+      // ==========================================
+      // 4. FIX LOGIKA HEADER, SEARCH, & TABS
+      // ==========================================
+      const searchIcon = document.getElementById('searchIconBtn');
+      const headerBg = document.getElementById('header-liquid-bg');
+      const title = document.getElementById('header-title');
+      const tabsHeader = document.getElementById('karya-tabs-header'); 
+      const searchBox = document.getElementById('searchBoxWrapper');
+      
+      // A. Tombol Search (Muncul di Home, App Mod, Store)
+      if(page === 'home' || page === 'appmod' || page === 'store') {
+          if(searchIcon) { 
+              searchIcon.style.opacity = '1'; 
+              searchIcon.style.pointerEvents = 'auto'; // Bisa diklik
+          }
+          if(headerBg) headerBg.style.width = '82px'; // Lebarkan background untuk 2 icon
+      } else {
+          // Sembunyikan di Setting dan Profil
+          if(searchIcon) { 
+              searchIcon.style.opacity = '0'; 
+              searchIcon.style.pointerEvents = 'none'; // Matikan fisik klik
+          }
+          if(headerBg) headerBg.style.width = '42px'; // Kecilkan background hanya untuk icon email
+          
+          // Tutup otomatis search bar jika sedang terbuka lalu user pindah ke Setting/Profil
+          if(searchBox && searchBox.classList.contains('show')) {
+              searchBox.classList.remove('show');
+          }
+      }
 
-  if (currentIndex !== -1 && index > currentIndex) {
-      targetPage.classList.add('slide-from-right');
-  } else if (currentIndex !== -1 && index < currentIndex) {
-      targetPage.classList.add('slide-from-left');
-  } else {
-      targetPage.classList.add('slide-up');
-  }
+      // B. Mengubah Judul Teks Header
+      if(title) {
+          if(page === 'home') title.innerText = 'Dashboard Web';
+          else if(page === 'appmod') title.innerText = 'App Mod';
+          else title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
+      }
 
-  // LOGIKA HEADER (Search icon & Background Header)
-  const searchIcon = document.getElementById('searchIconBtn');
-  const headerBg = document.getElementById('header-liquid-bg');
-  const title = document.getElementById('header-title');
-  
-  if(page === 'home') {
-      if(searchIcon) searchIcon.style.opacity = '1';
-      if(headerBg) headerBg.style.width = '82px';
-      if(title) title.innerText = 'Dashboard Web';
-  } else {
-      if(searchIcon) searchIcon.style.opacity = '0';
-      if(headerBg) headerBg.style.width = '42px';
-      if(title) title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
-  }
-  
-  if(page === 'home') ambilDataWeb();
-  if(page === 'appmod') ambilDataApp();
-  if(page === 'store') ambilDataStore();
-}
-
+      // C. Tab Kategori (HANYA Muncul di Home)
+      if(tabsHeader) {
+          if(page === 'home') tabsHeader.style.display = 'block';
+          else tabsHeader.style.display = 'none';
+      }
+      
+      // D. Tarik Data Sesuai Halaman
+      if(page === 'home') ambilDataWeb();
+      if(page === 'appmod') ambilDataApp();
+      if(page === 'store') ambilDataStore();
+    }
 
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 

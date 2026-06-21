@@ -14,7 +14,7 @@
   <meta property="og:image" content="https://jrxrezkyy-dashboard.vercel.app/profile.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="300">
-  <meta property="og:image:height" content="300">
+  <meta property="og:image:height" content="250">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -169,8 +169,8 @@
     .btn-vt-scan:active { background: rgba(0, 200, 83, 0.2); transform: scale(0.98); }
 
     /* VIP PROFILE RGB CARD */
-    @keyframes rgbGlow { 0% { color: #ff0000; text-shadow: 0 0 10px #ff0000; } 33% { color: #00ff00; text-shadow: 0 0 10px #00ff00; } 66% { color: #0000ff; text-shadow: 0 0 10px #0000ff; } 100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; } }
-    .vip-card { background: linear-gradient(145deg, #1f2937, #111827); border: 1px solid rgba(255,215,0,0.4); padding: 35px 20px; border-radius: 24px; text-align: center; margin: 15px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; }
+    @keyframes rgbGlow { 0% { color: #e300ff; text-shadow: 0 0 10px #ff0000; } 33% { color: #00ff00; text-shadow: 0 0 10px #00ff00; } 66% { color: #0000ff; text-shadow: 0 0 10px #0000ff; } 100% { color: #ff0000; text-shadow: 0 0 10px #ff0000; } }
+    .vip-card { background: linear-gradient(145deg, #1f2937, #111827); border: 1px solid rgba(161,0,255,0.4); padding: 35px 20px; border-radius: 24px; text-align: center; margin: 15px; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; }
     .rgb-text { animation: rgbGlow 3s linear infinite; font-size: 22px; font-weight: 900; margin-bottom: 5px; position: relative; z-index: 2; }
     
     .social-buttons { display: flex; gap: 12px; justify-content: center; width: 100%; flex-wrap: wrap; margin-top: 15px; position: relative; z-index: 2; }
@@ -260,21 +260,16 @@
       content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
       background: rgba(255, 255, 255, 0.05); 
       backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-      border: 1.5px solid rgba(255, 255, 255, 0.35); 
+      border: 1px solid rgba(255, 255, 255, 0.4) !important;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.15); 
       border-radius: 26px; 
     }
 
     /* PENYESUAIAN TEMA TERANG AGAR KACA TETAP MENGKILAP */
-    body.light-theme .bottom-nav-wrapper { 
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.2)) !important; 
-      border: 1px solid rgba(255, 255, 255, 0.3) !important; 
-      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important; 
-    }
-    body.light-theme .nav-item { color: rgba(0, 0, 0, 0.5); }
-    body.light-theme .nav-item.active { color: var(--tg-accent); }
+        body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
+    body.light-theme .nav-item { color: #64748b !important; }
+    body.light-theme .nav-item.active { color: #1e293b !important; }
+
     body.light-theme .nav-sliding-indicator::before { border: 1.5px solid rgba(0, 0, 0, 0.15); background: rgba(0,0,0,0.03); box-shadow: none; }
 
         .store-container { width: 100%; padding: 5px 0 20px 0; }
@@ -554,6 +549,85 @@
     .ping-excellent { color: #10b981 !important; text-shadow: 0 0 8px rgba(16,185,129,0.4); } /* Hijau */
     .ping-good { color: #f59e0b !important; } /* Kuning/Oranye */
     .ping-bad { color: #ef4444 !important; } /* Merah */
+        /* ==========================================
+       APPLE MICRO-DETAILS (BADGE & GLOW)
+       ========================================== */
+    /* 1. Efek Lampu Menyala pada Ikon Aktif */
+    .nav-item.active svg {
+        filter: drop-shadow(0px 0px 6px currentColor); /* Cahaya mengikuti warna aksen otomatis */
+    }
+
+    /* 2. Desain Titik Notifikasi Merah ala iOS */
+    .nav-badge-apple {
+        position: absolute;
+        top: 2px;
+        right: 18%; /* Posisinya pas di sudut atas ikon */
+        background: #ff3b30; /* Merah khas Apple */
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1.5px 5px;
+        border-radius: 10px;
+        border: 2px solid var(--tg-panel); /* Memberi efek 'terpotong' dari background */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        z-index: 15;
+        pointer-events: none;
+    }
+    
+    /* Penyesuaian batas badge saat Tema Terang dinyalakan */
+    body.light-theme .nav-badge-apple {
+        border: 2px solid #ffffff;
+    }
+    .nav-badge-notif {
+        position: absolute;
+        top: 1px;
+        right: 1%; /* Posisinya pas di sudut atas ikon */
+        background: #30ebff; /* Merah khas Apple */
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1.5px 5px;
+        border-radius: 10px;
+        border: 2px solid var(--tg-panel); /* Memberi efek 'terpotong' dari background */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        z-index: 15;
+        pointer-events: none;
+    }
+    
+    /* Penyesuaian batas badge saat Tema Terang dinyalakan */
+    body.light-theme .nav-badge-notif {
+        border: 1px solid #ffffff;
+    }
+
+        /* ==========================================
+       FIX BUG LIGHT THEME DI ROOM CHAT AI
+       ========================================== */
+    
+    /* 1. Ubah background utama ruang chat jadi terang */
+    body.light-theme #layer-chat-ai { 
+        background-color: #f4f6f9 !important; 
+    }
+    
+    /* 2. Ubah Gelembung AI jadi Putih Bersih dengan Teks Gelap */
+    body.light-theme .ai-bubble-bot { 
+        background: #ffffff; 
+        border: 1px solid rgba(0,0,0,0.08); 
+        color: #1e293b; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+    
+    /* 3. Pastikan teks Nama, Status, Dropdown, dan Input menjadi Gelap agar terbaca */
+    body.light-theme .ai-nama, 
+    body.light-theme .ai-input-capsule input, 
+    body.light-theme .ai-dropdown button,
+    body.light-theme .ai-btn-modal-batal { 
+        color: #1e293b !important; 
+    }
+    
+    /* 4. Sesuaikan warna teks samar (placeholder) saat mengetik */
+    body.light-theme .ai-input-capsule input::placeholder {
+        color: #94a3b8 !important;
+    }
 
   </style>
 </head>
@@ -641,7 +715,7 @@
   </div>
 
     <!-- PAGE 4: PENGATURAN (STRUKTUR BERSIH & TIDAK DOUBLE) -->
-    <div class="page-content" id="page-pengaturan">
+    <div class="page-content" id="page-settings">
     <div class="settings-container">
       
       <div class="settings-card">
@@ -687,7 +761,7 @@
         <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity: 0.25;"><source src="banner-profile.mp4" type="video/mp4"></video>
         <div style="position: relative; z-index: 2;">
             <img src="profile.jpg" style="width:100px; height:100px; border-radius:50%; border: 3px solid #00deff; margin-bottom:10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">
-            <div class="rgb-text">Rizky Kurniawan</div>
+            <div class="rgb-text          ">Rizky Kurniawan</div>
             <div style="color:var(--tg-accent); font-size:13px; font-weight:600; margin-bottom:22px; letter-spacing:1px;">Developer & Creator</div>
         </div>
 
@@ -697,7 +771,9 @@
             <a href="https://t.me/rizky_kurniawan25" target="_blank" class="btn-social" id="btn-tele"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
             <a href="https://discord.gg/Crr8MuVCe" target="_blank" class="btn-social" id="btn-dc"><svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.298 12.298 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg></a>
             <a href="https://sociabuzz.com/rizkyy_25/tribe" target="_blank" class="btn-social" id="btn-socia"><svg viewBox="0 0 24 24"><path d="M14.5,7.5C14.5,6.1 13.4,5 12,5C10.6,5 9.5,6.1 9.5,7.5C9.5,10.3 16,9.2 16,14.5C16,16.7 14.2,18.5 12,18.5C9.8,18.5 8,16.7 8,14.5H10.5C10.5,15.3 11.2,16 12,16C12.8,16 13.5,15.3 13.5,14.5C13.5,11.7 7,12.8 7,7.5C7,5.3 8.8,3.5 12,3.5C15.2,3.5 17,5.3 17,7.5H14.5Z"/></svg></a>
-                      <a href="javascript:void(0)" id="btn-tanya-cs" class="btn-social" style="border-color: rgba(51, 144, 236, 0.4); background: rgba(51, 144, 236, 0.1);"><i class="fas fa-comments" style="color:#3390ec; font-size:18px;"></i></a>
+                      <a href="javascript:void(0)" id="btn-tanya-cs" class="btn-social" style="border-color: rgba(51, 144, 236, 0.4); background: rgba(51, 144, 236, 0.1);"><i class="fas fa-comments" style="color:#3390ec; font-size:18px;"></i>
+                      <span class="nav-badge-notif">1</span>
+                      </a>
 
                         <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
           
@@ -719,7 +795,7 @@
             <span class="sys-val" id="sys-browser"><i class="fas fa-circle-notch fa-spin"></i></span>
         </div>
         <div class="sys-row">
-            <span class="sys-label"><i class="fas fa-wifi"></i> Ping Sinyal</span>
+            <span class="sys-label"><i class="fas fa-wifi"></i> Ping </span>
             <span class="sys-val" id="sys-ping"><i class="fas fa-circle-notch fa-spin"></i></span>
         </div>
     </div>
@@ -732,8 +808,12 @@
     <div class="nav-sliding-indicator" id="indicator"></div>
     <div class="nav-item active" onclick="switchNav('home', 0, this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-label">Home</span></div>
     <div class="nav-item" onclick="switchNav('appmod', 1, this)"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><span class="nav-label">App Mod</span></div>
-    <div class="nav-item" onclick="switchNav('store', 2, this)"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="nav-label">Store</span></div>
-    <div class="nav-item" onclick="switchNav('pengaturan', 3, this)"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0 0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span class="nav-label">Setting</span></div>
+    <div class="nav-item" onclick="switchNav('store', 2, this)"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="nav-label">Store</span>
+      
+    <span class="nav-badge-apple">3</span>
+    
+    </div>
+    <div class="nav-item" onclick="switchNav('settings', 3, this)"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0 0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span class="nav-label">Setting</span></div>
     <div class="nav-item" onclick="switchNav('profil', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profil</span></div>
   </div>
 
@@ -922,7 +1002,7 @@
         });
     }
 
-            function switchNav(page, index, el) {
+                    function switchNav(page, index, el) {
       const indicator = document.getElementById('indicator');
       const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
       
@@ -960,6 +1040,16 @@
       const tabsHeader = document.getElementById('karya-tabs-header'); 
       const searchBox = document.getElementById('searchBoxWrapper');
       
+      // [+] RESET & TUTUP PENCARIAN SAAT PINDAH TAB (BERLAKU GLOBAL) [+]
+      const searchInputEl = document.getElementById('searchInput');
+      if (searchInputEl) searchInputEl.value = ''; // Kosongkan teks di kotak input
+      searchQueryStr = ''; // Reset memori filter agar list kembali utuh
+      
+      // Tutup otomatis search bar SETIAP KALI pindah halaman ke mana pun
+      if(searchBox && searchBox.classList.contains('show')) {
+          searchBox.classList.remove('show');
+      }
+      
       // A. Tombol Search (Muncul di Home, App Mod, Store)
       if(page === 'home' || page === 'appmod' || page === 'store') {
           if(searchIcon) { 
@@ -973,12 +1063,7 @@
               searchIcon.style.opacity = '0'; 
               searchIcon.style.pointerEvents = 'none'; // Matikan fisik klik
           }
-          if(headerBg) headerBg.style.width = '42px'; // Kecilkan background hanya untuk icon email
-          
-          // Tutup otomatis search bar jika sedang terbuka lalu user pindah ke Setting/Profil
-          if(searchBox && searchBox.classList.contains('show')) {
-              searchBox.classList.remove('show');
-          }
+          if(headerBg) headerBg.style.width = '42px'; // Kecilkan background
       }
 
       // B. Mengubah Judul Teks Header
@@ -994,7 +1079,7 @@
           else tabsHeader.style.display = 'none';
       }
       
-      // D. Tarik Data Sesuai Halaman
+      // D. Tarik Data (Otomatis menampilkan semua list karena searchQueryStr sudah dikosongkan)
       if(page === 'home') ambilDataWeb();
       if(page === 'appmod') ambilDataApp();
       if(page === 'store') ambilDataStore();
@@ -1223,48 +1308,55 @@
         
         if (!wrapper || !indicator) return;
 
-        // Mendeteksi sentuhan jari pertama kali (Hold)
+                let startX = 0;
+        let isNavDragging = false;
+
+        // Mendeteksi sentuhan jari pertama kali
         wrapper.addEventListener('touchstart', function(e) {
-            isNavDragging = true;
-            prosesGeserNavigasi(e, wrapper, indicator, items);
+            startX = e.touches[0].clientX;
+            isNavDragging = false; // Asumsikan ini cuma di-tap biasa
         }, { passive: true });
 
-        // Mengikuti pergeseran jari secara horizontal (Drag/Swipe)
+        // Mengikuti pergeseran jari
         wrapper.addEventListener('touchmove', function(e) {
-            if (!isNavDragging) return;
-            prosesGeserNavigasi(e, wrapper, indicator, items);
+            const touchX = e.touches[0].clientX;
+            // Jika jari geser lebih dari 10 pixel, baru kita anggap sedang nge-drag
+            if (Math.abs(touchX - startX) > 10) {
+                isNavDragging = true;
+                prosesGeserNavigasi(e, wrapper, indicator, items);
+            }
         }, { passive: true });
 
-        // Mengunci halaman saat jari diangkat (Release)
-                wrapper.addEventListener('touchend', function(e) {
-            isNavDragging = false;
-            
-            // Terapkan Apple Spring Bounce
-            indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            
-            // ... (sisa kodenya biarkan sama) ...
+        // Mengunci halaman saat jari diangkat
+        wrapper.addEventListener('touchend', function(e) {
+            if (isNavDragging) {
+                // Terapkan Apple Spring Bounce hanya jika habis di-drag
+                indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                
+                const indicatorRect = indicator.getBoundingClientRect();
+                const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
+                
+                let itemTerdekat = items[0];
+                let jarakTerkecil = Infinity;
 
-            
-            const indicatorRect = indicator.getBoundingClientRect();
-            const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
-            
-            let itemTerdekat = items[0];
-            let jarakTerkecil = Infinity;
+                items.forEach((item) => {
+                    const itemRect = item.getBoundingClientRect();
+                    const itemCenter = itemRect.left + (itemRect.width / 2);
+                    const selisih = Math.abs(indicatorCenter - itemCenter);
+                    if (selisih < jarakTerkecil) {
+                        jarakTerkecil = selisih;
+                        itemTerdekat = item;
+                    }
+                });
 
-            items.forEach((item) => {
-                const itemRect = item.getBoundingClientRect();
-                const itemCenter = itemRect.left + (itemRect.width / 2);
-                const selisih = Math.abs(indicatorCenter - itemCenter);
-                if (selisih < jarakTerkecil) {
-                    jarakTerkecil = selisih;
-                    itemTerdekat = item;
+                if (itemTerdekat) {
+                    itemTerdekat.click();
                 }
-            });
-
-            if (itemTerdekat) {
-                itemTerdekat.click();
             }
+            // Reset status
+            isNavDragging = false;
         });
+
 
         // Jalankan pengecekan tema secepat mungkin
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark';
@@ -1534,7 +1626,7 @@
                 }
             } else {
                 // Lempar pesan error dari backend Vercel ke layar
-                throw new Error(data.error || "Gagal terhubung ke Gemini API.");
+                throw new Error(data.error || "Gagal terhubung ke Server.");
             }
         } catch (error) {
             // Jangan hapus bubble, tapi UBAH isinya menjadi pesan error

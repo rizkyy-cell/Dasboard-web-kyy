@@ -573,13 +573,12 @@
         z-index: 10;
     }
 
-
         /* ==========================================
        WIDGET MUSIC PLAYER (ULTRA LIQUID GLASS)
        ========================================== */
     .music-player-widget {
         position: fixed;
-        top: 110px;
+        top: 180px;
         right: 15px;
         z-index: 9998;
         
@@ -685,6 +684,79 @@
     }
     
     .btn-scroll-glass:active { transform: scale(0.9); }
+        /* ==========================================
+       LIQUID GLASS ABOUT TABLE (PROFIL)
+       ========================================== */
+    .glass-about-table {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.01));
+        backdrop-filter: blur(25px) saturate(200%);
+        -webkit-backdrop-filter: blur(25px) saturate(200%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.25);
+        border-left: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 24px;
+        padding: 22px 20px;
+        margin: 0 15px 20px 15px; /* Sejajar dengan Network Monitor */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.1);
+    }
+
+    body.light-theme .glass-about-table {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-top: 1px solid rgba(255, 255, 255, 0.8);
+        border-left: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05), inset 0 2px 3px rgba(255,255,255,0.4);
+    }
+
+    .about-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+    body.light-theme .about-row { border-bottom: 1px dashed rgba(0, 0, 0, 0.1); }
+    .about-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+    
+    .about-title { font-size: 14px; font-weight: 800; color: var(--tg-accent); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .about-desc { font-size: 13.5px; line-height: 1.6; color: var(--tg-text-muted); }
+    body.light-theme .about-desc { color: #475569; }
+    /* FIX ABOUT ME & WEB */
+    .about-name {
+        font-weight: bold;
+        color: var(--tg-accent); 
+        transition: color 0.3s ease;
+    }
+    .about-desc { 
+        font-size: 13.5px; 
+        line-height: 1.6; 
+        color: var(--tg-text-muted); 
+    }
+    body.light-theme .about-desc { 
+        color: #475569 !important; 
+    }
+
+.siluet-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); /* Background gelap */
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999;
+    opacity: 0; /* Awalnya sembunyi */
+    pointer-events: none; /* Biar gak menghalangi klik */
+    transition: opacity 0.8s ease-in-out; /* Timing muncul/hilang */
+}
+
+.siluet-overlay.active {
+    opacity: 1.6; /* OPASITAS: Atur di sini (0.1 sampai 1.0) */
+    pointer-events: auto;
+}
+
+.siluet-overlay img {
+    width: 500px; /* UKURAN: Atur lebar gambar di sini */
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+}
+
 
   </style>
 </head>
@@ -694,13 +766,13 @@
           <i class="fas fa-play" id="playIcon"></i>
       </button>
       <div class="music-info">
-          <span class="music-title">Lo-Fi Chill</span>
+          <span class="music-title">Molto</span>
           <div class="visualizer" id="musicVisualizer">
               <div class="bar"></div><div class="bar"></div><div class="bar"></div>
           </div>
       </div>
       <audio id="bgAudio" loop preload="none">
-          <source src="https://assets.mixkit.co/music/preview/mixkit-chill-bro-89.mp3" type="audio/mpeg">
+          <source src="multo.mp3" type="audio/mpeg">
       </audio>
   </div>
 
@@ -719,7 +791,8 @@
   </div>
 
   <!-- TOMBOL PANAH AUTO SCROLL KE ATAS -->
-  <button id="btnScrollToTop" style="position: fixed; bottom: 100px; right: 20px; width: 45px; height: 45px; background: #3390ec; color: white; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; display: none; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: opacity 0.3s;" onclick="scrollToTop()">
+  <button id="btnScrollToTop" class="btn-scroll-glass" onclick="scrollToTop()">
+
     <i class="fas fa-arrow-up"></i>
   </button>
 
@@ -871,6 +944,29 @@
             <span class="sys-val" id="sys-ping"><i class="fas fa-circle-notch fa-spin"></i></span>
         </div>
     </div>
+        <div class="glass-about-table">
+        <div class="about-row">
+            <div class="about-title"><i class="fas fa-user-astronaut"></i> About Me</div>
+            <div class="about-desc">
+                Halo, saya <span class="about-name">Rizky Kurniawan</span>. Memiliki latar belakang di bidang Teknik Instalasi Tenaga Listrik (TITL) dan kini memfokuskan diri sebagai Web Developer & Creator, mengeksplorasi pembuatan antarmuka modern dan eksperimen simulasi 3D.
+            </div>
+        </div>
+        
+        <div class="about-row">
+            <div class="about-title"><i class="fas fa-server"></i> About Web</div>
+            <div class="about-desc">
+                Dashboard eksklusif yang dirancang sebagai pusat kendali untuk mengunduh Mod Aplikasi, Tools interaktif, serta Etalase Premium. Dibalut dengan antarmuka responsif bermesin <i>Liquid Glass</i> ala native iOS.
+            </div>
+        </div>
+
+        <div class="about-row">
+            <div class="about-title"><i class="fas fa-robot"></i> KYY CS Assistant</div>
+            <div class="about-desc">
+                Asisten kecerdasan buatan (AI) yang diintegrasikan langsung ke dalam dashboard. Tidak perlu canggung atau memperkenalkan diri, langsung saja ketik pertanyaan atau arahan yang Anda butuhkan, KYY CS siap merespons secara otomatis!
+            </div>
+        </div>
+    </div>
+
     </div>
   
   
@@ -983,6 +1079,11 @@
     </div>
 
   </div>
+  
+  <div id="siluetOverlay" class="siluet-overlay">
+    <img src="overlay.png" alt="Falling">
+</div>
+
 
     <script>
     // =====================================================================
@@ -1065,7 +1166,7 @@
         renderAppList();
     }
 
-    function renderAppList() {
+        function renderAppList() {
         const container = document.getElementById('container-app-list');
         if (!container) return;
         if (dataAppLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Aplikasi kosong.</p>`; return; }
@@ -1076,6 +1177,12 @@
             if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
             
             let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
+            
+            // ANTI-BUG: Kebal terhadap tanda kutip/simbol aneh dari Database
+            const namaAppSafe = (app.nama_app || '').replace(/'/g, "\\'");
+            const ukuranSafe = (app.ukuran || '').replace(/'/g, "\\'");
+            const linkDlSafe = (app.link_download || '').replace(/'/g, "\\'");
+
             container.innerHTML += `
                 <div class="mod-box-item">
                     <div class="mod-box-header">
@@ -1083,10 +1190,11 @@
                         <div class="mod-box-size" style="background:none;"><span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; color:#fff;">${app.ukuran || 'N/A'}</span></div>
                     </div>
                     <div class="mod-box-desc">${app.deskripsi || 'No Description'}</div>
-                    <button class="mod-btn-download" onclick="triggerDownloadNotif('${app.nama_app}', '${app.ukuran}', '${app.link_download}')">Unduh File Mod</button>
+                    <button class="mod-btn-download" onclick="triggerDownloadNotif('${namaAppSafe}', '${ukuranSafe}', '${linkDlSafe}')">Unduh File Mod</button>
                 </div>`;
         });
     }
+
 
     async function ambilDataStore() {
         const container = document.getElementById('container-store-list');
@@ -1099,7 +1207,7 @@
         renderStoreList();
     }
 
-    function renderStoreList() {
+        function renderStoreList() {
         const container = document.getElementById('container-store-list');
         if (!container) return;
         if (dataStoreLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Etalase kosong.</p>`; return; }
@@ -1112,8 +1220,10 @@
             let stockBadge = `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stock: ${prod.stock ?? '0'}</span>`;
             let iconHtml = prod.img_url ? `<img src="${prod.img_url}" onerror="this.outerHTML='🛍️'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '🛍️';
             
+            // ANTI-BUG: Kebal terhadap tanda kutip pada URL WhatsApp dan nama
             const namaProdSafe = (prod.nama_produk || '').replace(/'/g, "\\'");
             const hargaSafe = (prod.harga || '').replace(/'/g, "\\'");
+            const linkWaSafe = (prod.link_wa || '').replace(/'/g, "\\'");
 
             container.innerHTML += `
                 <div class="mod-box-item">
@@ -1122,7 +1232,7 @@
                         <div class="mod-box-size" style="color:#00ff7f; background:none;">${prod.harga}${stockBadge}</div>
                     </div>
                     <div class="mod-box-desc">${prod.deskripsi || 'Tidak ada deskripsi.'}</div>
-                    <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${prod.link_wa}')">Beli Sekarang</button>
+                    <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>
                 </div>`;
         });
     }
@@ -1130,7 +1240,7 @@
     // =====================================================================
     // 3. LOGIKA NAVIGASI, SEARCH, DAN FILTER
     // =====================================================================
-    function switchNav(page, index, el) {
+        function switchNav(page, index, el) {
         const indicator = document.getElementById('indicator');
         const navItems = Array.from(document.querySelectorAll('.nav-item'));
         const currentIndex = navItems.findIndex(item => item.classList.contains('active'));
@@ -1140,6 +1250,7 @@
         navItems.forEach(item => item.classList.remove('active'));
         document.querySelectorAll('.page-content').forEach(content => {
             content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
+            content.scrollTop = 0; // <--- INI BIAR LAYAR KERISET BALIK KE ATAS
         });
       
         if(el) el.classList.add('active');
@@ -1156,12 +1267,14 @@
         const title = document.getElementById('header-title');
         const tabsHeader = document.getElementById('karya-tabs-header'); 
         const searchBox = document.getElementById('searchBoxWrapper');
+        const btnScroll = document.getElementById('btnScrollToTop'); // <--- PANGGIL PANAHNYA
       
         const searchInputEl = document.getElementById('searchInput');
         if (searchInputEl) searchInputEl.value = ''; 
         searchQueryStr = ''; 
       
         if (searchBox && searchBox.classList.contains('show')) searchBox.classList.remove('show');
+        if (btnScroll) btnScroll.style.display = 'none'; // <--- PAKSA PANAH MINGGAT PAS GANTI TAB
       
         if (page === 'home' || page === 'appmod' || page === 'store') {
             if (searchIcon) { searchIcon.style.opacity = '1'; searchIcon.style.pointerEvents = 'auto'; }
@@ -1409,11 +1522,33 @@
     // =====================================================================
     // 7. WIDGET MUSIC PLAYER
     // =====================================================================
-    function toggleMusic() {
-        const audio = document.getElementById('bgAudio'); const playIcon = document.getElementById('playIcon'); const visualizer = document.getElementById('musicVisualizer');
+            function toggleMusic() {
+        const audio = document.getElementById('bgAudio'); 
+        const playIcon = document.getElementById('playIcon'); 
+        const visualizer = document.getElementById('musicVisualizer');
+        const overlay = document.getElementById('siluetOverlay');
+        
         if (!audio || !playIcon || !visualizer) return;
-        if (audio.paused) { audio.play(); playIcon.className = 'fas fa-pause'; visualizer.classList.add('playing'); } 
-        else { audio.pause(); playIcon.className = 'fas fa-play'; visualizer.classList.remove('playing'); }
+
+        if (audio.paused) { 
+            audio.play(); 
+            playIcon.className = 'fas fa-pause'; 
+            visualizer.classList.add('playing'); 
+            
+            // MUNCULIN GAMBAR
+            overlay.classList.add('active'); 
+            
+            // AUTO HILANG SETELAH 3 DETIK (3000ms)
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 3000);
+
+        } else { 
+            audio.pause(); 
+            playIcon.className = 'fas fa-play'; 
+            visualizer.classList.remove('playing'); 
+            overlay.classList.remove('active'); 
+        }
     }
 
     // =====================================================================
@@ -1424,6 +1559,25 @@
         const ampm = hours >= 12 ? 'PM' : 'AM'; hours = hours % 12 || 12; 
         return `${hours}:${minutes < 10 ? '0'+minutes : minutes} ${ampm}`;
     }
+    // Konteks "Otak" KYY CS - Otomatis tersimpan di memori AI
+const kyyBrain = {
+    owner: "Rizky Kurniawan",
+    role: "Web Developer, Creator, & Electrical Engineering Enthusiast",
+    techStack: ["Web Development (Three.js)", "Mobile-First Development (Acode)", "Industrial Electrical Panels & Star Delta"],
+    personality: "Profesional, tech-savvy, kadang egois namun tetap santai dan membantu",
+    
+    // Instruksi dasar untuk KYY CS
+    getProfileContext: function() {
+        return `Kamu adalah KYY Assistant, asisten AI pribadi dari ${this.owner}. 
+        Skill utama pemilikmu adalah ${this.techStack.join(", ")}. 
+        Tugasmu adalah membantu pengunjung memahami dashboard ini, menjelaskan tools yang ada, 
+        dan memberikan informasi tentang project 3D atau mod aplikasi yang dibuat oleh ${this.owner}.`;
+    }
+};
+
+// Pastikan pesan awal AI mencerminkan identitas ini
+// (Cari bagian ini di fungsi kirimPesanUser atau inisialisasi)
+
 
     async function kirimPesanUser() {
         const aiInputTeks = document.getElementById('ai-input-teks');

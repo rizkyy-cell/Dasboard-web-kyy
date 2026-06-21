@@ -368,131 +368,108 @@
 
     .theme-slider:before { position: absolute !important; content: "" !important; height: 20px !important; width: 20px !important; left: 3px !important; bottom: 3px !important; background-color: white !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
 
-        /* ==========================================
-       STYLE LAYER CHAT AI & ANIMASI SMOOTH TRANSITION
+            /* ==========================================
+       STYLE LAYER CHAT AI (ANTI-BENTROK / DECOUPLED)
        ========================================== */
     #layer-chat-ai {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      width: 100%; height: 100dvh;
-      background-color: var(--tg-bg);
-      z-index: 99999; /* Lapisan tertinggi menutup dashboard */
-      display: flex; flex-direction: column;
-      overflow: hidden;
-      /* Animasi transisi smooth menggunakan cubic-bezier gaya iOS */
-      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100dvh;
+        background-color: var(--tg-bg) !important;
+        z-index: 99999; display: flex; flex-direction: column;
+        overflow: hidden;
+        transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+    }
+    .assistant-layer-hidden { transform: translateY(100%) scale(0.95); opacity: 0; pointer-events: none; }
+    .assistant-layer-active { transform: translateY(0) scale(1) !important; opacity: 1 !important; pointer-events: auto !important; }
+
+    /* HEADER KACA */
+    #layer-chat-ai .ai-header-glass {
+        padding: max(35px, env(safe-area-inset-top)) 15px 12px 15px;
+        background: rgba(23, 33, 43, 0.8) !important;
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    #layer-chat-ai .ai-header-left { display: flex; align-items: center; gap: 12px; }
+    #layer-chat-ai .ai-back-container {
+        display: flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        cursor: pointer; color: #fff !important;
+    }
+    #layer-chat-ai .ai-profile-pic { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
+    #layer-chat-ai .ai-profile-pic img { width: 100%; height: 100%; object-fit: cover; }
+    #layer-chat-ai .ai-user-info { display: flex; flex-direction: column; }
+    #layer-chat-ai .ai-nama { font-size: 15px; font-weight: 700; color: #fff !important; }
+    #layer-chat-ai .ai-status { font-size: 11px; color: var(--tg-text-muted) !important; }
+
+    /* AREA CHAT */
+    #layer-chat-ai .ai-chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    #layer-chat-ai .ai-bubble-bot { 
+        align-self: flex-start; max-width: 80%; padding: 12px 16px; 
+        background: var(--tg-panel) !important; 
+        border: 1px solid rgba(255,255,255,0.05) !important; 
+        border-radius: 18px; border-top-left-radius: 4px; 
+        font-size: 14.5px; line-height: 1.4; color: #fff !important; 
     }
 
-    /* Kondisi Saat Chat Bersembunyi (Default) */
-    .assistant-layer-hidden {
-      transform: translateY(100%) scale(0.95);
-      opacity: 0;
-      pointer-events: none;
+    /* KOLOM INPUT LIQUID GLASS */
+    #layer-chat-ai .ai-footer-input { 
+        padding: 12px 15px max(20px, env(safe-area-inset-bottom)) 15px; 
+        display: flex; align-items: center; gap: 12px; 
+        background: rgba(23, 33, 43, 0.6) !important;
+        backdrop-filter: blur(25px) saturate(200%); -webkit-backdrop-filter: blur(25px) saturate(200%);
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2) !important;
+        transform: translateY(150%); opacity: 0;
+        transition: transform 0.65s cubic-bezier(0.24, 1.1, 0.32, 1) 0.15s, opacity 0.5s ease 0.15s;
     }
+    #layer-chat-ai.assistant-layer-active .ai-footer-input { transform: translateY(0); opacity: 1; }
+    #layer-chat-ai .ai-input-capsule { 
+        flex: 1; background: rgba(255,255,255,0.06) !important; 
+        border: 1px solid rgba(255,255,255,0.1) !important; 
+        border-radius: 24px; padding: 10px 18px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #layer-chat-ai .ai-input-capsule input { width: 100%; background: transparent !important; border: none; color: #fff !important; font-size: 14.5px; outline: none; }
+    #layer-chat-ai .ai-input-capsule input::placeholder { color: var(--tg-text-muted) !important; }
+    #layer-chat-ai .ai-btn-kirim { width: 40px; height: 40px; border-radius: 50%; background: var(--tg-accent); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(51, 144, 236, 0.4); }
+    #layer-chat-ai .ai-btn-kirim:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
 
-    /* Kondisi Saat Chat Muncul Aktif */
-    .assistant-layer-active {
-      transform: translateY(0) scale(1) !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
+    /* DROPDOWN & MODAL */
+    #layer-chat-ai .ai-dropdown { position: absolute; top: 45px; right: 0; width: 160px; background: rgba(23, 33, 43, 0.9) !important; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 14px; padding: 4px; opacity: 0; visibility: hidden; transform: scale(0.85) translateY(-10px); transform-origin: top right; transition: all 0.25s cubic-bezier(0.25, 1, 0.2, 1); z-index: 100000; }
+    #layer-chat-ai .ai-dropdown.active { opacity: 1; visibility: visible; transform: scale(1) translateY(0); }
+    #layer-chat-ai .ai-dropdown button { width: 100%; padding: 10px 12px; background: none; border: none; text-align: left; color: #fff !important; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 10px; }
+    #layer-chat-ai .ai-dropdown button:hover { background: rgba(255, 255, 255, 0.05) !important; }
 
-    /* Komponen Header Kaca di Room Chat */
-    .ai-header-glass {
-      padding: max(35px, env(safe-area-inset-top)) 15px 12px 15px;
-      background: rgba(23, 33, 43, 0.8);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    body.light-theme .ai-header-glass {
-      background: rgba(255, 255, 255, 0.8);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    }
-    .ai-header-left { display: flex; align-items: center; gap: 12px; }
+    #layer-chat-ai .ai-modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100005; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+    #layer-chat-ai .ai-modal-overlay.active { opacity: 1; visibility: visible; }
+    #layer-chat-ai .ai-modal-box { width: 100%; max-width: 300px; background: rgba(23, 33, 43, 0.75) !important; backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%); border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 20px; padding: 22px; text-align: center; color: #fff !important; transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+    #layer-chat-ai .ai-modal-overlay.active .ai-modal-box { transform: scale(1); }
+    #layer-chat-ai .ai-modal-icon { width: 46px; height: 46px; background: rgba(255, 59, 48, 0.15); color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 18px; }
+    #layer-chat-ai .ai-modal-buttons { display: flex; gap: 10px; }
+    #layer-chat-ai .ai-modal-buttons button { flex: 1; padding: 11px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    #layer-chat-ai .ai-btn-modal-batal { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
+    #layer-chat-ai .ai-btn-modal-hapus { background: #ff3b30 !important; color: #fff !important; }
 
-    /* Kapsul Bulat Tombol Back Kiri Atas */
-    .ai-back-container {
-      display: flex; align-items: center; justify-content: center;
-      width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      cursor: pointer; color: #fff;
-    }
-    body.light-theme .ai-back-container {
-      background: rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      color: #1e293b;
-    }
+    /* ==========================================
+       TEMA TERANG KHUSUS ROOM CHAT (TERPISAH & KEBAL GLOBAL)
+       ========================================== */
+    #layer-chat-ai.light-chat-room { background-color: #f4f6f9 !important; }
+    #layer-chat-ai.light-chat-room .ai-header-glass { background: rgba(255, 255, 255, 0.85) !important; border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important; }
+    #layer-chat-ai.light-chat-room .ai-back-container { background: rgba(0, 0, 0, 0.04) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
+    #layer-chat-ai.light-chat-room .ai-nama { color: #1e293b !important; }
+    #layer-chat-ai.light-chat-room .ai-bubble-bot { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #1e293b !important; box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important; }
+    #layer-chat-ai.light-chat-room .ai-footer-input { background: rgba(255, 255, 255, 0.7) !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05) !important; }
+    #layer-chat-ai.light-chat-room .ai-input-capsule { background: rgba(0,0,0,0.03) !important; border: 1px solid rgba(0,0,0,0.06) !important; }
+    #layer-chat-ai.light-chat-room .ai-input-capsule input { color: #1e293b !important; }
+    #layer-chat-ai.light-chat-room .ai-input-capsule input::placeholder { color: #94a3b8 !important; }
+    #layer-chat-ai.light-chat-room .ai-dropdown { background: rgba(255, 255, 255, 0.95) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; }
+    #layer-chat-ai.light-chat-room .ai-dropdown button { color: #1e293b !important; }
+    #layer-chat-ai.light-chat-room .ai-dropdown button:hover { background: rgba(0, 0, 0, 0.04) !important; }
+    #layer-chat-ai.light-chat-room .ai-modal-box { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
+    #layer-chat-ai.light-chat-room .ai-btn-modal-batal { background: rgba(0,0,0,0.05) !important; color: #1e293b !important; }
 
-    .ai-profile-pic { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
-    .ai-profile-pic img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .ai-user-info { display: flex; flex-direction: column; }
-    .ai-nama { font-size: 15px; font-weight: 700; color: var(--tg-text); }
-    .ai-status { font-size: 11px; color: var(--tg-text-muted); }
-
-    /* Area Chat & Input */
-    .ai-chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .ai-bubble-bot { align-self: flex-start; max-width: 80%; padding: 12px 16px; background: var(--tg-panel); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; border-top-left-radius: 4px; font-size: 14.5px; line-height: 1.4; }
-    
-    .ai-footer-input { padding: 10px 15px max(15px, env(safe-area-inset-bottom)) 15px; display: flex; align-items: center; gap: 12px; background: transparent; }
-    .ai-input-capsule { flex: 1; background: var(--tg-panel); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 10px 16px; height: 44px; }
-    body.light-theme .ai-input-capsule { background: #fff; border: 1px solid rgba(0,0,0,0.08); }
-    .ai-input-capsule input { width: 100%; background: none; border: none; color: var(--tg-text); font-size: 14.5px; outline: none; }
-    
-    .ai-btn-kirim { width: 38px; height: 38px; border-radius: 50%; background: var(--tg-accent); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .ai-btn-kirim:disabled { opacity: 0.3; cursor: default; }
-
-        /* Style Dropdown Menu di Room Chat AI */
-    .ai-dropdown {
-      position: absolute; top: 45px; right: 0; width: 160px;
-      background: rgba(23, 33, 43, 0.9); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 4px;
-      opacity: 0; visibility: hidden; transform: scale(0.85) translateY(-10px); transform-origin: top right;
-      transition: all 0.25s cubic-bezier(0.25, 1, 0.2, 1); z-index: 100000;
-    }
-    body.light-theme .ai-dropdown {
-      background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.08);
-    }
-    .ai-dropdown.active { opacity: 1; visibility: visible; transform: scale(1) translateY(0); }
-    .ai-dropdown button {
-      width: 100%; padding: 10px 12px; background: none; border: none;
-      text-align: left; color: var(--tg-text); font-size: 13.5px; cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between; border-radius: 10px;
-    }
-    .ai-dropdown button:hover { background: rgba(255, 255, 255, 0.05); }
-        body.light-theme .ai-dropdown button:hover { background: rgba(0, 0, 0, 0.03); }
-
-    /* STYLE CUSTOM POP-UP MODAL LIQUID GLASS */
-    .ai-modal-overlay {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      z-index: 100005; display: flex; align-items: center; justify-content: center;
-      padding: 20px; opacity: 0; visibility: hidden;
-      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    .ai-modal-overlay.active { opacity: 1; visibility: visible; }
-    .ai-modal-box {
-      width: 100%; max-width: 300px; background: rgba(23, 33, 43, 0.75);
-      backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%);
-      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
-      padding: 22px; text-align: center; color: #fff;
-      transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-    body.light-theme .ai-modal-box { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(0, 0, 0, 0.08); color: #1e293b; }
-    .ai-modal-overlay.active .ai-modal-box { transform: scale(1); }
-    .ai-modal-icon {
-      width: 46px; height: 46px; background: rgba(255, 59, 48, 0.15); color: #ff3b30;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 18px;
-    }
-    .ai-modal-buttons { display: flex; gap: 10px; }
-    .ai-modal-buttons button { flex: 1; padding: 11px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    .ai-btn-modal-batal { background: rgba(255,255,255,0.06); color: var(--tg-text); }
-    body.light-theme .ai-btn-modal-batal { background: rgba(0,0,0,0.05); }
-    .ai-btn-modal-hapus { background: #ff3b30; color: #fff; }
-    .ai-btn-modal-hapus:hover { background: #e02e24; }
 
         /* ==========================================
        WIDGET SYSTEM MONITOR (LIQUID GLASS)
@@ -573,65 +550,160 @@
         z-index: 15;
         pointer-events: none;
     }
-    
-    /* Penyesuaian batas badge saat Tema Terang dinyalakan */
-    body.light-theme .nav-badge-apple {
-        border: 2px solid #ffffff;
+        /* FIX NOTIFIKASI TOMBOL CHAT PROFIL */
+    .btn-social {
+        position: relative; /* Biar badge bisa nempel pas di pojok tombol */
     }
     .nav-badge-notif {
         position: absolute;
-        top: 1px;
-        right: 1%; /* Posisinya pas di sudut atas ikon */
-        background: #30ebff; /* Merah khas Apple */
+        top: -4px;
+        right: -4px;
+        background: #ff3b30; /* Merah khas Apple */
         color: #fff;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 800;
-        padding: 1.5px 5px;
-        border-radius: 10px;
-        border: 2px solid var(--tg-panel); /* Memberi efek 'terpotong' dari background */
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        z-index: 15;
-        pointer-events: none;
-    }
-    
-    /* Penyesuaian batas badge saat Tema Terang dinyalakan */
-    body.light-theme .nav-badge-notif {
-        border: 1px solid #ffffff;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 10;
     }
 
+
         /* ==========================================
-       FIX BUG LIGHT THEME DI ROOM CHAT AI
+       WIDGET MUSIC PLAYER (ULTRA LIQUID GLASS)
        ========================================== */
-    
-    /* 1. Ubah background utama ruang chat jadi terang */
-    body.light-theme #layer-chat-ai { 
-        background-color: #f4f6f9 !important; 
+    .music-player-widget {
+        position: fixed;
+        top: 110px;
+        right: 15px;
+        z-index: 9998;
+        
+        /* 1. Kaca Bening & Blur Tinggi */
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.01));
+        backdrop-filter: blur(30px) saturate(200%);
+        -webkit-backdrop-filter: blur(30px) saturate(200%);
+        
+        /* 2. Pantulan Cahaya (Edge Highlights) ala Kaca 3D iOS */
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        
+        /* 3. Bayangan Kedalaman (Shadows & Inset) */
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.1);
+        
+        border-radius: 30px;
+        padding: 6px 12px 6px 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        
+        /* 4. Fitur Drag: Mencegah layar ikut ter-scroll saat widget digeser */
+        touch-action: none; 
     }
     
-    /* 2. Ubah Gelembung AI jadi Putih Bersih dengan Teks Gelap */
-    body.light-theme .ai-bubble-bot { 
-        background: #ffffff; 
-        border: 1px solid rgba(0,0,0,0.08); 
-        color: #1e293b; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    body.light-theme .music-player-widget {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.8);
+        border-left: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05), inset 0 2px 3px rgba(255,255,255,0.4);
+    }
+
+    .music-btn {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: var(--tg-accent);
+        color: white; border: none;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+    .music-btn:active { transform: scale(0.9); }
+
+    .music-info { display: flex; flex-direction: column; max-width: 70px; }
+    
+    .music-title {
+        font-size: 10px; font-weight: 800; color: #fff;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        letter-spacing: 0.5px;
+    }
+    body.light-theme .music-title { color: #1e293b; }
+
+    /* Animasi Visualizer Naik Turun */
+    .visualizer { display: flex; gap: 3px; align-items: flex-end; height: 12px; margin-top: 3px; }
+    .visualizer .bar {
+        width: 3px; background: var(--tg-accent); border-radius: 2px;
+        height: 3px; transition: height 0.1s ease;
+    }
+    .visualizer.playing .bar { animation: bounceBar 0.5s infinite alternate; }
+    .visualizer.playing .bar:nth-child(2) { animation-delay: 0.2s; }
+    .visualizer.playing .bar:nth-child(3) { animation-delay: 0.4s; }
+    
+    @keyframes bounceBar { 0% { height: 3px; } 100% { height: 12px; } }
+
+        /* ==========================================
+       TOMBOL SCROLL TO TOP (ULTRA LIQUID GLASS)
+       ========================================== */
+    .btn-scroll-glass {
+        position: fixed;
+        bottom: 100px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: none; /* Sembunyi secara default */
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 9997; /* Di bawah popup, sejajar widget musik */
+        color: var(--tg-accent);
+        font-size: 18px;
+        transition: opacity 0.3s, transform 0.2s;
+
+        /* Ultra Liquid Glass Effect */
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.01));
+        backdrop-filter: blur(30px) saturate(200%);
+        -webkit-backdrop-filter: blur(30px) saturate(200%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.4);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.1);
     }
     
-    /* 3. Pastikan teks Nama, Status, Dropdown, dan Input menjadi Gelap agar terbaca */
-    body.light-theme .ai-nama, 
-    body.light-theme .ai-input-capsule input, 
-    body.light-theme .ai-dropdown button,
-    body.light-theme .ai-btn-modal-batal { 
-        color: #1e293b !important; 
+    body.light-theme .btn-scroll-glass {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-top: 1px solid rgba(255, 255, 255, 0.8);
+        border-left: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05), inset 0 2px 3px rgba(255,255,255,0.4);
     }
     
-    /* 4. Sesuaikan warna teks samar (placeholder) saat mengetik */
-    body.light-theme .ai-input-capsule input::placeholder {
-        color: #94a3b8 !important;
-    }
+    .btn-scroll-glass:active { transform: scale(0.9); }
 
   </style>
 </head>
 <body>
+    <div class="music-player-widget" id="musicWidget">
+      <button class="music-btn" id="playPauseBtn" onclick="toggleMusic()">
+          <i class="fas fa-play" id="playIcon"></i>
+      </button>
+      <div class="music-info">
+          <span class="music-title">Lo-Fi Chill</span>
+          <div class="visualizer" id="musicVisualizer">
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+          </div>
+      </div>
+      <audio id="bgAudio" loop preload="none">
+          <source src="https://assets.mixkit.co/music/preview/mixkit-chill-bro-89.mp3" type="audio/mpeg">
+      </audio>
+  </div>
+
 
   <!-- POPUP NOTIFICATIONS INBOX OVERLAY -->
   <div id="inboxModalOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 99999; display: none; align-items: center; justify-content: center;">
@@ -912,42 +984,70 @@
 
   </div>
 
-  <script>
+    <script>
+    // =====================================================================
+    // 0. PELINDUNG ANTI-CRASH (Melacak jika ada error tersembunyi)
+    // =====================================================================
+    window.onerror = function(msg, url, line) {
+        console.error("Bug terdeteksi di baris " + line + ": " + msg);
+    };
+
+    // =====================================================================
+    // 1. INISIALISASI DATABASE & VARIABEL GLOBAL
+    // =====================================================================
     const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
     const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let dataWebLokal = [];
+    let dataAppLokal = [];
+    let dataStoreLokal = [];
     let currentCategory = 'all';
     let searchQueryStr = '';
     let activeDownloadUrl = '';
-    let isNavDragging = false; // Flag untuk melacak pergerakan jari
 
+    // =====================================================================
+    // 2. SISTEM TARIK DATA PINTAR (ANTI-LAG & CACHING)
+    // =====================================================================
     async function ambilDataWeb() {
         const container = document.getElementById('container-web-list');
-        const { data, error } = await supabaseClient.from('web_saya').select('*').order('id', { ascending: false });
-        if(error || !data) { container.innerHTML = `<p style="text-align:center;color:var(--tg-text-muted);">Gagal load website</p>`; return; }
-        dataWebLokal = data; renderHomeList();
+        if (!container) return;
+        if (dataWebLokal.length === 0) {
+            const { data, error } = await supabaseClient.from('web_saya').select('*').order('id', { ascending: false });
+            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted);">Gagal memuat data web.</p>`; return; }
+            dataWebLokal = data; 
+        }
+        renderHomeList();
     }
 
     function renderHomeList() {
         const container = document.getElementById('container-web-list');
-        let toolsCount = dataWebLokal.filter(i => i.nama_web.toLowerCase().includes('generator') || i.nama_web.toLowerCase().includes('tool')).length;
-        document.getElementById('badge-all').innerText = dataWebLokal.length;
-        document.getElementById('badge-tools').innerText = toolsCount;
-        document.getElementById('badge-lainnya').innerText = dataWebLokal.length - toolsCount;
+        if (!container) return;
+
+        let toolsCount = dataWebLokal.filter(i => (i.nama_web || '').toLowerCase().includes('generator') || (i.nama_web || '').toLowerCase().includes('tool')).length;
+        
+        const badgeAll = document.getElementById('badge-all');
+        const badgeTools = document.getElementById('badge-tools');
+        const badgeLainnya = document.getElementById('badge-lainnya');
+        
+        if (badgeAll) badgeAll.innerText = dataWebLokal.length;
+        if (badgeTools) badgeTools.innerText = toolsCount;
+        if (badgeLainnya) badgeLainnya.innerText = dataWebLokal.length - toolsCount;
+        
         container.innerHTML = '';
         dataWebLokal.forEach(web => {
-            let isTool = web.nama_web.toLowerCase().includes('generator') || web.nama_web.toLowerCase().includes('tool');
+            const namaWebStr = (web.nama_web || '').toLowerCase();
+            let isTool = namaWebStr.includes('generator') || namaWebStr.includes('tool');
+            
             if (currentCategory === 'tools' && !isTool) return;
             if (currentCategory === 'lainnya' && isTool) return;
-            if (searchQueryStr && !web.nama_web.toLowerCase().includes(searchQueryStr)) return;
+            if (searchQueryStr && !namaWebStr.includes(searchQueryStr)) return;
 
             container.innerHTML += `
                 <div class="chat-item" onclick="window.open('${web.link_web}', '_blank')">
                     <div class="avatar"><i class="fas fa-globe"></i></div>
                     <div class="chat-content">
-                        <div class="chat-top"><span class="chat-title">${web.nama_web}</span><span class="chat-time">🌐 Active</span></div>
+                        <div class="chat-top"><span class="chat-title">${web.nama_web}</span><span class="chat-time" style="color:#10b981;">🌐 Active</span></div>
                         <div class="chat-bottom"><span class="chat-msg">Klik untuk membuka tautan website</span></div>
                     </div>
                 </div>`;
@@ -956,21 +1056,33 @@
 
     async function ambilDataApp() {
         const container = document.getElementById('container-app-list');
-        const { data, error } = await supabaseClient.from('app_mods').select('*').order('id', { ascending: false });
-        if(error || !data || data.length === 0) { container.innerHTML = `<p style="text-align:center;color:var(--tg-text-muted);padding:20px;">Aplikasi kosong.</p>`; return; }
-        container.innerHTML = '';
-        data.forEach(app => {
-            if (searchQueryStr && !app.nama_app.toLowerCase().includes(searchQueryStr)) return;
+        if (!container) return;
+        if (dataAppLokal.length === 0) {
+            const { data, error } = await supabaseClient.from('app_mods').select('*').order('id', { ascending: false });
+            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat aplikasi.</p>`; return; }
+            dataAppLokal = data; 
+        }
+        renderAppList();
+    }
 
+    function renderAppList() {
+        const container = document.getElementById('container-app-list');
+        if (!container) return;
+        if (dataAppLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Aplikasi kosong.</p>`; return; }
+        
+        container.innerHTML = '';
+        dataAppLokal.forEach(app => {
+            const namaAppStr = (app.nama_app || '').toLowerCase();
+            if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
+            
             let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
-                        container.innerHTML += `
+            container.innerHTML += `
                 <div class="mod-box-item">
                     <div class="mod-box-header">
                         <div class="mod-box-title-group"><div class="mod-box-icon">${imgHtml}</div><div class="mod-box-name">${app.nama_app}</div></div>
                         <div class="mod-box-size" style="background:none;"><span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; color:#fff;">${app.ukuran || 'N/A'}</span></div>
                     </div>
                     <div class="mod-box-desc">${app.deskripsi || 'No Description'}</div>
-
                     <button class="mod-btn-download" onclick="triggerDownloadNotif('${app.nama_app}', '${app.ukuran}', '${app.link_download}')">Unduh File Mod</button>
                 </div>`;
         });
@@ -978,17 +1090,30 @@
 
     async function ambilDataStore() {
         const container = document.getElementById('container-store-list');
-        const { data, error } = await supabaseClient.from('store_products').select('*').order('id', { ascending: false });
-        if(error || !data || data.length === 0) { container.innerHTML = `<p style="text-align:center;color:var(--tg-text-muted);padding:20px;">Etalase jualan kosong.</p>`; return; }
-        container.innerHTML = '';
-        data.forEach(prod => {
-            if (searchQueryStr && !prod.nama_produk.toLowerCase().includes(searchQueryStr)) return;
+        if (!container) return;
+        if (dataStoreLokal.length === 0) {
+            const { data, error } = await supabaseClient.from('store_products').select('*').order('id', { ascending: false });
+            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat etalase.</p>`; return; }
+            dataStoreLokal = data;
+        }
+        renderStoreList();
+    }
 
-            let stockBadge = `<span style="background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:6px;font-size:10px;margin-left:6px;color:#fff;">Stock: ${prod.stock ?? '0'}</span>`;
+    function renderStoreList() {
+        const container = document.getElementById('container-store-list');
+        if (!container) return;
+        if (dataStoreLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Etalase kosong.</p>`; return; }
+        
+        container.innerHTML = '';
+        dataStoreLokal.forEach(prod => {
+            const namaProdStr = (prod.nama_produk || '').toLowerCase();
+            if (searchQueryStr && !namaProdStr.includes(searchQueryStr)) return;
+            
+            let stockBadge = `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stock: ${prod.stock ?? '0'}</span>`;
             let iconHtml = prod.img_url ? `<img src="${prod.img_url}" onerror="this.outerHTML='🛍️'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '🛍️';
             
-            const namaProdSafe = prod.nama_produk.replace(/'/g, "\\'");
-            const hargaSafe = prod.harga.replace(/'/g, "\\'");
+            const namaProdSafe = (prod.nama_produk || '').replace(/'/g, "\\'");
+            const hargaSafe = (prod.harga || '').replace(/'/g, "\\'");
 
             container.innerHTML += `
                 <div class="mod-box-item">
@@ -1002,143 +1127,194 @@
         });
     }
 
-                    function switchNav(page, index, el) {
-      const indicator = document.getElementById('indicator');
-      const currentIndex = Array.from(document.querySelectorAll('.nav-item')).findIndex(item => item.classList.contains('active'));
+    // =====================================================================
+    // 3. LOGIKA NAVIGASI, SEARCH, DAN FILTER
+    // =====================================================================
+    function switchNav(page, index, el) {
+        const indicator = document.getElementById('indicator');
+        const navItems = Array.from(document.querySelectorAll('.nav-item'));
+        const currentIndex = navItems.findIndex(item => item.classList.contains('active'));
       
-      // 1. Fisik Geser Gelembung Apple
-      if(indicator) {
-          indicator.style.transform = `translateY(-50%) translateX(${index * 100}%)`;
-      }
+        if(indicator) indicator.style.transform = `translateY(-50%) translateX(${index * 100}%)`;
 
-      // 2. Reset Status Navigasi dan Halaman
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      document.querySelectorAll('.page-content').forEach(content => {
-          content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
-      });
+        navItems.forEach(item => item.classList.remove('active'));
+        document.querySelectorAll('.page-content').forEach(content => {
+            content.classList.remove('active', 'slide-from-right', 'slide-from-left', 'slide-up');
+        });
       
-      // 3. Pemicu Animasi Slide Halaman Baru
-      if(el) el.classList.add('active');
-      const targetPage = document.getElementById('page-' + page);
-      if(targetPage) {
-          targetPage.classList.add('active');
-          if (currentIndex !== -1 && index > currentIndex) {
-              targetPage.classList.add('slide-from-right');
-          } else if (currentIndex !== -1 && index < currentIndex) {
-              targetPage.classList.add('slide-from-left');
-          } else {
-              targetPage.classList.add('slide-up');
-          }
-      }
+        if(el) el.classList.add('active');
+        const targetPage = document.getElementById('page-' + page);
+        if(targetPage) {
+            targetPage.classList.add('active');
+            if (currentIndex !== -1 && index > currentIndex) targetPage.classList.add('slide-from-right');
+            else if (currentIndex !== -1 && index < currentIndex) targetPage.classList.add('slide-from-left');
+            else targetPage.classList.add('slide-up');
+        }
 
-      // ==========================================
-      // 4. FIX LOGIKA HEADER, SEARCH, & TABS
-      // ==========================================
-      const searchIcon = document.getElementById('searchIconBtn');
-      const headerBg = document.getElementById('header-liquid-bg');
-      const title = document.getElementById('header-title');
-      const tabsHeader = document.getElementById('karya-tabs-header'); 
-      const searchBox = document.getElementById('searchBoxWrapper');
+        const searchIcon = document.getElementById('searchIconBtn');
+        const headerBg = document.getElementById('header-liquid-bg');
+        const title = document.getElementById('header-title');
+        const tabsHeader = document.getElementById('karya-tabs-header'); 
+        const searchBox = document.getElementById('searchBoxWrapper');
       
-      // [+] RESET & TUTUP PENCARIAN SAAT PINDAH TAB (BERLAKU GLOBAL) [+]
-      const searchInputEl = document.getElementById('searchInput');
-      if (searchInputEl) searchInputEl.value = ''; // Kosongkan teks di kotak input
-      searchQueryStr = ''; // Reset memori filter agar list kembali utuh
+        const searchInputEl = document.getElementById('searchInput');
+        if (searchInputEl) searchInputEl.value = ''; 
+        searchQueryStr = ''; 
       
-      // Tutup otomatis search bar SETIAP KALI pindah halaman ke mana pun
-      if(searchBox && searchBox.classList.contains('show')) {
-          searchBox.classList.remove('show');
-      }
+        if (searchBox && searchBox.classList.contains('show')) searchBox.classList.remove('show');
       
-      // A. Tombol Search (Muncul di Home, App Mod, Store)
-      if(page === 'home' || page === 'appmod' || page === 'store') {
-          if(searchIcon) { 
-              searchIcon.style.opacity = '1'; 
-              searchIcon.style.pointerEvents = 'auto'; // Bisa diklik
-          }
-          if(headerBg) headerBg.style.width = '82px'; // Lebarkan background untuk 2 icon
-      } else {
-          // Sembunyikan di Setting dan Profil
-          if(searchIcon) { 
-              searchIcon.style.opacity = '0'; 
-              searchIcon.style.pointerEvents = 'none'; // Matikan fisik klik
-          }
-          if(headerBg) headerBg.style.width = '42px'; // Kecilkan background
-      }
+        if (page === 'home' || page === 'appmod' || page === 'store') {
+            if (searchIcon) { searchIcon.style.opacity = '1'; searchIcon.style.pointerEvents = 'auto'; }
+            if (headerBg) headerBg.style.width = '82px'; 
+        } else {
+            if (searchIcon) { searchIcon.style.opacity = '0'; searchIcon.style.pointerEvents = 'none'; }
+            if (headerBg) headerBg.style.width = '42px';
+        }
 
-      // B. Mengubah Judul Teks Header
-      if(title) {
-          if(page === 'home') title.innerText = 'Dashboard Web';
-          else if(page === 'appmod') title.innerText = 'App Mod';
-          else title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
-      }
+        if (title) {
+            if (page === 'home') title.innerText = 'Dashboard Web';
+            else if (page === 'appmod') title.innerText = 'App Mod';
+            else title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
+        }
 
-      // C. Tab Kategori (HANYA Muncul di Home)
-      if(tabsHeader) {
-          if(page === 'home') tabsHeader.style.display = 'block';
-          else tabsHeader.style.display = 'none';
-      }
+        if (tabsHeader) tabsHeader.style.display = (page === 'home') ? 'block' : 'none';
       
-      // D. Tarik Data (Otomatis menampilkan semua list karena searchQueryStr sudah dikosongkan)
-      if(page === 'home') ambilDataWeb();
-      if(page === 'appmod') ambilDataApp();
-      if(page === 'store') ambilDataStore();
+        if (page === 'home') ambilDataWeb();
+        if (page === 'appmod') ambilDataApp();
+        if (page === 'store') ambilDataStore();
     }
 
+    function searchKarya(val) { 
+        searchQueryStr = val.toLowerCase().trim(); 
+        renderHomeList(); renderAppList(); renderStoreList(); 
+    }
+
+    function filterCategory(cat, el) { 
+        document.querySelectorAll('.tg-tab').forEach(e => e.classList.remove('active')); 
+        if (el) el.classList.add('active'); 
+        currentCategory = cat; renderHomeList(); 
+    }
+    
+    function toggleSearch() { 
+        const box = document.getElementById('searchBoxWrapper'); 
+        if (box) {
+            box.classList.toggle('show'); 
+            const input = document.getElementById('searchInput');
+            if (box.classList.contains('show') && input) input.focus(); 
+        }
+    }
+
+    // =====================================================================
+    // 4. KUMPULAN FUNGSI MODAL, NOTIFIKASI & TEMA
+    // =====================================================================
     function triggerDownloadNotif(title, size, url) { 
         activeDownloadUrl = url; 
-        document.getElementById('popup-icon').innerText = "📥";
-        document.querySelector('#downloadPopup .popup-title').innerText = "Ingin download?";
-        document.getElementById('popupDownloadDetails').innerHTML = `Mengunduh <b>${title}</b><br><br>📦 Size: <span style="color:var(--tg-accent); font-weight:bold;">${size}</span>`; 
-        document.getElementById('confirmDownloadBtn').innerText = "Download";
-        document.getElementById('downloadPopup').classList.remove('hidden'); 
+        const icon = document.getElementById('popup-icon');
+        const tTitle = document.querySelector('#downloadPopup .popup-title');
+        const desc = document.getElementById('popupDownloadDetails');
+        const btn = document.getElementById('confirmDownloadBtn');
+        const popup = document.getElementById('downloadPopup');
+
+        if(icon) icon.innerText = "📥";
+        if(tTitle) tTitle.innerText = "Ingin download?";
+        if(desc) desc.innerHTML = `Mengunduh <b>${title}</b><br><br>📦 Size: <span style="color:var(--tg-accent); font-weight:bold;">${size}</span>`; 
+        if(btn) btn.innerText = "Download";
+        if(popup) popup.classList.remove('hidden'); 
     }
 
     function triggerStoreNotif(title, price, url) {
         activeDownloadUrl = url; 
-        document.getElementById('popup-icon').innerText = "🛍️";
-        document.querySelector('#downloadPopup .popup-title').innerText = "Ingin membeli?";
-        document.getElementById('popupDownloadDetails').innerHTML = `Anda akan membeli <b>${title}</b><br><br>💰 Harga: <span style="color:#00ff7f; font-weight:bold;">${price}</span><br><br><span style="font-size:12px;color:var(--tg-text-muted);">Lanjutkan pesanan otomatis melalui WhatsApp Developer.</span>`;
-        document.getElementById('confirmDownloadBtn').innerText = "Beli via WA";
-        document.getElementById('downloadPopup').classList.remove('hidden');
+        const icon = document.getElementById('popup-icon');
+        const tTitle = document.querySelector('#downloadPopup .popup-title');
+        const desc = document.getElementById('popupDownloadDetails');
+        const btn = document.getElementById('confirmDownloadBtn');
+        const popup = document.getElementById('downloadPopup');
+
+        if(icon) icon.innerText = "🛍️";
+        if(tTitle) tTitle.innerText = "Ingin membeli?";
+        if(desc) desc.innerHTML = `Anda akan membeli <b>${title}</b><br><br>💰 Harga: <span style="color:#00ff7f; font-weight:bold;">${price}</span><br><br><span style="font-size:12px;color:var(--tg-text-muted);">Pesanan diproses otomatis melalui WhatsApp.</span>`;
+        if(btn) btn.innerText = "Beli via WA";
+        if(popup) popup.classList.remove('hidden');
     }
 
-    function closeDownloadPopup() { document.getElementById('downloadPopup').classList.add('hidden'); }
-    function executeDownload() { closeDownloadPopup(); window.open(activeDownloadUrl, '_blank'); }
+    function closeDownloadPopup() { 
+        const popup = document.getElementById('downloadPopup');
+        if(popup) popup.classList.add('hidden'); 
+    }
+    function executeDownload() { 
+        closeDownloadPopup(); 
+        if (activeDownloadUrl) window.open(activeDownloadUrl, '_blank'); 
+    }
     function triggerVirusTotal() { window.open('https://www.virustotal.com/gui/home/url', '_blank'); }
-    function toggleSearch() { const box = document.getElementById('searchBoxWrapper'); box.classList.toggle('show'); if (box.classList.contains('show')) document.getElementById('searchInput').focus(); }
-    function filterCategory(cat, el) { document.querySelectorAll('.tg-tab').forEach(e => e.classList.remove('active')); el.classList.add('active'); currentCategory = cat; renderHomeList(); }
     
-    function searchKarya(val) { 
-        searchQueryStr = val.toLowerCase().trim(); 
-        renderHomeList(); 
-        ambilDataApp(); 
-        ambilDataStore(); 
+    function showBugPopup() { 
+        const popup = document.getElementById('bugPopup');
+        if(popup) popup.classList.remove('hidden'); 
+    }
+    function closeBugPopup() { 
+        const popup = document.getElementById('bugPopup');
+        if(popup) popup.classList.add('hidden'); 
+    }
+    function submitBug() { 
+        closeBugPopup(); window.open('https://t.me/rizky_kurniawan25', '_blank'); 
     }
     
-    function showBugPopup() { document.getElementById('bugPopup').classList.remove('hidden'); }
-    function closeBugPopup() { document.getElementById('bugPopup').classList.add('hidden'); }
-    function submitBug() { closeBugPopup(); window.open('https://t.me/rizky_kurniawan25', '_blank'); }
+    function bukaModalInbox() { 
+        const overlay = document.getElementById('inboxModalOverlay');
+        const badge = document.getElementById('inbox-badge');
+        if(overlay) overlay.style.display = 'flex'; 
+        if(badge) badge.style.display = 'none'; 
+    }
+    function tutupModalInbox() { 
+        const overlay = document.getElementById('inboxModalOverlay');
+        if(overlay) overlay.style.display = 'none'; 
+    }
 
     function changeTheme(color, el) {
         document.querySelectorAll('.theme-dot').forEach(e => e.classList.remove('selected'));
-        el.classList.add('selected'); document.documentElement.style.setProperty('--tg-accent', color);
+        if (el) el.classList.add('selected'); 
+        document.documentElement.style.setProperty('--tg-accent', color);
         localStorage.setItem('publicThemeColor', color);
     }
 
+    function toggleThemeMode() {
+        const checkbox = document.getElementById('theme-toggle-checkbox');
+        if (!checkbox) return;
+        
+        const isGoingDark = checkbox.checked;
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed'; overlay.style.top = '0'; overlay.style.left = '0'; 
+        overlay.style.width = '100%'; overlay.style.height = '100%'; overlay.style.zIndex = '9999999';
+        overlay.style.backgroundColor = isGoingDark ? '#0e1621' : '#f4f6f9';
+        overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.2s ease-in-out'; overlay.style.pointerEvents = 'none';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.style.opacity = '1');
+
+        setTimeout(() => {
+            const icon = document.getElementById('theme-icon');
+            const themeText = document.getElementById('theme-text');
+            if (isGoingDark) {
+                document.body.classList.remove('light-theme'); localStorage.setItem('themeWebKyy', 'dark');
+                if (icon) { icon.className = 'fas fa-moon'; icon.style.color = '#ffffff'; }
+                if (themeText) themeText.innerText = 'Mode Gelap';
+            } else {
+                document.body.classList.add('light-theme'); localStorage.setItem('themeWebKyy', 'light');
+                if (icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; }
+                if (themeText) themeText.innerText = 'Mode Terang';
+            }
+            overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 250);
+        }, 200); 
+    }
+
+    // =====================================================================
+    // 5. FITUR SOSMED, PENGUMUMAN & SYSTEM MONITOR PINTAR
+    // =====================================================================
     async function muatSosmedDiPublik() {
-        const { data, error } = await supabaseClient.from('sosmed_visibility').select('*');
+        const { data } = await supabaseClient.from('sosmed_visibility').select('*');
         if (data) {
-            data.forEach(row => {
-                const tombolSosmed = document.getElementById('btn-' + row.platform);
-                if (tombolSosmed) {
-                    const statusString = String(row.is_visible).toLowerCase().trim();
-                    if (statusString === 'false' || row.is_visible === false) {
-                        tombolSosmed.style.display = 'none';
-                    } else {
-                        tombolSosmed.style.display = 'flex';
-                    }
-                }
+            data.forEach(row => { 
+                const btn = document.getElementById('btn-' + row.platform); 
+                if (btn) btn.style.display = (String(row.is_visible).toLowerCase() === 'false' || row.is_visible === false) ? 'none' : 'flex'; 
             });
         }
     }
@@ -1146,518 +1322,263 @@
     async function muatAnnouncementDiPublik() {
         const banner = document.getElementById('pub-ann-banner');
         const badge = document.getElementById('pub-ann-badge');
-        const colors = { info: '#3390ec', warning: '#f59e0b', promo: '#10b981', maintenance: '#ef4444' };
-        
+        const title = document.getElementById('pub-ann-title');
+        const body = document.getElementById('pub-ann-body');
+        if (!banner || !badge || !title || !body) return;
+
         const { data } = await supabaseClient.from('announcements').select('*').eq('id', 1).single();
         if (data && data.active) {
-            banner.style.display = 'block';
-            badge.textContent = data.type.toUpperCase();
-            badge.style.background = colors[data.type] || '#3390ec';
-            document.getElementById('pub-ann-title').textContent = data.title ? data.title + ':' : '';
-            document.getElementById('pub-ann-body').textContent = data.body || '';
-        } else {
-            banner.style.display = 'none';
-        }
+            banner.style.display = 'block'; badge.textContent = (data.type || '').toUpperCase();
+            const colorMap = { info: '#3390ec', warning: '#f59e0b', promo: '#10b981', maintenance: '#ef4444' };
+            badge.style.background = colorMap[data.type] || '#3390ec';
+            title.textContent = data.title ? data.title + ':' : '';
+            body.textContent = data.body || '';
+        } else { banner.style.display = 'none'; }
     }
 
-    // A. LOGIKA UTAMA NOTIFIKASI KOTAK SURAT (INBOX)
     async function muatNotifikasiInbox() {
         const badge = document.getElementById('inbox-badge');
         const container = document.getElementById('inbox-list-container');
-        
-        const { data, error } = await supabaseClient.from('web_inbox').select('*').order('id', { ascending: false });
-        if (data && !error) {
-            if (data.length > 0) {
-                badge.innerText = data.length;
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
+        if (!badge || !container) return;
 
-            container.innerHTML = '';
+        const { data } = await supabaseClient.from('web_inbox').select('*').order('id', { ascending: false });
+        if (data && data.length > 0) {
+            badge.innerText = data.length; badge.style.display = 'block'; container.innerHTML = '';
             data.forEach(item => {
                 let expiredTag = item.is_expired ? '<span style="color:#ef4444; font-size:10px; font-weight:bold; display:block; margin-top:5px;">EXPIRED</span>' : '';
                 let borderStyle = item.is_expired ? 'border: 1px solid rgba(239,68,68,0.2);' : 'border: 1px solid rgba(255,255,255,0.05);';
-                
                 container.innerHTML += `
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; ${borderStyle} position: relative;">
-                        <div style="position: absolute; top: 12px; right: 12px; width: 6px; height: 6px; background: #ef4444; border-radius: 50%; ${item.is_expired ? 'display:none;' : ''}"></div>
-                        <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px; display:flex; align-items:center; gap:8px;">
-                            <i class="fas fa-info-circle" style="color:#3390ec;"></i> ${item.judul}
-                        </div>
-                        <div style="font-size: 12.5px; color: #7f91a4; line-height: 1.4; word-break: break-word;">${item.pesan}</div>
-                        <div style="font-size: 11px; color: #555; margin-top: 8px;">${item.tanggal}</div>
-                        ${expiredTag}
-                    </div>`;
+                <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; ${borderStyle} position: relative;">
+                    <div style="font-size: 14px; font-weight: bold; color: #fff; margin-bottom: 5px;"><i class="fas fa-info-circle" style="color:#3390ec;"></i> ${item.judul}</div>
+                    <div style="font-size: 12.5px; color: #7f91a4; line-height: 1.4;">${item.pesan}</div>
+                    <div style="font-size: 11px; color: #555; margin-top: 8px;">${item.tanggal}</div>
+                    ${expiredTag}
+                </div>`;
             });
         }
     }
 
-        // ==========================================
-    // LOGIKA SYSTEM MONITOR (IP, DEVICE, PING)
-    // ==========================================
     let pingIntervalId;
-
     async function jalankanSystemMonitor() {
         const elIp = document.getElementById('sys-ip');
         const elDevice = document.getElementById('sys-device');
         const elBrowser = document.getElementById('sys-browser');
-        
-        // 1. Tarik IP (Pakai try-catch untuk jaga-jaga kalau diblokir AdBlock)
-        try {
-            const res = await fetch('https://api.ipify.org?format=json', { timeout: 5000 });
-            const data = await res.json();
-            elIp.textContent = data.ip;
-        } catch (e) {
-            elIp.innerHTML = '<span style="font-size:11px; opacity:0.7; color:#ef4444;">Terlindungi (Private)</span>';
-        }
+        const elPing = document.getElementById('sys-ping');
+        if (!elIp || !elDevice || !elBrowser || !elPing) return;
 
-        // 2. Deteksi Browser & Device dari User-Agent
+        try { 
+            const res = await fetch('https://api.ipify.org?format=json', { timeout: 5000 }); 
+            const data = await res.json(); elIp.textContent = data.ip; 
+        } catch (e) { elIp.innerHTML = '<span style="color:#ef4444;">Private</span>'; }
+
         const ua = navigator.userAgent;
+        elBrowser.textContent = ua.includes("Firefox/") ? "Firefox" : ua.includes("SamsungBrowser/") ? "Samsung Int" : ua.includes("OPR") ? "Opera" : ua.includes("Edg/") ? "Edge" : ua.includes("Chrome/") ? "Chrome" : ua.includes("Safari/") ? "Safari" : "Unknown";
         
-        // Cek Browser
-        let namaBrowser = "Unknown Browser";
-        if(ua.includes("Firefox/")) namaBrowser = "Mozilla Firefox";
-        else if(ua.includes("SamsungBrowser/")) namaBrowser = "Samsung Internet";
-        else if(ua.includes("Opera") || ua.includes("OPR")) namaBrowser = "Opera Browser";
-        else if(ua.includes("Edg/")) namaBrowser = "Microsoft Edge";
-        else if(ua.includes("Chrome/")) namaBrowser = "Google Chrome";
-        else if(ua.includes("Safari/") && !ua.includes("Chrome/")) namaBrowser = "Apple Safari";
-        
-        // Cek Device (Memfilter string Android untuk mencari tipe HP)
-        let namaDevice = "Unknown Device";
-        if (/android/i.test(ua)) {
-            namaDevice = "Android Device"; // Fallback awal
-            const match = ua.match(/Android\s[^\;]+\;\s([^\)]+)/);
-            if (match && match[1]) {
-                namaDevice = match[1].trim().split(" Build")[0]; // Ngambil misal: "Infinix X6812"
-            }
-        } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
-            namaDevice = "Apple iOS Device";
-        } else if (/Windows/.test(ua)) {
-            namaDevice = "Windows PC";
-        } else if (/Macintosh/.test(ua)) {
-            namaDevice = "Mac OS";
-        }
-        
-        elBrowser.textContent = namaBrowser;
+        let namaDevice = "Unknown";
+        if (/android/i.test(ua)) { const match = ua.match(/Android\s[^\;]+\;\s([^\)]+)/); namaDevice = (match && match[1]) ? match[1].trim().split(" Build")[0] : "Android"; } 
+        else if (/iPhone/.test(ua)) { namaDevice = "iPhone"; } else if (/Windows/.test(ua)) { namaDevice = "Windows"; }
         elDevice.textContent = namaDevice;
 
-        // 3. Mulai Denyut Nadi PING (Real-Time tiap 2 detik)
-        mulaiRealtimePing();
-    }
-
-    function mulaiRealtimePing() {
-        const elPing = document.getElementById('sys-ping');
-        if(pingIntervalId) clearInterval(pingIntervalId);
-
         const cekPing = () => {
-            const waktuMulai = performance.now();
-            // Menembak server cloudflare yang super ringan tanpa cache
+            const start = performance.now();
             fetch('https://1.1.1.1/cdn-cgi/trace', { mode: 'no-cors', cache: 'no-store' })
-                .then(() => {
-                    const waktuSelesai = performance.now();
-                    const pingMs = Math.round(waktuSelesai - waktuMulai);
-                    
-                    elPing.textContent = `${pingMs} ms`;
-                    elPing.className = 'sys-val'; // Reset class warna
-                    
-                    // Ganti warna sesuai kecepatan ping
-                    if (pingMs < 80) elPing.classList.add('ping-excellent');
-                    else if (pingMs < 180) elPing.classList.add('ping-good');
-                    else elPing.classList.add('ping-bad');
-                })
-                .catch(() => {
-                    elPing.textContent = "Offline";
-                    elPing.className = 'sys-val ping-bad';
-                });
+            .then(() => {
+                const ping = Math.round(performance.now() - start);
+                elPing.textContent = `${ping} ms`; elPing.className = 'sys-val ' + (ping < 80 ? 'ping-excellent' : (ping < 180 ? 'ping-good' : 'ping-bad'));
+            })
+            .catch(() => { elPing.textContent = "Offline"; elPing.className = 'sys-val ping-bad'; });
         };
-
-        cekPing(); // Jalankan tembakan pertama langsung
-        pingIntervalId = setInterval(cekPing, 2000); // Ulangi tiap 2 detik
+        cekPing(); if (pingIntervalId) clearInterval(pingIntervalId); pingIntervalId = setInterval(cekPing, 2000); 
     }
 
-    function bukaModalInbox() {
-        document.getElementById('inboxModalOverlay').style.display = 'flex';
-        document.getElementById('inbox-badge').style.display = 'none'; 
-    }
-    
-    function tutupModalInbox() {
-        document.getElementById('inboxModalOverlay').style.display = 'none';
-    }
-
-    // B. LOGIKA TOMBOL PANAH AUTO SCROLL KE ATAS DENGAN CEPAT
-    window.onscroll = function() {
-        const btn = document.getElementById('btnScrollToTop');
-        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
-            btn.style.display = 'block';
-        } else {
-            btn.style.display = 'none';
-        }
-    };
-
-    function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
-    }
-
-        // GESTURE DRAG ENGINE (HOLD AND DRAG MECHANICAL LIQUID INDICATOR)
-    document.addEventListener('DOMContentLoaded', function() {
-        const wrapper = document.querySelector('.bottom-nav-wrapper');
-        const indicator = document.getElementById('indicator');
-        const items = Array.from(document.querySelectorAll('.nav-item'));
-        
-        if (!wrapper || !indicator) return;
-
-                let startX = 0;
-        let isNavDragging = false;
-
-        // Mendeteksi sentuhan jari pertama kali
-        wrapper.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-            isNavDragging = false; // Asumsikan ini cuma di-tap biasa
-        }, { passive: true });
-
-        // Mengikuti pergeseran jari
-        wrapper.addEventListener('touchmove', function(e) {
-            const touchX = e.touches[0].clientX;
-            // Jika jari geser lebih dari 10 pixel, baru kita anggap sedang nge-drag
-            if (Math.abs(touchX - startX) > 10) {
-                isNavDragging = true;
-                prosesGeserNavigasi(e, wrapper, indicator, items);
-            }
-        }, { passive: true });
-
-        // Mengunci halaman saat jari diangkat
-        wrapper.addEventListener('touchend', function(e) {
-            if (isNavDragging) {
-                // Terapkan Apple Spring Bounce hanya jika habis di-drag
-                indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                
-                const indicatorRect = indicator.getBoundingClientRect();
-                const indicatorCenter = indicatorRect.left + (indicatorRect.width / 2);
-                
-                let itemTerdekat = items[0];
-                let jarakTerkecil = Infinity;
-
-                items.forEach((item) => {
-                    const itemRect = item.getBoundingClientRect();
-                    const itemCenter = itemRect.left + (itemRect.width / 2);
-                    const selisih = Math.abs(indicatorCenter - itemCenter);
-                    if (selisih < jarakTerkecil) {
-                        jarakTerkecil = selisih;
-                        itemTerdekat = item;
-                    }
-                });
-
-                if (itemTerdekat) {
-                    itemTerdekat.click();
-                }
-            }
-            // Reset status
-            isNavDragging = false;
-        });
-
-
-        // Jalankan pengecekan tema secepat mungkin
-        const savedTheme = localStorage.getItem('themeWebKyy') || 'dark';
-        const checkbox = document.getElementById('theme-toggle-checkbox');
-        const icon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
-        
-        if (savedTheme === 'light') {
-            document.body.classList.add('light-theme');
-            if(checkbox) checkbox.checked = false; 
-            if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; }
-            if(themeText) themeText.innerText = 'Mode Terang';
-        } else {
-            document.body.classList.remove('light-theme');
-            if(checkbox) checkbox.checked = true; 
-            if(icon) { icon.className = 'fas fa-moon'; icon.style.color = '#ffffff'; }
-            if(themeText) themeText.innerText = 'Mode Gelap';
-        }
-    });
-
-        // Fungsi pengukur kalkulasi pergerakan sumbu X ala iOS
-    function prosesGeserNavigasi(e, wrapper, indicator, items) {
-        const touch = e.touches[0];
-        const wrapperRect = wrapper.getBoundingClientRect();
-        
-        // Menghitung area bersih tanpa padding (6px kiri + 6px kanan = 12px)
-        const activeAreaWidth = wrapperRect.width - 12; 
-        const lebarPerItem = activeAreaWidth / 5;
-        
-        let relativeX = touch.clientX - wrapperRect.left - 6; // Dikurangi padding kiri
-        if (relativeX < 0) relativeX = 0;
-        if (relativeX > activeAreaWidth) relativeX = activeAreaWidth;
-
+    // =====================================================================
+    // 6. ANIMASI GESTURE, SWIPE, & TOMBOL SCROLL
+    // =====================================================================
+    function scrollToTop() { const activePage = document.querySelector('.page-content.active'); if (activePage) activePage.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function prosesGeserNavigasi(e, wrapper, indicator) {
+        const touch = e.touches[0]; const rect = wrapper.getBoundingClientRect();
+        const activeWidth = rect.width - 12; const itemWidth = activeWidth / 5;
+        let relX = touch.clientX - rect.left - 6; 
+        if (relX < 0) relX = 0; if (relX > activeWidth) relX = activeWidth;
         indicator.style.transition = 'none'; 
-        
-        // Translasi harus dihitung dalam persentase (100% per item)
-        let persentaseGeser = (relativeX - (lebarPerItem / 2)) / lebarPerItem * 100;
-        
-        if (persentaseGeser < 0) persentaseGeser = 0;
-        if (persentaseGeser > 400) persentaseGeser = 400; // Maksimal index 4 (400%)
-
-        indicator.style.transform = `translateY(-50%) translateX(${persentaseGeser}%)`;
+        let pct = (relX - (itemWidth / 2)) / itemWidth * 100;
+        if (pct < 0) pct = 0; if (pct > 400) pct = 400; 
+        indicator.style.transform = `translateY(-50%) translateX(${pct}%)`;
     }
 
-    // Pertahankan window.onload khusus untuk menarik data internal & external API
-    window.onload = function() {
-        ambilDataWeb(); 
-        ambilDataApp(); 
-        ambilDataStore();
-        muatSosmedDiPublik();
-        muatAnnouncementDiPublik();
-        muatNotifikasiInbox();
-        jalankanSystemMonitor();
-    };
+    // =====================================================================
+    // 7. WIDGET MUSIC PLAYER
+    // =====================================================================
+    function toggleMusic() {
+        const audio = document.getElementById('bgAudio'); const playIcon = document.getElementById('playIcon'); const visualizer = document.getElementById('musicVisualizer');
+        if (!audio || !playIcon || !visualizer) return;
+        if (audio.paused) { audio.play(); playIcon.className = 'fas fa-pause'; visualizer.classList.add('playing'); } 
+        else { audio.pause(); playIcon.className = 'fas fa-play'; visualizer.classList.remove('playing'); }
+    }
 
+    // =====================================================================
+    // 8. FUNGSI LOGIKA RUANG CHAT AI CS
+    // =====================================================================
+    function getAiFormattedTime() {
+        const now = new Date(); let hours = now.getHours(); let minutes = now.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM'; hours = hours % 12 || 12; 
+        return `${hours}:${minutes < 10 ? '0'+minutes : minutes} ${ampm}`;
+    }
 
-    function toggleThemeMode() {
-        const checkbox = document.getElementById('theme-toggle-checkbox');
-        const icon = document.getElementById('theme-icon');
-        const themeText = document.getElementById('theme-text');
+    async function kirimPesanUser() {
+        const aiInputTeks = document.getElementById('ai-input-teks');
+        const aiBtnSend = document.getElementById('ai-btn-send');
+        const aiChatMessages = document.getElementById('ai-chat-messages');
+        if (!aiInputTeks || !aiChatMessages) return;
+
+        const teks = aiInputTeks.value.trim(); if (!teks) return;
+
+        const bubbleUser = document.createElement('div');
+        bubbleUser.className = 'ai-bubble-bot'; bubbleUser.style.alignSelf = 'flex-end'; bubbleUser.style.background = 'var(--tg-accent)';
+        bubbleUser.style.borderTopLeftRadius = '18px'; bubbleUser.style.borderTopRightRadius = '4px'; bubbleUser.style.color = '#fff';
+        bubbleUser.innerHTML = `${teks} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
         
-        if (checkbox.checked) {
-            document.body.classList.remove('light-theme');
-            localStorage.setItem('themeWebKyy', 'dark');
-            if(icon) { icon.className = 'fas fa-moon'; icon.style.color = '#ffffff'; }
-            if(themeText) themeText.innerText = 'Mode Gelap';
-        } else {
-            document.body.classList.add('light-theme');
-            localStorage.setItem('themeWebKyy', 'light');
-            if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; }
-            if(themeText) themeText.innerText = 'Mode Terang';
+        aiChatMessages.appendChild(bubbleUser); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+        
+        aiInputTeks.value = ''; if (aiBtnSend) aiBtnSend.disabled = true;
+
+        const bubbleLoading = document.createElement('div'); bubbleLoading.className = 'ai-bubble-bot';
+        bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS mengetik...</span>`;
+        aiChatMessages.appendChild(bubbleLoading); aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+        try {
+            const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pesan: teks }) });
+            const data = await response.json();
+            
+            if (data.balasan) {
+                bubbleLoading.remove(); 
+                const bubbleAI = document.createElement('div'); bubbleAI.className = 'ai-bubble-bot';
+                bubbleAI.innerHTML = `${data.balasan.replace(/\n/g, '<br>')} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+                aiChatMessages.appendChild(bubbleAI); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+            } else throw new Error(data.error || "Gagal menghubungi server.");
+        } catch (error) { bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; }
+    }
+
+    // =====================================================================
+    // 9. PENYATUAN SEMUA SENSOR & EVENT SAAT HALAMAN DIBUKA (BOOT)
+    // =====================================================================
+        // Hapus window.onload, ganti jadi fungsi biasa ini:
+    function bootSistem() {
+        ambilDataWeb(); ambilDataApp(); ambilDataStore();
+        muatSosmedDiPublik(); muatAnnouncementDiPublik(); muatNotifikasiInbox(); jalankanSystemMonitor();
+        
+        const aiChatMessages = document.getElementById('ai-chat-messages');
+        const layerChatAI = document.getElementById('layer-chat-ai');
+        const riwayat = localStorage.getItem('kyy_chat_history');
+        if (riwayat && aiChatMessages) { aiChatMessages.innerHTML = riwayat; setTimeout(() => aiChatMessages.scrollTop = aiChatMessages.scrollHeight, 100); }
+        if (localStorage.getItem('kyy_chat_theme_independent') === 'light' && layerChatAI) layerChatAI.classList.add('light-chat-room');
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        bootSistem(); // <--- TARUH INI DI BARIS PERTAMA DALAM DOMCONTENTLOADED
+        
+        const btnScroll = document.getElementById('btnScrollToTop');
+        document.querySelectorAll('.page-content').forEach(page => { page.addEventListener('scroll', function() { if (btnScroll) btnScroll.style.display = (this.scrollTop > 300) ? 'flex' : 'none'; }); });
+
+        let swipeStartX = 0; let swipeStartY = 0; const arrayHalaman = ['home', 'appmod', 'store', 'settings', 'profil'];
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.closest('.bottom-nav-wrapper') || e.target.closest('#layer-chat-ai') || e.target.closest('input') || e.target.closest('button') || e.target.closest('.theme-switch') || e.target.closest('.music-player-widget')) return;
+            swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', (e) => {
+            if (swipeStartX === 0 && swipeStartY === 0) return;
+            const diffX = e.changedTouches[0].screenX - swipeStartX; const diffY = e.changedTouches[0].screenY - swipeStartY;
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) { 
+                const navItems = Array.from(document.querySelectorAll('.nav-item')); let currIdx = navItems.findIndex(item => item.classList.contains('active'));
+                if (diffX < 0 && currIdx < arrayHalaman.length - 1) switchNav(arrayHalaman[currIdx + 1], currIdx + 1, navItems[currIdx + 1]);
+                else if (diffX > 0 && currIdx > 0) switchNav(arrayHalaman[currIdx - 1], currIdx - 1, navItems[currIdx - 1]);
+            }
+            swipeStartX = 0; swipeStartY = 0;
+        }, { passive: true });
+
+        let isNavDragging = false; const wrapper = document.querySelector('.bottom-nav-wrapper'); const indicator = document.getElementById('indicator'); const items = Array.from(document.querySelectorAll('.nav-item'));
+        if (wrapper && indicator) {
+            let startX = 0;
+            wrapper.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; isNavDragging = false; }, { passive: true });
+            wrapper.addEventListener('touchmove', (e) => { if (Math.abs(e.touches[0].clientX - startX) > 10) { isNavDragging = true; prosesGeserNavigasi(e, wrapper, indicator); } }, { passive: true });
+            wrapper.addEventListener('touchend', () => {
+                if (isNavDragging) {
+                    indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    const center = indicator.getBoundingClientRect().left + (indicator.getBoundingClientRect().width / 2);
+                    let closest = items[0], minDst = Infinity;
+                    items.forEach(item => { const dst = Math.abs(center - (item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2)); if(dst < minDst) { minDst = dst; closest = item; } });
+                    if(closest) closest.click();
+                }
+                isNavDragging = false;
+            });
         }
-    }
-    // --- LOGIKA DROPDOWN MENU & FITUR DI ROOM CHAT ---
-    const aiBtnMenu = document.getElementById('ai-btn-menu');
-    const aiDropdownMenu = document.getElementById('ai-dropdown-menu');
-    const aiBtnTemaToggle = document.getElementById('ai-btn-tema-toggle');
-    const aiBtnHapusChat = document.getElementById('ai-btn-hapus-chat');
 
-    // 1. Toggle Buka/Tutup Dropdown
-    if (aiBtnMenu) {
-        aiBtnMenu.addEventListener('click', (e) => {
-            e.stopPropagation();
-            aiDropdownMenu.classList.toggle('active');
+        const musicWidget = document.getElementById('musicWidget'); let isDraggingMusic = false, offsetX, offsetY;
+        if (musicWidget) {
+            musicWidget.addEventListener('touchstart', (e) => {
+                if(e.target.closest('#playPauseBtn')) return;
+                isDraggingMusic = true; const touch = e.touches[0]; const rect = musicWidget.getBoundingClientRect();
+                offsetX = touch.clientX - rect.left; offsetY = touch.clientY - rect.top;
+                musicWidget.style.right = 'auto'; musicWidget.style.transition = 'none'; 
+            }, { passive: false });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isDraggingMusic) return; e.preventDefault(); 
+                const touch = e.touches[0]; let newLeft = touch.clientX - offsetX; let newTop = touch.clientY - offsetY;
+                const maxLeft = window.innerWidth - musicWidget.offsetWidth - 10; const maxTop = window.innerHeight - musicWidget.offsetHeight - 100; 
+                if (newLeft < 10) newLeft = 10; if (newTop < 15) newTop = 15; if (newLeft > maxLeft) newLeft = maxLeft; if (newTop > maxTop) newTop = maxTop;
+                musicWidget.style.left = newLeft + 'px'; musicWidget.style.top = newTop + 'px';
+            }, { passive: false });
+            
+            document.addEventListener('touchend', () => { if (!isDraggingMusic) return; isDraggingMusic = false; musicWidget.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)'; });
+        }
+
+        const layerChatAI = document.getElementById('layer-chat-ai'); const aiChatMessages = document.getElementById('ai-chat-messages'); const aiDropdownMenu = document.getElementById('ai-dropdown-menu'); const customModal = document.getElementById('ai-custom-modal'); const aiInputTeks = document.getElementById('ai-input-teks'); const aiBtnSend = document.getElementById('ai-btn-send');
+
+        document.getElementById('btn-tanya-cs')?.addEventListener('click', (e) => { e.preventDefault(); layerChatAI?.classList.replace('assistant-layer-hidden', 'assistant-layer-active'); if(aiChatMessages) aiChatMessages.scrollTop = aiChatMessages.scrollHeight; });
+        document.getElementById('ai-btn-kembali')?.addEventListener('click', () => { layerChatAI?.classList.replace('assistant-layer-active', 'assistant-layer-hidden'); });
+        document.getElementById('ai-btn-menu')?.addEventListener('click', (e) => { e.stopPropagation(); aiDropdownMenu?.classList.toggle('active'); });
+        document.addEventListener('click', (e) => { if (aiDropdownMenu && !aiDropdownMenu.contains(e.target) && e.target.id !== 'ai-btn-menu') aiDropdownMenu.classList.remove('active'); });
+
+        document.getElementById('ai-btn-tema-toggle')?.addEventListener('click', () => {
+            if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if (!layerChatAI) return;
+            const isGoingLight = !layerChatAI.classList.contains('light-chat-room');
+            const overlay = document.createElement('div');
+            overlay.style.position = 'absolute'; overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%'; overlay.style.zIndex = '999999';
+            overlay.style.backgroundColor = isGoingLight ? '#f4f6f9' : '#0e1621'; overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.2s ease-in-out'; overlay.style.pointerEvents = 'none';
+            layerChatAI.appendChild(overlay); requestAnimationFrame(() => overlay.style.opacity = '1');
+            setTimeout(() => {
+                layerChatAI.classList.toggle('light-chat-room'); localStorage.setItem('kyy_chat_theme_independent', isGoingLight ? 'light' : 'dark');
+                overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 250);
+            }, 200);
         });
-    }
-    document.addEventListener('click', (e) => {
-        if (aiDropdownMenu && !aiDropdownMenu.contains(e.target) && e.target !== aiBtnMenu) {
-            aiDropdownMenu.classList.remove('active');
+
+        document.getElementById('ai-btn-hapus-chat')?.addEventListener('click', () => { if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if(customModal) customModal.classList.add('active'); });
+        document.getElementById('ai-modal-batal')?.addEventListener('click', () => { if(customModal) customModal.classList.remove('active'); });
+        document.getElementById('ai-modal-konfirmasi')?.addEventListener('click', () => {
+            if(customModal) customModal.classList.remove('active'); localStorage.removeItem('kyy_chat_history');
+            if (aiChatMessages) aiChatMessages.innerHTML = `<div class="ai-bubble-bot">Halo! Saya KYY Assistant. Ada yang bisa saya bantu?</div>`;
+        });
+
+        if (aiInputTeks && aiBtnSend) {
+            aiInputTeks.addEventListener('input', () => { aiBtnSend.disabled = (aiInputTeks.value.trim() === ""); });
+            aiBtnSend.addEventListener('click', kirimPesanUser);
+            aiInputTeks.addEventListener('keypress', (e) => { if (e.key === 'Enter') kirimPesanUser(); });
+        }
+        
+        const savedTheme = localStorage.getItem('themeWebKyy') || 'dark'; const checkbox = document.getElementById('theme-toggle-checkbox'); const icon = document.getElementById('theme-icon'); const text = document.getElementById('theme-text');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme'); if(checkbox) checkbox.checked = false; if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; } if(text) { text.innerText = 'Mode Terang'; }
+        } else { document.body.classList.remove('light-theme'); if(checkbox) checkbox.checked = true; }
+        
+        const pubColor = localStorage.getItem('publicThemeColor');
+        if (pubColor) { 
+            document.documentElement.style.setProperty('--tg-accent', pubColor); 
+            document.querySelectorAll('.theme-dot').forEach(d => { d.classList.remove('selected'); if(d.style.backgroundColor === pubColor || d.style.backgroundColor === pubColor.replace(' ','')) { d.classList.add('selected'); } }); 
         }
     });
-
-    // 2. Fungsi Mengubah Tema (Sinkron dengan Tombol Tema Utama di Dashboard Lu)
-    if (aiBtnTemaToggle) {
-        aiBtnTemaToggle.addEventListener('click', () => {
-            aiDropdownMenu.classList.remove('active');
-            // Memicu fungsi klik checkbox/saklar tema asli bawaan dashboard kamu
-            const themeCheckbox = document.getElementById('theme-toggle-checkbox');
-            if (themeCheckbox) {
-                themeCheckbox.checked = !themeCheckbox.checked;
-                toggleThemeMode(); // Memanggil fungsi pengubah tema asli dashboard kamu
-            }
-        });
-    }
-
-        // 3. Logika Modal Custom Hapus Riwayat Chat
-    const customModal = document.getElementById('ai-custom-modal');
-    const modalBatal = document.getElementById('ai-modal-batal');
-    const modalKonfirmasi = document.getElementById('ai-modal-konfirmasi');
-
-    if (aiBtnHapusChat) {
-        aiBtnHapusChat.addEventListener('click', () => {
-            aiDropdownMenu.classList.remove('active');
-            if (customModal) customModal.classList.add('active'); 
-        });
-    }
-
-    if (modalBatal) {
-        modalBatal.addEventListener('click', () => {
-            if (customModal) customModal.classList.remove('active');
-        });
-    }
-
-    if (modalKonfirmasi) {
-        modalKonfirmasi.addEventListener('click', () => {
-            if (customModal) customModal.classList.remove('active');
-            localStorage.removeItem('kyy_chat_history');
-            if (aiChatMessages) {
-                aiChatMessages.innerHTML = `
-                    <div class="ai-bubble-bot">
-                        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini, mencari Tools, Mod Aplikasi, atau memberikan arahan lainnya. Ada yang bisa saya bantu?
-                    </div>
-                `;
-            }
-        });
-    }
-
-
-        // ========================================================
-    // LOGIKA ANIMASI INTERAKSI BUKA-TUTUP ROOM CHAT AI CS
-    // ========================================================
-    const btnTanyaCS = document.getElementById('btn-tanya-cs');
-    const btnKembaliAI = document.getElementById('ai-btn-kembali');
-    const layerChatAI = document.getElementById('layer-chat-ai');
-    const aiChatMessages = document.getElementById('ai-chat-messages');
-
-    // 1. Fungsi Membuka Chat AI (Meluncur Naik dari Bawah Screen)
-    if (btnTanyaCS) {
-        btnTanyaCS.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (layerChatAI) {
-                layerChatAI.classList.remove('assistant-layer-hidden');
-                layerChatAI.classList.add('assistant-layer-active');
-            }
-            // Otomatis gulir chat ke baris paling bawah saat terbuka
-            if (aiChatMessages) {
-                aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-            }
-        });
-    }
-
-    // 2. Fungsi Menutup Chat AI (Meluncur Turun Kembali ke Dashboard)
-    if (btnKembaliAI) {
-        btnKembaliAI.addEventListener('click', () => {
-            if (layerChatAI) {
-                layerChatAI.classList.remove('assistant-layer-active');
-                layerChatAI.classList.add('assistant-layer-hidden');
-            }
-        });
-    }
-
-        // ========================================================
-    // LOGIKA INPUT TEKS & CETAK BUBBLE CHAT USER
-    // ========================================================
-    const aiInputTeks = document.getElementById('ai-input-teks');
-    const aiBtnSend = document.getElementById('ai-btn-send');
-
-    // 1. Fungsi Mengambil Waktu Saat Ini (Format AM/PM)
-    function getAiFormattedTime() {
-        const now = new Date();
-        let hours = now.getHours();
-        let minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12; 
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        return `${hours}:${minutes} ${ampm}`;
-    }
-
-    // 2. Deteksi Ketikan: Aktifkan tombol jika input tidak kosong
-    if (aiInputTeks && aiBtnSend) {
-        aiInputTeks.addEventListener('input', () => {
-            if (aiInputTeks.value.trim() !== "") {
-                aiBtnSend.disabled = false;
-            } else {
-                aiBtnSend.disabled = true;
-            }
-        });
-    }
-
-        // 3. Fungsi Utama Mencetak Pesan User & Menembak API Vercel
-    async function kirimPesanUser() {
-        const teks = aiInputTeks.value.trim();
-        if (teks === '') return;
-
-        // --- A. CETAK PESAN USER KE LAYAR ---
-        const bubbleUser = document.createElement('div');
-        bubbleUser.className = 'ai-bubble-bot'; 
-        bubbleUser.style.alignSelf = 'flex-end';
-        bubbleUser.style.background = 'var(--tg-accent)';
-        bubbleUser.style.borderTopLeftRadius = '18px';
-        bubbleUser.style.borderTopRightRadius = '4px';
-        bubbleUser.style.color = '#fff';
-        bubbleUser.innerHTML = `
-            ${teks}
-            <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
-        `;
-
-        if (aiChatMessages) {
-            aiChatMessages.appendChild(bubbleUser);
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-            localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
-        }
-
-        aiInputTeks.value = '';
-        aiBtnSend.disabled = true;
-
-        // --- B. TAMPILKAN INDIKATOR "MENGETIK..." ---
-        const bubbleLoading = document.createElement('div');
-        bubbleLoading.className = 'ai-bubble-bot';
-        bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS sedang mengetik...</span>`;
-        if (aiChatMessages) {
-            aiChatMessages.appendChild(bubbleLoading);
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-        }
-
-                // --- C. KIRIM PESAN KE SERVERLESS API VERCEL KAMU ---
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pesan: teks })
-            });
-
-            const data = await response.json();
-
-            if (data.balasan) {
-                // Hapus indikator mengetik HANYA JIKA sukses mendapat balasan
-                bubbleLoading.remove(); 
-
-                // Cetak balasan AI
-                const bubbleAI = document.createElement('div');
-                bubbleAI.className = 'ai-bubble-bot';
-                
-                // Konversi baris baru (\n) menjadi <br> agar teks AI rapi
-                const formatTeksAI = data.balasan.replace(/\n/g, '<br>');
-                
-                bubbleAI.innerHTML = `
-                    ${formatTeksAI}
-                    <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
-                `;
-                if (aiChatMessages) {
-                    aiChatMessages.appendChild(bubbleAI);
-                    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-                    // Simpan seluruh riwayat terbaru (User + AI) ke LocalStorage
-                    localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
-                }
-            } else {
-                // Lempar pesan error dari backend Vercel ke layar
-                throw new Error(data.error || "Gagal terhubung ke Server.");
-            }
-        } catch (error) {
-            // Jangan hapus bubble, tapi UBAH isinya menjadi pesan error
-            bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`;
-        }
-    }
-
-    // 4. Pemicu Klik Tombol Kirim
-    if (aiBtnSend) {
-        aiBtnSend.addEventListener('click', kirimPesanUser);
-    }
-
-    // 5. Pemicu Tekan Tombol Enter pada Keyboard HP
-    if (aiInputTeks) {
-        aiInputTeks.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                kirimPesanUser();
-            }
-        });
-    }
-
-        // 6. MEMUAT RIWAYAT CHAT SAAT HALAMAN DIBUKA
-    const riwayatTersimpan = localStorage.getItem('kyy_chat_history');
-    if (riwayatTersimpan && aiChatMessages) {
-        aiChatMessages.innerHTML = riwayatTersimpan;
-        // Scroll ke bawah agar pesan terakhir langsung terlihat
-        setTimeout(() => {
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-        }, 100);
-    }
-
   </script>
 </body>
 </html>

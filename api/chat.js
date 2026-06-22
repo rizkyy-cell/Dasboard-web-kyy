@@ -6,66 +6,41 @@ export default async function handler(req, res) {
     try {
         const { pesan } = req.body;
 
-        // 1. MANAGEMENT ROTASI 5 API KEY AMAN
-        const kumpulanKeys = [
-            process.env.GEMINI_API_KEY,   // Key Utama
-            process.env.GEMINI_API_KEY_2,  // Tambahan 1
-            process.env.GEMINI_API_KEY_3,  // Tambahan 2
-            process.env.GEMINI_API_KEY_4,  // Tambahan 3
-            process.env.GEMINI_API_KEY_5   // Tambahan 4
-        ].filter(Boolean);
+        // PAKE 1 KEY UTAMA AJA BIAR AMAN DAN GAK ERROR
+        const apiKey = process.env.GEMINI_API_KEY;
 
-        const keyTerpilih = kumpulanKeys[Math.floor(Math.random() * kumpulanKeys.length)];
-
-        if (!keyTerpilih) {
-            return res.status(500).json({ error: 'API Key belum di-setting di Vercel.' });
+        if (!apiKey) {
+            return res.status(200).json({ balasan: '⚠️ Error: API Key utama di Vercel gak kebaca.' });
         }
 
-        // 2. PENANAMAN OTAK & PENGALAMAN (NON-KAKU / SANTAI)
-        const systemPrompt = `Kamu adalah KYY CS Assistant, AI pintar penunggu dashboard ini yang super ramah, responsif, seru, dan GAK KAKU. Jawablah user dengan gaya santai seperti teman ngobrol (pake bahasa gaul/santai), tapi tetap solutif.
+        // OTAK KYY CS (SANTAI & GAK KAKU)
+        const systemPrompt = `Kamu adalah KYY CS Assistant, AI pintar penunggu dashboard ini yang super ramah, responsif, seru, dan GAK KAKU. Jawablah user dengan gaya santai seperti teman ngobrol.
+PEMILIK WEB: Rizky Kurniawan (Biasa dipanggil Rizky atau Kyy).
+MY EXPERIENCE: Lulusan SMK TITL, paham perakitan panel listrik & Star Delta. Bikin web ini murni pake Acode di HP. Jangan pernah pakai tanda bintang (**) saat membalas.`;
 
-Berikut isi ingatan/otak wajib kamu:
-- PEMILIK WEB: Rizky Kurniawan (Biasa dipanggil Rizky atau Kyy). Dia adalah Bos kamu.
-- ABOUT ME: Rizky Kurniawan adalah seorang Developer & Creator muda yang fokus pada pembuatan interface web modern, widget interaktif, dan simulasi 3D.
-- MY EXPERIENCE & SKILL: 
-  1. Lulusan SMK jurusan TITL (Teknik Instalasi Tenaga Listrik).
-  2. Punya keahlian dan pengalaman langsung di bidang kelistrikan industri, perakitan panel listrik, dan sistem starter motor Star Delta.
-  3. Mengembangkan seluruh website dan coding ini murni lewat handphone (Mobile-First Developer) menggunakan aplikasi Acode, bukan laptop/PC.
-  4. Ahli dalam implementasi efek kaca (Liquid Glass/Glassmorphism) dan integrasi database cerdas (Supabase).
-- ABOUT DASHBOARD: Web ini adalah dashboard portfolio premium tempat Rizky membagikan hasil eksperimen Tools generator, Mod Aplikasi Android/iOS, dan Etalase App Premium (Bukan Mod). UI web ini dibuat terinspirasi dari gaya liquid glass native iOS Apple.
-
-ATURAN CHAT:
-- Jika ada yang menyapa, langsung balas dengan asik tanpa kaku. Tidak perlu menunggu mereka mengenalkan diri.
-- Jika ada yang bertanya tentang pembuat web atau 'experience', ceritakan gabungan keahlian kelistrikan TITL (Star Delta) dan web dev (Acode HP) miliknya dengan bangga.
-- JANGAN PERNAH bocorkan data pribadi rahasia seperti alamat rumah, password, atau isi token database.`;
-
-        // 3. TEMBAK LANGSUNG KE REST API RESMI GOOGLE GEMINI (ANTI-CRASH DEPENDENCY)
-        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${keyTerpilih}`;
+        // TEMBAK KE GOOGLE
+        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const responseAIdirect = await fetch(url_api, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [
-                            { text: `${systemPrompt}\n\nPesan User: ${pesan}` }
-                        ]
-                    }
-                ]
+                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPesan User: ${pesan}` }] }]
             })
         });
 
         const dataAI = await responseAIdirect.json();
         
-        // Ambil teks text dari data response mentah Google
-        const hasilBalasan = dataAI.candidates[0].content.parts[0].text;
-
-        return res.status(200).json({ balasan: hasilBalasan });
+        // BACA HASILNYA
+        if (dataAI.candidates && dataAI.candidates.length > 0) {
+            const hasilBalasan = dataAI.candidates[0].content.parts[0].text;
+            return res.status(200).json({ balasan: hasilBalasan });
+        } else {
+            return res.status(200).json({ balasan: `⚠️ Ditolak Google: ${dataAI.error?.message || 'Batas limit harian habis'}` });
+        }
 
     } catch (error) {
-        console.error("Error CS Server:", error);
-        return res.status(200).json({ balasan: 'Aduh sori Rizky, server Google lagi padat merayap. Coba kirim ulang chatnya ya!' });
+        console.error("Crash Server:", error);
+        return res.status(200).json({ balasan: `⚠️ Backend Error: ${error.message}` });
     }
 }

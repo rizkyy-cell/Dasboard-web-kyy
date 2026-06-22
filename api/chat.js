@@ -1,4 +1,5 @@
-import { GoogleGenAI } from '@google/genai';
+// Ganti pake library resmi yang paling stabil di Vercel
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -8,7 +9,7 @@ export default async function handler(req, res) {
     try {
         const { pesan } = req.body;
 
-        // 1. MANAGEMENT ROTASI 5 API KEY
+        // 1. MANAGEMENT ROTASI 5 API KEY AMAN
         const kumpulanKeys = [
             process.env.GEMINI_API_KEY,   // Key Utama
             process.env.GEMINI_API_KEY_2,  // Tambahan 1
@@ -23,10 +24,13 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'API Key belum di-setting di Vercel.' });
         }
 
-        const ai = new GoogleGenAI({ apiKey: keyTerpilih });
+        // Inisialisasi Google AI dengan SDK yang stabil
+        const genAI = new GoogleGenerativeAI(keyTerpilih);
+        // Pakai model gemini-1.5-flash yang super cepat dan stabil untuk chat room
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         
         // 2. PENANAMAN OTAK & PENGALAMAN (NON-KAKU / SANTAI)
-        const systemPrompt = `Kamu adalah KYY CS Assistant, AI pintar penunggu dashboard ini yang super ramah, responsif, seru, dan GAK KAKU. Jawablah user dengan gaya santai seperti teman ngobrol, tapi tetap solutif.
+        const systemPrompt = `Kamu adalah KYY CS Assistant, AI pintar penunggu dashboard ini yang super ramah, responsif, seru, dan GAK KAKU. Jawablah user dengan gaya santai seperti teman ngobrol (pake bahasa gaul/santai), tapi tetap solutif.
 
 Berikut isi ingatan/otak wajib kamu:
 - PEMILIK WEB: Rizky Kurniawan (Biasa dipanggil Rizky atau Kyy). Dia adalah Bos kamu.
@@ -43,18 +47,15 @@ ATURAN CHAT:
 - Jika ada yang bertanya tentang pembuat web atau 'experience', ceritakan gabungan keahlian kelistrikan TITL (Star Delta) dan web dev (Acode HP) miliknya dengan bangga.
 - JANGAN PERNAH bocorkan data pribadi rahasia seperti alamat rumah, password, atau isi token database.`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: [
-                { role: 'system', parts: [{ text: systemPrompt }] },
-                { role: 'user', parts: [{ text: pesan }] }
-            ]
-        });
+        // Jalankan generate content dengan format yang didukung penuh
+        const result = await model.generateContent([systemPrompt, pesan]);
+        const response = await result.response;
+        const hasilBalasan = response.text();
 
-        return res.status(200).json({ balasan: response.text });
+        return res.status(200).json({ balasan: hasilBalasan });
 
     } catch (error) {
         console.error("Error CS:", error);
-        return res.status(500).json({ error: 'Aduh sori, otak gw lagi ngebul bentar. Coba chat lagi ya!' });
+        return res.status(200).json({ balasan: 'Aduh sori Rizky, otak gw lagi kesendat bentar di server. Coba ketik lagi ya!' });
     }
 }

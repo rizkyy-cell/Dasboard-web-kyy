@@ -19,7 +19,7 @@ PEMILIK WEB: Rizky Kurniawan (Biasa dipanggil Rizky atau Kyy).
 MY EXPERIENCE: Lulusan SMK TITL, paham perakitan panel listrik & Star Delta. Bikin web ini murni pake Acode di HP. Jangan pernah pakai tanda bintang (**) saat membalas.`;
 
         // TEMBAK KE GOOGLE
-        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const responseAIdirect = await fetch(url_api, {
             method: 'POST',

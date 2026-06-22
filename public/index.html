@@ -1579,7 +1579,7 @@ const kyyBrain = {
 // (Cari bagian ini di fungsi kirimPesanUser atau inisialisasi)
 
 
-        async function kirimPesanUser() {
+    async function kirimPesanUser() {
         const aiInputTeks = document.getElementById('ai-input-teks');
         const aiBtnSend = document.getElementById('ai-btn-send');
         const aiChatMessages = document.getElementById('ai-chat-messages');
@@ -1607,16 +1607,11 @@ const kyyBrain = {
             if (data.balasan) {
                 bubbleLoading.remove(); 
                 const bubbleAI = document.createElement('div'); bubbleAI.className = 'ai-bubble-bot';
-                
-                // ANTI-BINTANG: Mengubah format ** (Markdown) jadi teks tebal <strong>
-                let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                
-                bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+                bubbleAI.innerHTML = `${data.balasan.replace(/\n/g, '<br>')} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
                 aiChatMessages.appendChild(bubbleAI); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
             } else throw new Error(data.error || "Gagal menghubungi server.");
         } catch (error) { bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; }
     }
-
 
     // =====================================================================
     // 9. PENYATUAN SEMUA SENSOR & EVENT SAAT HALAMAN DIBUKA (BOOT)

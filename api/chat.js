@@ -69,7 +69,7 @@ ATURAN MODE BIASA:
             parts.push({ inlineData: { mimeType: gambarType, data: gambarData } });
         }
 
-        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyTerpilih}`;[span_8](start_span)[span_8](end_span)
+        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyTerpilih}`;[span_8](start_span)[span_8](end_span)
 
         const responseAIdirect = await fetch(url_api, {
             method: 'POST',

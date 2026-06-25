@@ -757,6 +757,124 @@
     filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
 }
 
+    /* ==========================================
+   WIDGET GARIS DRAG SLIDER (RIGHT EDGE)
+   ========================================== */
+.kyy-drag-edge {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 16px;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 99990;
+    cursor: ew-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+}
+.kyy-drag-line {
+    width: 4px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    transition: background 0.3s, transform 0.3s;
+}
+.kyy-drag-edge:active .kyy-drag-line {
+    background: var(--tg-accent);
+    transform: scaleX(1.5);
+}
+body.light-theme .kyy-drag-line {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================
+   MENU LAMPIRAN KACA (OPSE C FLOATING MENU)
+   ========================================== */
+.ai-attach-menu {
+    position: absolute;
+    bottom: 70px;
+    left: 15px;
+    background: rgba(23, 33, 43, 0.85) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 16px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(0.95);
+    transition: all 0.25s cubic-bezier(0.25, 1, 0.2, 1);
+    z-index: 100002;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+.ai-attach-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+.ai-attach-menu button {
+    background: none;
+    border: none;
+    color: #fff !important;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 150px;
+}
+.ai-attach-menu button:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+body.light-theme .ai-attach-menu {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+body.light-theme .ai-attach-menu button { color: #1e293b !important; }
+body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) !important; }
+
+/* ==========================================
+   PRATINJAU GAMBAR DI BALON CHAT (RASIO PAS iOS)
+   ========================================== */
+.chat-img-preview {
+    width: 100%;
+    max-width: 220px; /* Ukuran pas, tidak menuhi layar */
+    aspect-ratio: 1 / 1; /* Rasio kotak presisi */
+    object-fit: cover;
+    border-radius: 14px;
+    margin-top: 5px;
+    display: block;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Penanda Badge Status Mode AI */
+.ai-mode-badge {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 6px;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.1);
+    color: var(--tg-text-muted);
+}
+.mode-dev-active {
+    background: rgba(51, 144, 236, 0.15) !important;
+    color: var(--tg-accent) !important;
+    box-shadow: 0 0 8px rgba(51, 144, 236, 0.2);
+}
 
   </style>
 </head>
@@ -774,6 +892,12 @@
       <audio id="bgAudio" loop preload="none">
           <source src="multo.mp3" type="audio/mpeg">
       </audio>
+  </div>
+
+    <!-- OVERLAY SILUET ORANG JATUH (LAGU MOLTO) -->
+  <div class="siluet-overlay" id="siluetOverlay">
+      <!-- Ganti 'siluet.png' dengan nama file gambar bayangan lu -->
+      <img src="overlay.png" alt="Falling Person">
   </div>
 
 
@@ -1015,18 +1139,40 @@
     <span id="toast-message">Sukses!</span>
   </div>
 
-    <div id="layer-chat-ai" class="assistant-layer-hidden">
-        <header class="ai-header-glass" style="display: flex; justify-content: space-between; align-items: center;">
-      <div class="ai-header-left" style="display: flex; align-items: center; gap: 12px;">
+    <!-- GARIS INDIKATOR DRAG SLIDER DI KANAN LUAR LAYER -->
+<div class="kyy-drag-edge" id="kyyDragTrigger">
+    <div class="kyy-drag-line"></div>
+</div>
+
+<div id="layer-chat-ai" class="assistant-layer-hidden">
+      <!-- MODAL KONFIRMASI HAPUS CHAT (YANG HILANG) -->
+    <div class="ai-modal-overlay" id="ai-custom-modal">
+        <div class="ai-modal-box">
+            <div class="ai-modal-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 style="margin-bottom: 8px; font-size: 16px;">Hapus Riwayat?</h3>
+            <p style="font-size: 13px; color: var(--tg-text-muted); margin-bottom: 20px;">Semua obrolan dengan KYY CS akan dihapus permanen dari perangkat ini.</p>
+            <div class="ai-modal-buttons">
+                <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
+                <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="ai-header-glass">
+      <div class="ai-header-left">
         <div class="ai-back-container" id="ai-btn-kembali">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
         </div>
         <div class="ai-profile-pic">
-  <img src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-</div>
-
+          <img src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
+        </div>
         <div class="ai-user-info">
-          <span class="ai-nama">KYY CS</span>
+          <div style="display:flex; align-items:center;">
+             <span class="ai-nama">KYY CS</span>
+             <span class="ai-mode-badge" id="aiModeStatus">BIASA</span>
+          </div>
           <span class="ai-status">Asisten Otomatis</span>
         </div>
       </div>
@@ -1036,7 +1182,12 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </div>
         
+        <!-- DROPDOWN MENU KACA UPDATE (OPSI A) -->
         <div class="ai-dropdown liquid-glass" id="ai-dropdown-menu">
+          <button id="aiBtnSwitchMode" style="color: var(--tg-accent); font-weight: bold;">
+            <span>Mode: Dev Kyy</span>
+            <i class="fas fa-toggle-off" id="toggleModeIcon"></i>
+          </button>
           <button id="ai-btn-tema-toggle">
             <span>Ubah Tema</span>
             <i class="fas fa-adjust" style="font-size: 13px;"></i>
@@ -1051,39 +1202,33 @@
 
     <main class="ai-chat-area" id="ai-chat-messages">
       <div class="ai-bubble-bot">
-        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini, mencari Tools, Mod Aplikasi, atau memberikan arahan lainnya. Ada yang bisa saya bantu?
+        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini. Gunakan Mode Dev Kyy di menu pojok kanan atas untuk beralih ke pembahasan coding kustom!
       </div>
     </main>
 
+    <!-- FLOATING MENU LAMPIRAN (OPSI C) -->
+    <div class="ai-attach-menu" id="aiAttachMenu">
+        <button onclick="pilihMediaKyy('gambar')"><i class="fas fa-image" style="color:#3390ec;"></i> Gambar</button>
+        <button onclick="pilihMediaKyy('dokumen')"><i class="fas fa-file-alt" style="color:#f59e0b;"></i> Dokumen</button>
+        <input type="file" id="hiddenFileControl" style="display:none;" onchange="prosesMediaKyy(this)">
+    </div>
+
+    <!-- FOOTER INPUT UPDATE DENGAN TOMBOL + -->
     <footer class="ai-footer-input">
+      <button class="ai-btn-kirim" id="aiBtnAttach" style="background:rgba(255,255,255,0.08); color:#fff; box-shadow:none;">
+         <i class="fas fa-plus" id="attachPlusIcon" style="transition:transform 0.2s;"></i>
+      </button>
       <div class="ai-input-capsule">
         <input type="text" id="ai-input-teks" placeholder="Tanya sesuatu..." autocomplete="off">
       </div>
       <button class="ai-btn-kirim" id="ai-btn-send" disabled>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
-        </footer>
+    </footer>
 
-    <div class="ai-modal-overlay" id="ai-custom-modal">
-      <div class="ai-modal-box">
-        <div class="ai-modal-icon">
-          <i class="fas fa-trash-alt"></i>
-        </div>
-        <h3 style="font-size: 17px; font-weight: 700; margin-bottom: 6px;">Hapus Riwayat?</h3>
-        <p style="font-size: 13px; opacity: 0.7; line-height: 1.4; margin-bottom: 20px;">Semua percakapan dengan KYY CS akan dihapus permanen.</p>
-        <div class="ai-modal-buttons">
-          <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
-          <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Hapus</button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-  
-  <div id="siluetOverlay" class="siluet-overlay">
-    <img src="overlay.png" alt="Falling">
+    <!-- INPUT HIDDEN UNTUK DETEKSI REKAYASA DRAG MENGGUNAKAN JAVASCRIPT -->
+    <input type="hidden" id="currentAiModeTracker" value="biasa">
 </div>
-
 
     <script>
     // =====================================================================
@@ -1201,7 +1346,7 @@
         if (!container) return;
         if (dataStoreLokal.length === 0) {
             const { data, error } = await supabaseClient.from('store_products').select('*').order('id', { ascending: false });
-            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat etalase.</p>`; return; }
+            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat etalase. <br>Cek koneksi internet anda</b></p>`; return; }
             dataStoreLokal = data;
         }
         renderStoreList();
@@ -1601,22 +1746,248 @@ const kyyBrain = {
         aiChatMessages.appendChild(bubbleLoading); aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 
         try {
-            const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pesan: teks }) });
+            // ---> INI LOGIKA PENGALIH URL (PLOT TWIST LU) <---
+            let targetUrl = '/api/chat'; // Default nembak ke otak biasa
+            if (currentAiMode === "dev") {
+                targetUrl = '/api/chat_2'; // Belok nembak ke otak jailbreak!
+            }
+
+            const response = await fetch(targetUrl, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ pesan: teks }) 
+            });
             const data = await response.json();
             
             if (data.balasan) {
                 bubbleLoading.remove(); 
                 const bubbleAI = document.createElement('div'); bubbleAI.className = 'ai-bubble-bot';
-                
-                // ANTI-BINTANG: Mengubah format ** (Markdown) jadi teks tebal <strong>
-                let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                
-                bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+                bubbleAI.innerHTML = `${data.balasan.replace(/\n/g, '<br>')} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
                 aiChatMessages.appendChild(bubbleAI); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
             } else throw new Error(data.error || "Gagal menghubungi server.");
         } catch (error) { bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; }
     }
 
+      // =====================================================================
+// MANAJEMEN SISTEM SLIDER DRAG ANTI-REFRESH (HORIZONTAL SWIPE EDGE)
+// =====================================================================
+const dragTrigger = document.getElementById('kyyDragTrigger');
+const chatLayer = document.getElementById('layer-chat-ai');
+let dragStartX = 0;
+let isDraggingLayer = false;
+
+if (dragTrigger && chatLayer) {
+    dragTrigger.addEventListener('touchstart', (e) => {
+        dragStartX = e.touches[0].clientX;
+        isDraggingLayer = true;
+        chatLayer.style.transition = 'none';
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+        if (!isDraggingLayer) return;
+        let currentX = e.touches[0].clientX;
+        let moveX = window.innerWidth - currentX;
+        
+        if (moveX >= 0 && moveX <= window.innerWidth) {
+            chatLayer.className = 'assistant-layer-active';
+            chatLayer.style.transform = `translateX(${window.innerWidth - moveX}px)`;
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        if (!isDraggingLayer) return;
+        isDraggingLayer = false;
+        chatLayer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+        
+        let finalX = e.changedTouches[0].clientX;
+        // Jika ditarik ke kiri lebih dari 20% lebar layar, buka penuh!
+        if (window.innerWidth - finalX > window.innerWidth * 0.2) {
+            chatLayer.style.transform = 'translateX(0)';
+            chatLayer.className = 'assistant-layer-active';
+        } else {
+            chatLayer.style.transform = 'translateX(100%)';
+            setTimeout(() => { chatLayer.className = 'assistant-layer-hidden'; }, 350);
+        }
+    });
+}
+
+// Perbaikan tombol kembali bawaan agar sinkron dengan sistem translasi koordinat slider
+document.getElementById('ai-btn-kembali')?.addEventListener('click', () => {
+    if(chatLayer) {
+        chatLayer.style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+        chatLayer.style.transform = 'translateX(100%)';
+        setTimeout(() => { chatLayer.className = 'assistant-layer-hidden'; }, 350);
+    }
+});
+
+// =====================================================================
+// MANAJEMEN FITUR TOGGLE SWITCH MODE AI (OPSI A)
+// =====================================================================
+let currentAiMode = "biasa";
+document.getElementById('aiBtnSwitchMode')?.addEventListener('click', function() {
+    const modeStatus = document.getElementById('aiModeStatus');
+    const toggleIcon = document.getElementById('toggleModeIcon');
+    const labelSpan = this.querySelector('span');
+
+    if (currentAiMode === "biasa") {
+        currentAiMode = "dev";
+        if(modeStatus) { modeStatus.innerText = "DEV KYY ⚡"; modeStatus.className = "ai-mode-badge mode-dev-active"; }
+        if(toggleIcon) { toggleIcon.className = "fas fa-toggle-on"; toggleIcon.style.color = "var(--tg-accent)"; }
+        if(labelSpan) labelSpan.innerText = "Mode: Biasa";
+    } else {
+        currentAiMode = "biasa";
+        if(modeStatus) { modeStatus.innerText = "BIASA"; modeStatus.className = "ai-mode-badge"; }
+        if(toggleIcon) { toggleIcon.className = "fas fa-toggle-off"; toggleIcon.style.color = "inherit"; }
+        if(labelSpan) labelSpan.innerText = "Mode: Dev Kyy";
+    }
+    document.getElementById('ai-dropdown-menu')?.classList.remove('active');
+});
+
+// =====================================================================
+// MANAJEMEN MENU + LAMPIRAN MEDIA LANGSUNG KE WHATSAPP
+// =====================================================================
+const btnAttach = document.getElementById('aiBtnAttach');
+const attachMenu = document.getElementById('aiAttachMenu');
+const plusIcon = document.getElementById('attachPlusIcon');
+let tipeMediaTerpilih = "";
+
+btnAttach?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    attachMenu?.classList.toggle('active');
+    if(plusIcon) plusIcon.style.transform = attachMenu?.classList.contains('active') ? 'rotate(45deg)' : 'rotate(0deg)';
+});
+
+document.addEventListener('click', () => {
+    attachMenu?.classList.remove('active');
+    if(plusIcon) plusIcon.style.transform = 'rotate(0deg)';
+});
+
+function pilihMediaKyy(tipe) {
+    tipeMediaTerpilih = tipe;
+    const inputHidden = document.getElementById('hiddenFileControl');
+    if(inputHidden) {
+        // Filter file input sesuai ekstensi iOS / Android
+        inputHidden.accept = (tipe === 'gambar') ? 'image/*' : '.txt,.pdf,.doc,.docx,.java,.smali';
+        inputHidden.click();
+    }
+}
+
+function prosesMediaKyy(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const areaPesan = document.getElementById('ai-chat-messages');
+
+    if (tipeMediaTerpilih === 'gambar') {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const bubbleUser = document.createElement('div');
+            bubbleUser.className = 'ai-bubble-bot';
+            bubbleUser.style.alignSelf = 'flex-end';
+            bubbleUser.style.background = 'var(--tg-accent)';
+            bubbleUser.style.color = '#fff';
+            bubbleUser.innerHTML = `
+                <div style="font-size:12px; font-weight:bold; opacity:0.9; margin-bottom:4px;"><i class="fas fa-image"></i> Mengirim Gambar...</div>
+                <img src="${e.target.result}" class="chat-img-preview">
+                <div style="font-size:10px; opacity:0.7; margin-top:4px;">${file.name}</div>
+            `;
+            areaPesan.appendChild(bubbleUser);
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+
+            const bubbleLoading = document.createElement('div'); 
+            bubbleLoading.className = 'ai-bubble-bot';
+            bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS sedang menganalisis gambarmu...</span>`;
+            areaPesan.appendChild(bubbleLoading);
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+
+            const base64Data = e.target.result.split(',')[1];
+
+            try {
+                // ---> TAMBAHIN PENGALIH URL DI SINI BUAT GAMBAR <---
+                let targetUrl = '/api/chat'; 
+                if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
+
+                const response = await fetch(targetUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        pesan: "Rizky mengirimkan sebuah gambar screenshot. Tolong analisis isi gambar ini.",
+                        gambarData: base64Data,
+                        gambarType: file.type
+                    }) 
+                });
+                const data = await response.json();
+                
+                bubbleLoading.remove();
+                if (data.balasan) {
+                    const bubbleAI = document.createElement('div'); 
+                    bubbleAI.className = 'ai-bubble-bot';
+                    let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                    bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+                    areaPesan.appendChild(bubbleAI);
+                } else {
+                    throw new Error(data.error || "Gagal dianalisis.");
+                }
+            } catch (error) {
+                bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Gagal membaca gambar: ${error.message}</span>`;
+            }
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const isiTeksFile = e.target.result;
+
+            const bubbleUser = document.createElement('div');
+            bubbleUser.className = 'ai-bubble-bot';
+            bubbleUser.style.alignSelf = 'flex-end';
+            bubbleUser.style.background = 'var(--tg-accent)';
+            bubbleUser.style.color = '#fff';
+            bubbleUser.innerHTML = `
+                <div style="font-size:13px; font-weight:bold;"><i class="fas fa-file-alt"></i> Menyerahkan Script</div>
+                <div style="font-size:11px; opacity:0.7; margin-top:2px;">File: ${file.name}</div>
+            `;
+            areaPesan.appendChild(bubbleUser);
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+
+            const bubbleLoading = document.createElement('div'); 
+            bubbleLoading.className = 'ai-bubble-bot';
+            bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS membaca isi file...</span>`;
+            areaPesan.appendChild(bubbleLoading);
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+
+            try {
+                // ---> TAMBAHIN PENGALIH URL DI SINI BUAT FILE SCRIPT/SMALI <---
+                let targetUrl = '/api/chat'; 
+                if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
+
+                const response = await fetch(targetUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        pesan: `Rizky mengirimkan file bernama ${file.name}. Berikut adalah seluruh isi kodenya, tolong pelajari:\n\n${isiTeksFile}`
+                    }) 
+                });
+                const data = await response.json();
+                
+                bubbleLoading.remove();
+                if (data.balasan) {
+                    const bubbleAI = document.createElement('div'); 
+                    bubbleAI.className = 'ai-bubble-bot';
+                    let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+                    bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+                    areaPesan.appendChild(bubbleAI);
+                }
+            } catch (error) {
+                bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Gagal membaca file: ${error.message}</span>`;
+            }
+            areaPesan.scrollTop = areaPesan.scrollHeight;
+        };
+        reader.readAsText(file);
+    }
+    input.value = ''; 
+}
+      
     // =====================================================================
     // 9. PENYATUAN SEMUA SENSOR & EVENT SAAT HALAMAN DIBUKA (BOOT)
     // =====================================================================

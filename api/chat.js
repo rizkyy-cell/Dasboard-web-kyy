@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method tidak diizinkan' });[span_2](start_span)[span_2](end_span)
+        return res.status(405).json({ error: 'Method tidak diizinkan' });
     }
 
     try {
@@ -12,13 +12,13 @@ export default async function handler(req, res) {
             process.env.GEMINI_API_KEY_3,  
             process.env.GEMINI_API_KEY_4,  
             process.env.GEMINI_API_KEY_5   
-        ].filter(Boolean);[span_3](start_span)[span_3](end_span)
+        ].filter(Boolean);
 
         if (kumpulanKeys.length === 0) {
-            return res.status(200).json({ balasan: '⚠️ Waduh Bos, API Key lu kosong semua di Vercel!' });[span_4](start_span)[span_4](end_span)
+            return res.status(200).json({ balasan: '⚠️ Waduh Bos, API Key lu kosong semua di Vercel!' });
         }
 
-        const keyTerpilih = kumpulanKeys[Math.floor(Math.random() * kumpulanKeys.length)];[span_5](start_span)[span_5](end_span)
+        const keyTerpilih = kumpulanKeys[Math.floor(Math.random() * kumpulanKeys.length)];
 
         // OTAK UTUH + LOGIKA MODE BIASA
         const systemPrompt = `Kamu adalah KYY CS Assistant, sebuah kecerdasan buatan (AI) premium dan asisten otomatis resmi yang tertanam di dalam Dashboard Web Kyy.
@@ -43,7 +43,7 @@ Website ini terbagi menjadi 5 halaman utama (Tab) yang bisa diakses lewat Bottom
   * Pengubah Aksen Warna Tema (ada 8 pilihan warna dot cerah).
   * Toggle Switch Mode Gelap / Mode Terang (Dark/Light Mode).
   * Fitur cek keamanan file unduhan via integrasi link VirusTotal.
-- TAB 5: PROFIL ('page-profil') -> Halaman eksklusif berisi kartu VIP Rizky Kurniawan dengan efek teks RGB menyala. Di halaman ini terdapat tombol media sosial (TikTok, Instagram, Telegram, Discord, Sociabuzz) dan tombol utama untuk membuka room chat kamu (KYY CS).
+- TAB 5: PROFIL ('page-profil') -> Halaman eksklusif berisi kartu VIP Rizky Kurniawan dengan efek teks RGB menyala. Di halaman ini terdapat tombol media sosial (TikTok, Instagram, Telegram, Discord, Sociabuzz) and tombol utama untuk membuka room chat kamu (KYY CS).
 
 3. FITUR WIDGET & DETEKSI SISTEM DI LAYAR
 Kamu harus tahu bahwa website ini punya widget interaktif keren:
@@ -62,31 +62,47 @@ STATUS MODE SEKARANG: [ MODE BIASA - AKTIF ]
 ATURAN MODE BIASA:
 - Tugas utamamu adalah memandu user menjelajahi tab dashboard dan ngobrol santai.
 - JIKA USER BERTANYA soal coding tingkat dalam, pembongkaran Smali, bypass premium, reverse engineering, atau hal sensitif lainnya, KAMU WAJIB MENOLAKNYA SECARA HALUS.
-- Cara menolaknya: Katakan dengan gaya gaul lu kalau fitur tersebut dikunci, dan suruh user untuk membuka Menu Dropdown Kaca di pojok kanan atas layar lalu aktifkan "Mode Dev Kyy ⚡" terlebih dahulu agar otak pengembang lu terbuka!`;[span_6](start_span)[span_6](end_span)
+- Cara menolaknya: Katakan dengan gaya gaul lu kalau fitur tersebut dikunci, dan suruh user untuk membuka Menu Dropdown Kaca di pojok kanan atas layar lalu aktifkan "Mode Dev Kyy ⚡" terlebih dahulu agar otak pengembang lu terbuka!`;
 
-        const parts = [{ text: `${systemPrompt}\n\nPesan User: ${pesan}` }];[span_7](start_span)[span_7](end_span)
+        const parts = [{ text: `${systemPrompt}\n\nPesan User: ${pesan}` }];
+        
         if (gambarData && gambarType) {
-            parts.push({ inlineData: { mimeType: gambarType, data: gambarData } });
+            // Potong header base64 kalau kegawa dari input file frontend
+            const cleanBase64 = gambarData.includes(',') ? gambarData.split(',')[1] : gambarData;
+            parts.push({ inlineData: { mimeType: gambarType, data: cleanBase64 } });
         }
 
-        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${keyTerpilih}`;[span_8](start_span)[span_8](end_span)
+        // URL Model lu yang udah bener sesuai rilis Juni 2026
+        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyTerpilih}`;
 
         const responseAIdirect = await fetch(url_api, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ role: 'user', parts: parts }] })
-        });[span_9](start_span)[span_9](end_span)
+        });
 
-        const dataAI = await responseAIdirect.json();[span_10](start_span)[span_10](end_span)
+        // TAMENG UTAMA: Biar kalau Google nolak, kagak crash jadi eror HTML di room chat
+        if (!responseAIdirect.ok) {
+            const errorText = await responseAIdirect.text();
+            console.error("Detail Eror Google Studio (Mode 1):", errorText);
+            return res.status(200).json({ balasan: `⚠️ Waduh Bos, Google API nolak request (Status ${responseAIdirect.status}). Cek API Key lu.` });
+        }
+
+        const dataAI = await responseAIdirect.json();
         
         if (dataAI.candidates && dataAI.candidates.length > 0) {
-            return res.status(200).json({ balasan: dataAI.candidates[0].content.parts[0].text });[span_11](start_span)[span_11](end_span)
+            const teksBalasan = dataAI.candidates[0].content?.parts?.[0]?.text;
+            if (teksBalasan) {
+                return res.status(200).json({ balasan: teksBalasan });
+            } else {
+                return res.status(200).json({ balasan: `⚠️ Respons kosong. Alasan Google: ${dataAI.candidates[0].finishReason}` });
+            }
         } else {
-            return res.status(200).json({ balasan: `⚠️ Google menolak request. Alasan: ${dataAI.error?.message || 'Unknown Error'}` });[span_12](start_span)[span_12](end_span)
+            return res.status(200).json({ balasan: `⚠️ Google menolak request. Alasan: ${dataAI.error?.message || 'Unknown Error'}` });
         }
 
     } catch (error) {
-        console.error("Error CS Server:", error);[span_13](start_span)[span_13](end_span)
-        return res.status(200).json({ balasan: `⚠️ Waduh Rizky, backend lu crash: ${error.message}` });[span_14](start_span)[span_14](end_span)
+        console.error("Error CS Server:", error);
+        return res.status(200).json({ balasan: `⚠️ Waduh Rizky, backend lu crash: ${error.message}` });
     }
 }

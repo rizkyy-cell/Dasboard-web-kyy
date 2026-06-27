@@ -1699,6 +1699,15 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     // =====================================================================
     // 8. FUNGSI LOGIKA RUANG CHAT AI CS
     // =====================================================================
+
+    let kyyMediaStorage = {
+    tipe: null,       
+    base64: null,     
+    isiTeks: null,    
+    namaFile: null,   
+    mimeType: null    
+};
+
     function getAiFormattedTime() {
         const now = new Date(); let hours = now.getHours(); let minutes = now.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM'; hours = hours % 12 || 12; 
@@ -1725,48 +1734,98 @@ const kyyBrain = {
 
 
         async function kirimPesanUser() {
-        const aiInputTeks = document.getElementById('ai-input-teks');
-        const aiBtnSend = document.getElementById('ai-btn-send');
-        const aiChatMessages = document.getElementById('ai-chat-messages');
-        if (!aiInputTeks || !aiChatMessages) return;
+    const aiInputTeks = document.getElementById('ai-input-teks');
+    const aiBtnSend = document.getElementById('ai-btn-send');
+    const aiChatMessages = document.getElementById('ai-chat-messages');
+    if (!aiInputTeks || !aiChatMessages) return;
 
-        const teks = aiInputTeks.value.trim(); if (!teks) return;
+    const teksUser = aiInputTeks.value.trim();
+    if (!teksUser && !kyyMediaStorage.tipe) return;
 
-        const bubbleUser = document.createElement('div');
-        bubbleUser.className = 'ai-bubble-bot'; bubbleUser.style.alignSelf = 'flex-end'; bubbleUser.style.background = 'var(--tg-accent)';
-        bubbleUser.style.borderTopLeftRadius = '18px'; bubbleUser.style.borderTopRightRadius = '4px'; bubbleUser.style.color = '#fff';
-        bubbleUser.innerHTML = `${teks} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
-        
-        aiChatMessages.appendChild(bubbleUser); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
-        
-        aiInputTeks.value = ''; if (aiBtnSend) aiBtnSend.disabled = true;
+    const bubbleUser = document.createElement('div');
+    bubbleUser.className = 'ai-bubble-bot'; 
+    bubbleUser.style.alignSelf = 'flex-end'; 
+    bubbleUser.style.background = 'var(--tg-accent)';
+    bubbleUser.style.borderTopLeftRadius = '18px'; 
+    bubbleUser.style.borderTopRightRadius = '4px'; 
+    bubbleUser.style.color = '#fff';
 
-        const bubbleLoading = document.createElement('div'); bubbleLoading.className = 'ai-bubble-bot';
-        bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS mengetik...</span>`;
-        aiChatMessages.appendChild(bubbleLoading); aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+    let requestPayload = {};
 
-        try {
-            // ---> INI LOGIKA PENGALIH URL (PLOT TWIST LU) <---
-            let targetUrl = '/api/chat'; // Default nembak ke otak biasa
-            if (currentAiMode === "dev") {
-                targetUrl = '/api/chat_2'; // Belok nembak ke otak jailbreak!
-            }
-
-            const response = await fetch(targetUrl, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ pesan: teks }) 
-            });
-            const data = await response.json();
-            
-            if (data.balasan) {
-                bubbleLoading.remove(); 
-                const bubbleAI = document.createElement('div'); bubbleAI.className = 'ai-bubble-bot';
-                bubbleAI.innerHTML = `${data.balasan.replace(/\n/g, '<br>')} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
-                aiChatMessages.appendChild(bubbleAI); aiChatMessages.scrollTop = aiChatMessages.scrollHeight; localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
-            } else throw new Error(data.error || "Gagal menghubungi server.");
-        } catch (error) { bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; }
+    if (kyyMediaStorage.tipe === 'gambar') {
+        bubbleUser.innerHTML = `
+            <div style="font-size:12px; font-weight:bold; opacity:0.9; margin-bottom:4px;"><i class="fas fa-image"></i> Gambar</div>
+            <img src="data:${kyyMediaStorage.mimeType};base64,${kyyMediaStorage.base64}" class="chat-img-preview">
+            <div style="margin-top:8px; line-height:1.4;">${teksUser ? teksUser : '<i style="opacity:0.6;">Kirim gambar tanpa deskripsi</i>'}</div>
+            <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
+        `;
+        requestPayload = {
+            pesan: teksUser ? `Rizky mengirimkan gambar dengan catatan deskripsi: ${teksUser}` : "Rizky mengirimkan sebuah gambar screenshot. Tolong analisis isi gambar ini.",
+            gambarData: kyyMediaStorage.base64,
+            gambarType: kyyMediaStorage.mimeType
+        };
+    } else if (kyyMediaStorage.tipe === 'dokumen') {
+        bubbleUser.innerHTML = `
+            <div style="font-size:13px; font-weight:bold;"><i class="fas fa-file-alt"></i> Script diserahkan</div>
+            <div style="font-size:11px; opacity:0.7; margin-top:2px; margin-bottom:6px;">File: ${kyyMediaStorage.namaFile}</div>
+            <div style="line-height:1.4; border-top:1px solid rgba(255,255,255,0.15); padding-top:6px;">${teksUser ? teksUser : '<i style="opacity:0.6;">Kirim file tanpa penjelasan</i>'}</div>
+            <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
+        `;
+        requestPayload = {
+            pesan: teksUser 
+                ? `Rizky mengirimkan file bernama ${kyyMediaStorage.namaFile} dengan instruksi khusus: ${teksUser}\n\nBerikut adalah isi kodenya:\n${kyyMediaStorage.isiTeks}`
+                : `Rizky mengirimkan file bernama ${kyyMediaStorage.namaFile}. Berikut adalah seluruh isi kodenya, tolong pelajari:\n\n${kyyMediaStorage.isiTeks}`
+        };
+    } else {
+        bubbleUser.innerHTML = `${teksUser} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+        requestPayload = { pesan: teksUser };
     }
+
+    aiChatMessages.appendChild(bubbleUser); 
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
+    
+    document.getElementById('kyy-media-preview-container')?.remove();
+    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
+
+    aiInputTeks.value = ''; 
+    if (aiBtnSend) aiBtnSend.disabled = true;
+    localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+
+    const bubbleLoading = document.createElement('div'); 
+    bubbleLoading.className = 'ai-bubble-bot';
+    bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS memproses pesan...</span>`;
+    aiChatMessages.appendChild(bubbleLoading); 
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+    try {
+        let targetUrl = '/api/chat'; 
+        if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
+
+        const response = await fetch(targetUrl, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(requestPayload) 
+        });
+        const data = await response.json();
+        
+        bubbleLoading.remove(); 
+        if (data.balasan) {
+            const bubbleAI = document.createElement('div'); 
+            bubbleAI.className = 'ai-bubble-bot';
+            let teksClean = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            bubbleAI.innerHTML = `${teksClean} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
+            aiChatMessages.appendChild(bubbleAI); 
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
+            localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+        } else {
+            throw new Error(data.error || "Gagal menghubungi server.");
+        }
+    } catch (error) { 
+        bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; 
+    }
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+}
+
 
       // =====================================================================
 // MANAJEMEN SISTEM SLIDER DRAG ANTI-REFRESH (HORIZONTAL SWIPE EDGE)
@@ -1875,117 +1934,78 @@ function pilihMediaKyy(tipe) {
 function prosesMediaKyy(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-    const areaPesan = document.getElementById('ai-chat-messages');
+    const footerInput = document.querySelector('#layer-chat-ai .ai-footer-input');
+    const aiBtnSend = document.getElementById('ai-btn-send');
 
+    document.getElementById('kyy-media-preview-container')?.remove();
+
+    const previewContainer = document.createElement('div');
+    previewContainer.id = 'kyy-media-preview-container';
+    previewContainer.style = `
+        position: absolute; bottom: 100%; left: 15px; right: 15px;
+        background: rgba(23, 33, 43, 0.95); backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+        padding: 10px; margin-bottom: 8px; display: flex; align-items: center;
+        gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10;
+    `;
+    if (document.body.classList.contains('light-theme')) {
+        previewContainer.style.background = 'rgba(255, 255, 255, 0.95)';
+        previewContainer.style.borderColor = 'rgba(0,0,0,0.08)';
+    }
+
+    kyyMediaStorage.namaFile = file.name;
+    kyyMediaStorage.mimeType = file.type;
+    kyyMediaStorage.tipe = tipeMediaTerpilih;
+
+    const reader = new FileReader();
+    
     if (tipeMediaTerpilih === 'gambar') {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const bubbleUser = document.createElement('div');
-            bubbleUser.className = 'ai-bubble-bot';
-            bubbleUser.style.alignSelf = 'flex-end';
-            bubbleUser.style.background = 'var(--tg-accent)';
-            bubbleUser.style.color = '#fff';
-            bubbleUser.innerHTML = `
-                <div style="font-size:12px; font-weight:bold; opacity:0.9; margin-bottom:4px;"><i class="fas fa-image"></i> Mengirim Gambar...</div>
-                <img src="${e.target.result}" class="chat-img-preview">
-                <div style="font-size:10px; opacity:0.7; margin-top:4px;">${file.name}</div>
+        reader.onload = function(e) {
+            kyyMediaStorage.base64 = e.target.result.split(',')[1];
+            previewContainer.innerHTML = `
+                <img src="${e.target.result}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border:1px solid rgba(255,255,255,0.1);">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:11px; font-weight:bold; color:var(--tg-accent);"><i class="fas fa-image"></i> Gambar Tertahan</div>
+                    <div style="font-size:12px; color:var(--tg-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
+                </div>
+                <i class="fas fa-times" style="color:#ff3b30; cursor:pointer; padding:5px; font-size:16px;" onclick="batalMediaKyy()"></i>
             `;
-            areaPesan.appendChild(bubbleUser);
-            areaPesan.scrollTop = areaPesan.scrollHeight;
-
-            const bubbleLoading = document.createElement('div'); 
-            bubbleLoading.className = 'ai-bubble-bot';
-            bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS sedang menganalisis gambarmu...</span>`;
-            areaPesan.appendChild(bubbleLoading);
-            areaPesan.scrollTop = areaPesan.scrollHeight;
-
-            const base64Data = e.target.result.split(',')[1];
-
-            try {
-                // ---> TAMBAHIN PENGALIH URL DI SINI BUAT GAMBAR <---
-                let targetUrl = '/api/chat'; 
-                if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
-
-                const response = await fetch(targetUrl, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        pesan: "Rizky mengirimkan sebuah gambar screenshot. Tolong analisis isi gambar ini.",
-                        gambarData: base64Data,
-                        gambarType: file.type
-                    }) 
-                });
-                const data = await response.json();
-                
-                bubbleLoading.remove();
-                if (data.balasan) {
-                    const bubbleAI = document.createElement('div'); 
-                    bubbleAI.className = 'ai-bubble-bot';
-                    let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                    bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
-                    areaPesan.appendChild(bubbleAI);
-                } else {
-                    throw new Error(data.error || "Gagal dianalisis.");
-                }
-            } catch (error) {
-                bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Gagal membaca gambar: ${error.message}</span>`;
-            }
-            areaPesan.scrollTop = areaPesan.scrollHeight;
         };
         reader.readAsDataURL(file);
     } else {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const isiTeksFile = e.target.result;
-
-            const bubbleUser = document.createElement('div');
-            bubbleUser.className = 'ai-bubble-bot';
-            bubbleUser.style.alignSelf = 'flex-end';
-            bubbleUser.style.background = 'var(--tg-accent)';
-            bubbleUser.style.color = '#fff';
-            bubbleUser.innerHTML = `
-                <div style="font-size:13px; font-weight:bold;"><i class="fas fa-file-alt"></i> Menyerahkan Script</div>
-                <div style="font-size:11px; opacity:0.7; margin-top:2px;">File: ${file.name}</div>
+        reader.onload = function(e) {
+            kyyMediaStorage.isiTeks = e.target.result;
+            previewContainer.innerHTML = `
+                <div style="width: 45px; height: 45px; background:rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fas fa-file-alt" style="color:#f59e0b;"></i></div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:11px; font-weight:bold; color:#f59e0b;"><i class="fas fa-paperclip"></i> Script/Dokumen Tertahan</div>
+                    <div style="font-size:12px; color:var(--tg-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
+                </div>
+                <i class="fas fa-times" style="color:#ff3b30; cursor:pointer; padding:5px; font-size:16px;" onclick="batalMediaKyy()"></i>
             `;
-            areaPesan.appendChild(bubbleUser);
-            areaPesan.scrollTop = areaPesan.scrollHeight;
-
-            const bubbleLoading = document.createElement('div'); 
-            bubbleLoading.className = 'ai-bubble-bot';
-            bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS membaca isi file...</span>`;
-            areaPesan.appendChild(bubbleLoading);
-            areaPesan.scrollTop = areaPesan.scrollHeight;
-
-            try {
-                // ---> TAMBAHIN PENGALIH URL DI SINI BUAT FILE SCRIPT/SMALI <---
-                let targetUrl = '/api/chat'; 
-                if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
-
-                const response = await fetch(targetUrl, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        pesan: `Rizky mengirimkan file bernama ${file.name}. Berikut adalah seluruh isi kodenya, tolong pelajari:\n\n${isiTeksFile}`
-                    }) 
-                });
-                const data = await response.json();
-                
-                bubbleLoading.remove();
-                if (data.balasan) {
-                    const bubbleAI = document.createElement('div'); 
-                    bubbleAI.className = 'ai-bubble-bot';
-                    let teksBersih = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-                    bubbleAI.innerHTML = `${teksBersih} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
-                    areaPesan.appendChild(bubbleAI);
-                }
-            } catch (error) {
-                bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Gagal membaca file: ${error.message}</span>`;
-            }
-            areaPesan.scrollTop = areaPesan.scrollHeight;
         };
         reader.readAsText(file);
     }
+
+    footerInput.appendChild(previewContainer);
+    if (aiBtnSend) aiBtnSend.disabled = false; 
     input.value = ''; 
+}
+
+      function batalMediaKyy() {
+    document.getElementById('kyy-media-preview-container')?.remove();
+    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
+    const aiInputTeks = document.getElementById('ai-input-teks');
+    const aiBtnSend = document.getElementById('ai-btn-send');
+    if (aiInputTeks && aiBtnSend) aiBtnSend.disabled = (aiInputTeks.value.trim() === "");
+}
+
+function batalMediaKyy() {
+    document.getElementById('kyy-media-preview-container')?.remove();
+    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
+    const aiInputTeks = document.getElementById('ai-input-teks');
+    const aiBtnSend = document.getElementById('ai-btn-send');
+    if (aiInputTeks && aiBtnSend) aiBtnSend.disabled = (aiInputTeks.value.trim() === "");
 }
       
     // =====================================================================
@@ -2092,10 +2112,13 @@ function prosesMediaKyy(input) {
         });
 
         if (aiInputTeks && aiBtnSend) {
-            aiInputTeks.addEventListener('input', () => { aiBtnSend.disabled = (aiInputTeks.value.trim() === ""); });
-            aiBtnSend.addEventListener('click', kirimPesanUser);
-            aiInputTeks.addEventListener('keypress', (e) => { if (e.key === 'Enter') kirimPesanUser(); });
-        }
+    aiInputTeks.addEventListener('input', () => { 
+        aiBtnSend.disabled = (aiInputTeks.value.trim() === "" && !kyyMediaStorage.tipe); 
+    });
+    aiBtnSend.addEventListener('click', kirimPesanUser);
+    aiInputTeks.addEventListener('keypress', (e) => { if (e.key === 'Enter') kirimPesanUser(); });
+}
+
         
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark'; const checkbox = document.getElementById('theme-toggle-checkbox'); const icon = document.getElementById('theme-icon'); const text = document.getElementById('theme-text');
         if (savedTheme === 'light') {

@@ -279,10 +279,6 @@
     .theme-switch input:checked + .theme-slider:before { transform: translateX(20px) !important; }
     .theme-slider:before { position: absolute !important; content: "" !important; height: 20px !important; width: 20px !important; left: 3px !important; bottom: 3px !important; background-color: white !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
 
-        /* ==========================================
-       PERBAIKAN TOTAL: CSS LIGHT THEME KYY
-       ========================================== */
-        /* STYLE UTUH LIGHT THEME GLOBAL DAN DETAIL STOK */
             /* ==========================================
        ONE-STOP CLEAN LIGHT THEME (NO DUPLICATES)
        ========================================== */
@@ -385,8 +381,8 @@
     /* HEADER KACA */
     #layer-chat-ai .ai-header-glass {
         padding: max(35px, env(safe-area-inset-top)) 15px 12px 15px;
-        background: rgba(23, 33, 43, 0.8) !important;
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        background: rgba(23, 33, 43, 0.55) !important;
+        backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter:          blur(24px) saturate(180%);
         border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
         display: flex; justify-content: space-between; align-items: center;
     }
@@ -394,8 +390,9 @@
     #layer-chat-ai .ai-back-container {
         display: flex; align-items: center; justify-content: center;
         width: 36px; height: 36px; border-radius: 50%;
-        background: rgba(255, 255, 255, 0.05) !important; 
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: rgba(255, 255, 255, 0.08) !important; 
+border: 1px solid rgba(255, 255, 255, 0.15) !important;
+backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         cursor: pointer; color: #fff !important;
     }
     #layer-chat-ai .ai-profile-pic { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
@@ -406,53 +403,266 @@
 
     /* AREA CHAT */
     #layer-chat-ai .ai-chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    #layer-chat-ai .ai-bubble-bot { 
-        align-self: flex-start; max-width: 80%; padding: 12px 16px; 
-        background: var(--tg-panel) !important; 
-        border: 1px solid rgba(255,255,255,0.05) !important; 
-        border-radius: 18px; border-top-left-radius: 4px; 
-        font-size: 14.5px; line-height: 1.4; color: #fff !important; 
-    }
+    #layer-chat-ai .ai-bubble-bot {
+    align-self: flex-start;
+    max-width: 80%;
+    padding: 12px 16px;
+    background: var(--tg-panel) !important; 
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    border-top-left-radius: 4px;
+    font-size: 14.5px;
+    line-height: 1.4;
+    color: var(--lg-text);
+                        }
 
     /* KOLOM INPUT LIQUID GLASS */
-    #layer-chat-ai .ai-footer-input { 
-        padding: 12px 15px max(20px, env(safe-area-inset-bottom)) 15px; 
-        display: flex; align-items: center; gap: 12px; 
-        background: rgba(23, 33, 43, 0.6) !important;
-        backdrop-filter: blur(25px) saturate(200%); -webkit-backdrop-filter: blur(25px) saturate(200%);
-        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2) !important;
-        transform: translateY(150%); opacity: 0;
-        transition: transform 0.65s cubic-bezier(0.24, 1.1, 0.32, 1) 0.15s, opacity 0.5s ease 0.15s;
-    }
-    #layer-chat-ai.assistant-layer-active .ai-footer-input { transform: translateY(0); opacity: 1; }
-    #layer-chat-ai .ai-input-capsule { 
-        flex: 1; background: rgba(255,255,255,0.06) !important; 
-        border: 1px solid rgba(255,255,255,0.1) !important; 
-        border-radius: 24px; padding: 10px 18px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-    }
-    #layer-chat-ai .ai-input-capsule input { width: 100%; background: transparent !important; border: none; color: #fff !important; font-size: 14.5px; outline: none; }
-    #layer-chat-ai .ai-input-capsule input::placeholder { color: var(--tg-text-muted) !important; }
-    #layer-chat-ai .ai-btn-kirim { width: 40px; height: 40px; border-radius: 50%; background: var(--tg-accent); color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(51, 144, 236, 0.4); }
-    #layer-chat-ai .ai-btn-kirim:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
+    #layer-chat-ai .ai-footer-input {
+    padding: 12px 15px max(20px, env(safe-area-inset-bottom)) 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(13, 17, 23, 0.55);
+    backdrop-filter: blur(40px) saturate(220%);
+    -webkit-backdrop-filter: blur(40px) saturate(220%);
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.07);
+    position: relative;
+    transform: translateY(150%);
+    opacity: 0;
+    transition: transform 0.65s cubic-bezier(0.24, 1.1, 0.32, 1) 0.15s,
+                opacity 0.5s ease 0.15s;
+}
+/* Specular line footer */
+#layer-chat-ai .ai-footer-input::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    pointer-events: none;
+}
+/* Footer muncul saat layer aktif */
+#layer-chat-ai.assistant-layer-active .ai-footer-input {
+    transform: translateY(0);
+    opacity: 1;
+}
 
-    /* DROPDOWN & MODAL */
-    #layer-chat-ai .ai-dropdown { position: absolute; top: 45px; right: 0; width: 160px; background: rgba(23, 33, 43, 0.9) !important; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.08) !important; border-radius: 14px; padding: 4px; opacity: 0; visibility: hidden; transform: scale(0.85) translateY(-10px); transform-origin: top right; transition: all 0.25s cubic-bezier(0.25, 1, 0.2, 1); z-index: 100000; }
-    #layer-chat-ai .ai-dropdown.active { opacity: 1; visibility: visible; transform: scale(1) translateY(0); }
-    #layer-chat-ai .ai-dropdown button { width: 100%; padding: 10px 12px; background: none; border: none; text-align: left; color: #fff !important; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-radius: 10px; }
-    #layer-chat-ai .ai-dropdown button:hover { background: rgba(255, 255, 255, 0.05) !important; }
+/* ── INPUT CAPSULE ── */
+#layer-chat-ai .ai-input-capsule {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.10),
+                inset 0 -1px 0 rgba(0,0,0,0.15);
+    border-radius: 24px;
+    padding: 10px 18px;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+#layer-chat-ai .ai-input-capsule:focus-within {
+    border-color: rgba(51,144,236,0.45);
+    box-shadow: 0 0 0 3px rgba(51,144,236,0.12),
+                0 2px 10px rgba(0,0,0,0.25),
+                inset 0 1px 0 rgba(255,255,255,0.10);
+}
+#layer-chat-ai .ai-input-capsule input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--lg-text);
+    font-size: 14.5px;
+    outline: none;
+}
+#layer-chat-ai .ai-input-capsule input::placeholder {
+    color: var(--lg-muted);
+}
 
-    #layer-chat-ai .ai-modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100005; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-    #layer-chat-ai .ai-modal-overlay.active { opacity: 1; visibility: visible; }
-    #layer-chat-ai .ai-modal-box { width: 100%; max-width: 300px; background: rgba(23, 33, 43, 0.75) !important; backdrop-filter: blur(25px) saturate(190%); -webkit-backdrop-filter: blur(25px) saturate(190%); border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 20px; padding: 22px; text-align: center; color: #fff !important; transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-    #layer-chat-ai .ai-modal-overlay.active .ai-modal-box { transform: scale(1); }
-    #layer-chat-ai .ai-modal-icon { width: 46px; height: 46px; background: rgba(255, 59, 48, 0.15); color: #ff3b30; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; font-size: 18px; }
-    #layer-chat-ai .ai-modal-buttons { display: flex; gap: 10px; }
-    #layer-chat-ai .ai-modal-buttons button { flex: 1; padding: 11px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    #layer-chat-ai .ai-btn-modal-batal { background: rgba(255,255,255,0.06) !important; color: #fff !important; }
-    #layer-chat-ai .ai-btn-modal-hapus { background: #ff3b30 !important; color: #fff !important; }
+/* ── TOMBOL KIRIM ── */
+#layer-chat-ai .ai-btn-kirim {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--lg-accent), var(--lg-accent2));
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 16px rgba(51,144,236,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+    color: var(--lg-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+#layer-chat-ai .ai-btn-kirim:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(51,144,236,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+#layer-chat-ai .ai-btn-kirim:active { transform: scale(0.93); }
+#layer-chat-ai .ai-btn-kirim:disabled {
+    opacity: 0.3;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+/* ═══════════════════════════════════════════
+   DROPDOWN
+═══════════════════════════════════════════ */
+#layer-chat-ai .ai-dropdown {
+    position: absolute;
+    top: 45px; right: 0;
+    width: 160px;
+    background: rgba(18, 26, 36, 0.75);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10);
+    border-radius: 14px;
+    padding: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.85) translateY(-10px);
+    transform-origin: top right;
+    transition: opacity 0.25s cubic-bezier(0.25, 1, 0.2, 1),
+                visibility 0.25s cubic-bezier(0.25, 1, 0.2, 1),
+                transform 0.25s cubic-bezier(0.25, 1, 0.2, 1);
+    z-index: 100000;
+}
+#layer-chat-ai .ai-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+#layer-chat-ai .ai-dropdown button {
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    text-align: left;
+    color: var(--lg-text);
+    font-size: 13.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 10px;
+    transition: background 0.15s;
+}
+#layer-chat-ai .ai-dropdown button:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+
+    #layer-chat-ai .ai-modal-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    z-index: 100005;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+                visibility 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#layer-chat-ai .ai-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+#layer-chat-ai .ai-modal-box {
+    width: 100%;
+              }
 
     /* ==========================================
+   MODAL HAPUS RIWAYAT - ULTRA LIQUID GLASS
+   ========================================== */
+#layer-chat-ai .ai-modal-box {
+    /* Efek Kaca Transparan & Refleksi Cahaya 3D */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)) !important;
+    backdrop-filter: blur(25px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(160%) !important;
+    
+    /* Border Glossy Tepi Atas dan Kiri */
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+    
+    padding: 25px !important;
+    border-radius: 24px !important;
+    text-align: center !important;
+    max-width: 320px !important;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.15) !important;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Penyesuaian saat Asisten masuk ke Mode Terang */
+#layer-chat-ai.light-chat-room .ai-modal-box {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.45)) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.9) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08), inset 0 1px 2px rgba(255,255,255,0.5) !important;
+}
+
+/* Dekorasi Ikon Sampah Gantung */
+.ai-modal-icon {
+    font-size: 32px;
+    color: #ff3b30;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 8px rgba(255,60,48,0.3));
+}
+
+/* Tata Letak Tombol Aksi */
+.ai-modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.ai-modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 14.5px;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.ai-modal-buttons button:active {
+    transform: scale(0.95);
+}
+
+/* Tombol Batal (Gaya Glass Ringan) */
+.ai-btn-modal-batal {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+}
+#layer-chat-ai.light-chat-room .ai-btn-modal-batal {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+/* Tombol Hapus (Merah Tegas) */
+.ai-btn-modal-hapus {
+    background: #ff3b30 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(255,59,48,0.3);
+}
+
+  
+        /* ==========================================
        TEMA TERANG KHUSUS ROOM CHAT (TERPISAH & KEBAL GLOBAL)
        ========================================== */
     #layer-chat-ai.light-chat-room { background-color: #f4f6f9 !important; }
@@ -460,7 +670,8 @@
     #layer-chat-ai.light-chat-room .ai-back-container { background: rgba(0, 0, 0, 0.04) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
     #layer-chat-ai.light-chat-room .ai-nama { color: #1e293b !important; }
     #layer-chat-ai.light-chat-room .ai-bubble-bot { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #1e293b !important; box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important; }
-    #layer-chat-ai.light-chat-room .ai-footer-input { background: rgba(255, 255, 255, 0.7) !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.05) !important; }
+        #layer-chat-ai.light-chat-room .ai-footer-input { background: linear-gradient(135deg, rgba(255, 255, 255, 0.40), rgba(255, 255, 255, 0.15)) !important; backdrop-filter: blur(30px) saturate(190%) !important; -webkit-backdrop-filter: blur(30px) saturate(190%) !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03) !important; }
+
     #layer-chat-ai.light-chat-room .ai-input-capsule { background: rgba(0,0,0,0.03) !important; border: 1px solid rgba(0,0,0,0.06) !important; }
     #layer-chat-ai.light-chat-room .ai-input-capsule input { color: #1e293b !important; }
     #layer-chat-ai.light-chat-room .ai-input-capsule input::placeholder { color: #94a3b8 !important; }
@@ -470,6 +681,17 @@
     #layer-chat-ai.light-chat-room .ai-modal-box { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
     #layer-chat-ai.light-chat-room .ai-btn-modal-batal { background: rgba(0,0,0,0.05) !important; color: #1e293b !important; }
 
+    /* FIX: Memaksa semua ikon (header, dropdown, dan tombol footer bawah) berwarna gelap saat light mode */
+    #layer-chat-ai.light-chat-room .ai-header-glass i, 
+    #layer-chat-ai.light-chat-room .ai-header-glass svg,
+    #layer-chat-ai.light-chat-room .ai-footer-input i,
+    #layer-chat-ai.light-chat-room .ai-footer-input svg { 
+        color: #1e293b !important; 
+        fill: #1e293b !important; 
+    }
+    #layer-chat-ai.light-chat-room .ai-dropdown button i {
+        color: #1e293b !important;
+    }
 
         /* ==========================================
        WIDGET SYSTEM MONITOR (LIQUID GLASS)
@@ -1145,29 +1367,47 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 </div>
 
 <div id="layer-chat-ai" class="assistant-layer-hidden">
-      <!-- MODAL KONFIRMASI HAPUS CHAT (YANG HILANG) -->
-    <div class="ai-modal-overlay" id="ai-custom-modal">
-        <div class="ai-modal-box">
-            <div class="ai-modal-icon">
-                <i class="fas fa-trash-alt"></i>
-            </div>
-            <h3 style="margin-bottom: 8px; font-size: 16px;">Hapus Riwayat?</h3>
-            <p style="font-size: 13px; color: var(--tg-text-muted); margin-bottom: 20px;">Semua obrolan dengan KYY CS akan dihapus permanen dari perangkat ini.</p>
-            <div class="ai-modal-buttons">
-                <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
-                <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
-            </div>
+     <!-- MODAL KONFIRMASI HAPUS CHAT (LIQUID GLASS STYLE) -->
+<div class="ai-modal-overlay" id="ai-custom-modal">
+    <div class="ai-modal-box">
+        <div class="ai-modal-icon">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3 style="margin-bottom: 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">Hapus Riwayat?</h3>
+        <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">
+            Semua obrolan dengan KYY CS akan dihapus permanen dari perangkat ini.
+        </p>
+        <div class="ai-modal-buttons">
+            <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
+            <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
         </div>
     </div>
+</div>
+
+<div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
+    <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255,255,255,0.15); border-top: 1px solid rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 28px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onclick="event.stopPropagation()">
+        
+        <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 10px auto 20px auto; border: 4px solid var(--tg-accent); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
+            <img id="kyyBigAvatar" src="profile-cs.jpg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
+        </div>
+        
+        <h3 style="color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px;">KYY CS</h3>
+        <p style="color: var(--tg-accent); font-size: 12px; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px;">OFFICIAL ASSISTANT</p>
+        <p style="color: var(--tg-text-muted); font-size: 13px; line-height: 1.5; padding: 0 10px; margin-bottom: 20px;">Sistem kecerdasan buatan otomatis yang siap melayani kebutuhan informasi seputar aplikasi mod dan coding.</p>
+        
+        <button onclick="tutupViewProfileKyy()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s;">Tutup</button>
+    </div>
+</div>
 
     <header class="ai-header-glass">
       <div class="ai-header-left">
         <div class="ai-back-container" id="ai-btn-kembali">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
         </div>
-        <div class="ai-profile-pic">
-          <img src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-        </div>
+        <div class="ai-profile-pic" style="cursor: pointer;" onclick="bukaViewProfileKyy()">
+  <img id="aiAvatarTarget" src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
+</div>
+
         <div class="ai-user-info">
           <div style="display:flex; align-items:center;">
              <span class="ai-nama">KYY CS</span>
@@ -1756,7 +1996,7 @@ const kyyBrain = {
         bubbleUser.innerHTML = `
             <div style="font-size:12px; font-weight:bold; opacity:0.9; margin-bottom:4px;"><i class="fas fa-image"></i> Gambar</div>
             <img src="data:${kyyMediaStorage.mimeType};base64,${kyyMediaStorage.base64}" class="chat-img-preview">
-            <div style="margin-top:8px; line-height:1.4;">${teksUser ? teksUser : '<i style="opacity:0.6;">Kirim gambar tanpa deskripsi</i>'}</div>
+            <div style="margin-top:8px; line-height:1.4;">${teksUser ? teksUser : '<i style="opacity:0.6;"></i>'}</div>
             <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
         `;
         requestPayload = {
@@ -1797,6 +2037,9 @@ const kyyBrain = {
     aiChatMessages.appendChild(bubbleLoading); 
     aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 
+        // 1. TARUH DI SINI (Di atas try)
+    if (aiInputTeks) aiInputTeks.disabled = true;
+
     try {
         let targetUrl = '/api/chat'; 
         if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
@@ -1809,6 +2052,10 @@ const kyyBrain = {
         const data = await response.json();
         
         bubbleLoading.remove(); 
+        
+        // 2. TARUH DI SINI (Setelah loading dihapus)
+        if (aiInputTeks) aiInputTeks.disabled = false;
+ 
         if (data.balasan) {
             const bubbleAI = document.createElement('div'); 
             bubbleAI.className = 'ai-bubble-bot';
@@ -1890,7 +2137,7 @@ document.getElementById('aiBtnSwitchMode')?.addEventListener('click', function()
 
     if (currentAiMode === "biasa") {
         currentAiMode = "dev";
-        if(modeStatus) { modeStatus.innerText = "DEV KYY ⚡"; modeStatus.className = "ai-mode-badge mode-dev-active"; }
+        if(modeStatus) { modeStatus.innerText = "DEV KYY</>"; modeStatus.className = "ai-mode-badge mode-dev-active"; }
         if(toggleIcon) { toggleIcon.className = "fas fa-toggle-on"; toggleIcon.style.color = "var(--tg-accent)"; }
         if(labelSpan) labelSpan.innerText = "Mode: Biasa";
     } else {
@@ -1965,7 +2212,7 @@ function prosesMediaKyy(input) {
             previewContainer.innerHTML = `
                 <img src="${e.target.result}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border:1px solid rgba(255,255,255,0.1);">
                 <div style="flex:1; min-width:0;">
-                    <div style="font-size:11px; font-weight:bold; color:var(--tg-accent);"><i class="fas fa-image"></i> Gambar Tertahan</div>
+                    <div style="font-size:11px; font-weight:bold; color:var(--tg-accent);"><i class="fas fa-image"></i> Media </div>
                     <div style="font-size:12px; color:var(--tg-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
                 </div>
                 <i class="fas fa-times" style="color:#ff3b30; cursor:pointer; padding:5px; font-size:16px;" onclick="batalMediaKyy()"></i>
@@ -1992,14 +2239,6 @@ function prosesMediaKyy(input) {
     input.value = ''; 
 }
 
-      function batalMediaKyy() {
-    document.getElementById('kyy-media-preview-container')?.remove();
-    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
-    const aiInputTeks = document.getElementById('ai-input-teks');
-    const aiBtnSend = document.getElementById('ai-btn-send');
-    if (aiInputTeks && aiBtnSend) aiBtnSend.disabled = (aiInputTeks.value.trim() === "");
-}
-
 function batalMediaKyy() {
     document.getElementById('kyy-media-preview-container')?.remove();
     kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
@@ -2023,6 +2262,33 @@ function batalMediaKyy() {
         if (localStorage.getItem('kyy_chat_theme_independent') === 'light' && layerChatAI) layerChatAI.classList.add('light-chat-room');
     }
 
+function bukaViewProfileKyy() {
+    const modal = document.getElementById('kyyViewProfileModal');
+    const avatarAsli = document.getElementById('aiAvatarTarget');
+    const avatarBesar = document.getElementById('kyyBigAvatar');
+    
+    if (!modal) return;
+    
+    // Sinkronisasi gambar jika gambar utama di-fallback oleh onerror
+    if (avatarAsli && avatarBesar) avatarBesar.src = avatarAsli.src;
+    
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => {
+        modal.style.opacity = '1';
+        modal.firstElementChild.style.transform = 'scale(1)';
+    });
+}
+
+function tutupViewProfileKyy() {
+    const modal = document.getElementById('kyyViewProfileModal');
+    if (!modal) return;
+    
+    modal.style.opacity = '0';
+    modal.firstElementChild.style.transform = 'scale(0.85)';
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
+}
 
     document.addEventListener('DOMContentLoaded', () => {
         bootSistem(); // <--- TARUH INI DI BARIS PERTAMA DALAM DOMCONTENTLOADED
@@ -2087,7 +2353,7 @@ function batalMediaKyy() {
         const layerChatAI = document.getElementById('layer-chat-ai'); const aiChatMessages = document.getElementById('ai-chat-messages'); const aiDropdownMenu = document.getElementById('ai-dropdown-menu'); const customModal = document.getElementById('ai-custom-modal'); const aiInputTeks = document.getElementById('ai-input-teks'); const aiBtnSend = document.getElementById('ai-btn-send');
 
         document.getElementById('btn-tanya-cs')?.addEventListener('click', (e) => { e.preventDefault(); layerChatAI?.classList.replace('assistant-layer-hidden', 'assistant-layer-active'); if(aiChatMessages) aiChatMessages.scrollTop = aiChatMessages.scrollHeight; });
-        document.getElementById('ai-btn-kembali')?.addEventListener('click', () => { layerChatAI?.classList.replace('assistant-layer-active', 'assistant-layer-hidden'); });
+        
         document.getElementById('ai-btn-menu')?.addEventListener('click', (e) => { e.stopPropagation(); aiDropdownMenu?.classList.toggle('active'); });
         document.addEventListener('click', (e) => { if (aiDropdownMenu && !aiDropdownMenu.contains(e.target) && e.target.id !== 'ai-btn-menu') aiDropdownMenu.classList.remove('active'); });
 
@@ -2107,9 +2373,18 @@ function batalMediaKyy() {
         document.getElementById('ai-btn-hapus-chat')?.addEventListener('click', () => { if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if(customModal) customModal.classList.add('active'); });
         document.getElementById('ai-modal-batal')?.addEventListener('click', () => { if(customModal) customModal.classList.remove('active'); });
         document.getElementById('ai-modal-konfirmasi')?.addEventListener('click', () => {
-            if(customModal) customModal.classList.remove('active'); localStorage.removeItem('kyy_chat_history');
-            if (aiChatMessages) aiChatMessages.innerHTML = `<div class="ai-bubble-bot">Halo! Saya KYY Assistant. Ada yang bisa saya bantu?</div>`;
-        });
+    if(customModal) customModal.classList.remove('active');
+    localStorage.removeItem('kyy_chat_history'); 
+          
+    if (aiChatMessages) {
+        aiChatMessages.innerHTML = '<div class="ai-bubble-bot">Halo! Saya KYY Assistant. Ada yang bisa saya bantu?</div>';
+    }
+    
+    // RESET TOTAL INPUT DAN STATE TOMBOL AGAR TIDAK FREEZE
+    if (aiInputTeks) aiInputTeks.value = '';
+    if (aiBtnSend) aiBtnSend.disabled = true;
+    batalMediaKyy();
+});
 
         if (aiInputTeks && aiBtnSend) {
     aiInputTeks.addEventListener('input', () => { 

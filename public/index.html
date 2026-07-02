@@ -73,14 +73,8 @@
         z-index: 1; 
         opacity: 0.4; 
         pointer-events: none; 
-        border-radius: inherit !important; /* Memaksa video mengikuti kelengkungan border-radius induknya */
+        border-radius: inherit !important;
     }
-
-    /* FIX VIDEO VIP PROFILE CARD (TAMBAHKAN INI DI DALAM <style>) */
-    .vip-card .header-video {
-        border-radius: 24px !important; /* Menyesuaikan langsung dengan kelengkungan vip-card lu */
-    }
-    
 
     .header-overlay-content { position: relative; z-index: 2; width: 100%; padding: 0 18px; display: flex; justify-content: space-between; align-items: center; }
     .tg-title { font-size: 20px; font-weight: 800; text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8); letter-spacing: 0.5px; color: var(--tg-accent); transition: color 0.3s ease; }
@@ -878,11 +872,11 @@ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         width: 45px;
         height: 45px;
         border-radius: 50%;
-        display: none; /* Sembunyi secara default */
+        display: none;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        z-index: 9997; /* Di bawah popup, sejajar widget musik */
+        z-index: 9997; 
         color: var(--tg-accent);
         font-size: 18px;
         transition: opacity 0.3s, transform 0.2s;
@@ -918,7 +912,7 @@ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         border-left: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 24px;
         padding: 22px 20px;
-        margin: 0 15px 20px 15px; /* Sejajar dengan Network Monitor */
+        margin: 0 15px 20px 15px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.1);
     }
 
@@ -1106,7 +1100,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
           <i class="fas fa-play" id="playIcon"></i>
       </button>
       <div class="music-info">
-          <span class="music-title">Molto</span>
+          <span class="music-title">Multo</span>
           <div class="visualizer" id="musicVisualizer">
               <div class="bar"></div><div class="bar"></div><div class="bar"></div>
           </div>
@@ -1160,7 +1154,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
               <span id="inbox-badge" style="position: absolute; top: -6px; right: -8px; background: red; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 50%; display: none;">0</span>
           </div>
         </div>
-
       </div>
     </header>
   </div>
@@ -1171,7 +1164,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       <div class="ticker-badge" id="pub-ann-badge">INFO</div>
       <div class="ticker-title" id="pub-ann-title">Maintenance</div>
       <div class="ticker-marquee">
-        <div class="ticker-text" id="pub-ann-body">Memuat pengumuman terbaru dari server...</div>
+        <div class="ticker-text" id="pub-ann-body">Memuat pengumuman terbaru dari server...            </div>
       </div>
     </div>
   </div>
@@ -1201,7 +1194,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         <h2 style="text-align: center; font-size: 16px; margin-bottom: 2px; letter-spacing: 1px; color:var(--tg-accent);">ETALASE APP PREMIUM</h2> 
         <h2 style="text-align: center; font-size: 9px; letter-spacing: 1px; color: var(--tg-text-muted);">bukan aplikasi mod</h2> 
         <div id="container-store-list"></div>
-        <div style="text-align: center; font-size: 11px; color: #627284; margin: 30px 0 10px 0;">© 2026 REZKYY STORE. All Rights Reserved.</div>
+        <div style="text-align: center; font-size: 11px; color: #627284; margin: 30px 0 10px 0;">&copy2026 REZKYY STORE. All Rights Reserved.</div>
     </div>
   </div>
 
@@ -1310,13 +1303,10 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             <div class="about-desc">
                 Asisten kecerdasan buatan (AI) yang diintegrasikan langsung ke dalam dashboard. Tidak perlu canggung atau memperkenalkan diri, langsung saja ketik pertanyaan atau arahan yang Anda butuhkan, KYY CS siap merespons secara otomatis!
             </div>
+          </div>
         </div>
-    </div>
-
-    </div>
+      </div>
   
-  
-
   <div class="bottom-nav-wrapper">
 
     <div class="nav-sliding-indicator" id="indicator"></div>
@@ -1357,7 +1347,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
   </div>
 
   <div id="custom-toast" style="position:fixed;top:-100px;left:50%;transform:translateX(-50%);background:#10b981;color:white;padding:14px 24px;border-radius:14px;font-weight:bold;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(16,185,129,0.3);z-index:999999;transition:top 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
-    <i class="fas fa-check-circle" id="toast-icon"></i>
+<i class="fas fa-check-circle" id="toast-icon"</i>
     <span id="toast-message">Sukses!</span>
   </div>
 
@@ -1367,6 +1357,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 </div>
 
 <div id="layer-chat-ai" class="assistant-layer-hidden">
+  
      <!-- MODAL KONFIRMASI HAPUS CHAT (LIQUID GLASS STYLE) -->
 <div class="ai-modal-overlay" id="ai-custom-modal">
     <div class="ai-modal-box">
@@ -1374,9 +1365,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             <i class="fas fa-trash-alt"></i>
         </div>
         <h3 style="margin-bottom: 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">Hapus Riwayat?</h3>
-        <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">
-            Semua obrolan dengan KYY CS akan dihapus permanen dari perangkat ini.
-        </p>
+        <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">Semua obrolan dengan KYY CS akan dihapus permanen dari perangkat ini.</p>
         <div class="ai-modal-buttons">
             <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
             <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
@@ -1396,8 +1385,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         <p style="color: var(--tg-text-muted); font-size: 13px; line-height: 1.5; padding: 0 10px; margin-bottom: 20px;">Sistem kecerdasan buatan otomatis yang siap melayani kebutuhan informasi seputar aplikasi mod dan coding.</p>
         
         <button onclick="tutupViewProfileKyy()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s;">Tutup</button>
-    </div>
-</div>
+            </div>
+          </div>
 
     <header class="ai-header-glass">
       <div class="ai-header-left">
@@ -1405,20 +1394,26 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
         </div>
         <div class="ai-profile-pic" style="cursor: pointer;" onclick="bukaViewProfileKyy()">
-  <img id="aiAvatarTarget" src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-</div>
+  <img id="aiAvatarTarget" src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'"></div>
 
         <div class="ai-user-info">
-          <div style="display:flex; align-items:center;">
-             <span class="ai-nama">KYY CS</span>
-             <span class="ai-mode-badge" id="aiModeStatus">BIASA</span>
-          </div>
+      <div style="display:flex; align-items:center; gap: 4px;">
+     <span class="ai-nama">KYY CS</span>
+     
+     <!-- FIX: Mengunci warna fill menjadi biru menetap (#1d9bf0) -->
+     <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: #1d9bf0; margin-right: 2px; display: inline-block; vertical-align: middle;">
+         <path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.514.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/>
+     </svg>
+     
+     <span class="ai-mode-badge" id="aiModeStatus">BIASA</span>
+  </div>
+
           <span class="ai-status">Asisten Otomatis</span>
         </div>
       </div>
       
       <div style="position: relative;">
-        <div class="ai-back-container" id="ai-btn-menu">
+   <div class="ai-back-container" id="ai-btn-menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
         </div>
         
@@ -1478,7 +1473,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         console.error("Bug terdeteksi di baris " + line + ": " + msg);
     };
 
-    // =====================================================================
+    // ====================================================================
     // 1. INISIALISASI DATABASE & VARIABEL GLOBAL
     // =====================================================================
     const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
@@ -2251,16 +2246,33 @@ function batalMediaKyy() {
     // 9. PENYATUAN SEMUA SENSOR & EVENT SAAT HALAMAN DIBUKA (BOOT)
     // =====================================================================
         // Hapus window.onload, ganti jadi fungsi biasa ini:
-    function bootSistem() {
+        function bootSistem() {
         ambilDataWeb(); ambilDataApp(); ambilDataStore();
         muatSosmedDiPublik(); muatAnnouncementDiPublik(); muatNotifikasiInbox(); jalankanSystemMonitor();
         
         const aiChatMessages = document.getElementById('ai-chat-messages');
         const layerChatAI = document.getElementById('layer-chat-ai');
         const riwayat = localStorage.getItem('kyy_chat_history');
-        if (riwayat && aiChatMessages) { aiChatMessages.innerHTML = riwayat; setTimeout(() => aiChatMessages.scrollTop = aiChatMessages.scrollHeight, 100); }
+        
+        if (aiChatMessages) {
+            if (riwayat) { 
+                // Jika sudah ada riwayat obrolan, tampilkan obrolan lama saja (jangan selipkan perkenalan ulang)
+                aiChatMessages.innerHTML = riwayat; 
+            } else {
+                // Jika BENAR-BENAR KOSONG (pertemuan pertama / setelah dihapus), tampilkan sapaan awal
+                aiChatMessages.innerHTML = `
+                    <div class="ai-bubble-bot">
+                        <span style="display:inline-flex; align-items:center; gap:4px; font-weight:bold; color:var(--tg-accent);">
+                            KYY CS <svg viewBox="0 0 24 24" style="width:12px; height:12px; fill:#1d9bf0;"><path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.514.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/></svg>
+                        </span><br>
+                        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini. Gunakan Mode Dev Kyy di menu pojok kanan atas untuk beralih ke pembahasan coding kustom!
+                    </div>`;
+            }
+            setTimeout(() => aiChatMessages.scrollTop = aiChatMessages.scrollHeight, 100);
+        }
         if (localStorage.getItem('kyy_chat_theme_independent') === 'light' && layerChatAI) layerChatAI.classList.add('light-chat-room');
     }
+
 
 function bukaViewProfileKyy() {
     const modal = document.getElementById('kyyViewProfileModal');
@@ -2332,12 +2344,16 @@ function tutupViewProfileKyy() {
 
         const musicWidget = document.getElementById('musicWidget'); let isDraggingMusic = false, offsetX, offsetY;
         if (musicWidget) {
-            musicWidget.addEventListener('touchstart', (e) => {
+                        musicWidget.addEventListener('touchstart', (e) => {
                 if(e.target.closest('#playPauseBtn')) return;
                 isDraggingMusic = true; const touch = e.touches[0]; const rect = musicWidget.getBoundingClientRect();
                 offsetX = touch.clientX - rect.left; offsetY = touch.clientY - rect.top;
-                musicWidget.style.right = 'auto'; musicWidget.style.transition = 'none'; 
+                
+                musicWidget.style.left = rect.left + 'px';
+                musicWidget.style.right = 'auto'; 
+                musicWidget.style.transition = 'none'; 
             }, { passive: false });
+
             
             document.addEventListener('touchmove', (e) => {
                 if (!isDraggingMusic) return; e.preventDefault(); 
@@ -2372,19 +2388,25 @@ function tutupViewProfileKyy() {
 
         document.getElementById('ai-btn-hapus-chat')?.addEventListener('click', () => { if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if(customModal) customModal.classList.add('active'); });
         document.getElementById('ai-modal-batal')?.addEventListener('click', () => { if(customModal) customModal.classList.remove('active'); });
-        document.getElementById('ai-modal-konfirmasi')?.addEventListener('click', () => {
-    if(customModal) customModal.classList.remove('active');
-    localStorage.removeItem('kyy_chat_history'); 
-          
-    if (aiChatMessages) {
-        aiChatMessages.innerHTML = '<div class="ai-bubble-bot">Halo! Saya KYY Assistant. Ada yang bisa saya bantu?</div>';
-    }
-    
-    // RESET TOTAL INPUT DAN STATE TOMBOL AGAR TIDAK FREEZE
-    if (aiInputTeks) aiInputTeks.value = '';
-    if (aiBtnSend) aiBtnSend.disabled = true;
-    batalMediaKyy();
-});
+                document.getElementById('ai-modal-konfirmasi')?.addEventListener('click', () => {
+            if(customModal) customModal.classList.remove('active');
+            localStorage.removeItem('kyy_chat_history'); 
+                  
+            if (aiChatMessages) {
+                // Saat riwayat dihapus, AI kembali lupa dan memulai perkenalan baru
+                aiChatMessages.innerHTML = `
+                    <div class="ai-bubble-bot">
+                        <span style="display:inline-flex; align-items:center; gap:4px; font-weight:bold; color:var(--tg-accent);">
+                            KYY CS <svg viewBox="0 0 24 24" style="width:12px; height:12px; fill:#1d9bf0;"><path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.014.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/></svg>
+                        </span><br>
+                        Halo! Saya KYY Assistant. Ada yang bisa saya bantu?
+                    </div>`;
+            }
+            
+            if (aiInputTeks) aiInputTeks.value = '';
+            if (aiBtnSend) aiBtnSend.disabled = true;
+            batalMediaKyy();
+        });
 
         if (aiInputTeks && aiBtnSend) {
     aiInputTeks.addEventListener('input', () => { 

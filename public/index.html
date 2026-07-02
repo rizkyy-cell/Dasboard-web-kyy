@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  
   <title>Dashboard—Web Kyy</title>
-
   <!-- META TAG BANNER (STRUKTUR RAPI BARIS PER BARIS BIAR WHATSAPP GAK BINGUNG) -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jrxrezkyy-dashboard.vercel.app/">
@@ -15,10 +13,9 @@
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="300">
   <meta property="og:image:height" content="250">
-
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Dashboard Web Kyy">
+  <meta name="twitter:title" 
+    content="Dashboard Web Kyy">
   <meta name="twitter:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & Ios.">
   <meta name="twitter:image" content="https://dasboard-web-kyy.vercel.app/profile.jpg">
 
@@ -1541,7 +1538,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         if (!container) return;
         if (dataAppLokal.length === 0) {
             const { data, error } = await supabaseClient.from('app_mods').select('*').order('id', { ascending: false });
-            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat aplikasi.</p>`; return; }
+            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat aplikasi.
+            <br> Cek koneksi internet anda.</p>`; return; }
             dataAppLokal = data; 
         }
         renderAppList();
@@ -1575,7 +1573,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
                 </div>`;
         });
     }
-
 
     async function ambilDataStore() {
         const container = document.getElementById('container-store-list');
@@ -1968,8 +1965,7 @@ const kyyBrain = {
 // Pastikan pesan awal AI mencerminkan identitas ini
 // (Cari bagian ini di fungsi kirimPesanUser atau inisialisasi)
 
-
-        async function kirimPesanUser() {
+async function kirimPesanUser() {
     const aiInputTeks = document.getElementById('ai-input-teks');
     const aiBtnSend = document.getElementById('ai-btn-send');
     const aiChatMessages = document.getElementById('ai-chat-messages');
@@ -1977,6 +1973,21 @@ const kyyBrain = {
 
     const teksUser = aiInputTeks.value.trim();
     if (!teksUser && !kyyMediaStorage.tipe) return;
+
+    // ── [1] PEREKAM MEMORI OTOMATIS (MENYUSUN RIWAYAT DI LAYAR HP) ──
+    let riwayatTeksKonteks = "";
+    const semuaBalonChat = aiChatMessages.querySelectorAll('.ai-bubble-bot');
+    
+    semuaBalonChat.forEach(bubble => {
+        if (bubble.innerText && !bubble.innerText.includes("memproses pesan...")) {
+            // Deteksi pengirim: jika teks rata kanan atau punya background aksen, berarti User
+            let pengirim = (bubble.style.alignSelf === 'flex-end' || bubble.style.background.includes('var(--tg-accent)')) ? 'User' : 'KYY CS';
+            
+            // Bersihkan teks dari format cetak jam di ujung balon chat (misal: "11:56 PM")
+            let teksBersih = bubble.innerText.replace(/\s\d+:\d+\s(AM|PM)$/i, '').trim();
+            riwayatTeksKonteks += `${pengirim}: ${teksBersih}\n`;
+        }
+    });
 
     const bubbleUser = document.createElement('div');
     bubbleUser.className = 'ai-bubble-bot'; 
@@ -1996,7 +2007,7 @@ const kyyBrain = {
             <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
         `;
         requestPayload = {
-            pesan: teksUser ? `Rizky mengirimkan gambar dengan catatan deskripsi: ${teksUser}` : "Rizky mengirimkan sebuah gambar screenshot. Tolong analisis isi gambar ini.",
+            pesan: teksUser ? `User mengirimkan gambar dengan deskripsi: ${teksUser}` : "User mengirimkan gambar screenshot.",
             gambarData: kyyMediaStorage.base64,
             gambarType: kyyMediaStorage.mimeType
         };
@@ -2004,17 +2015,21 @@ const kyyBrain = {
         bubbleUser.innerHTML = `
             <div style="font-size:13px; font-weight:bold;"><i class="fas fa-file-alt"></i> Script diserahkan</div>
             <div style="font-size:11px; opacity:0.7; margin-top:2px; margin-bottom:6px;">File: ${kyyMediaStorage.namaFile}</div>
-            <div style="line-height:1.4; border-top:1px solid rgba(255,255,255,0.15); padding-top:6px;">${teksUser ? teksUser : '<i style="opacity:0.6;">Kirim file tanpa penjelasan</i>'}</div>
+            <div style="line-height:1.4; border-top:1px solid rgba(255,255,255,0.15); padding-top:6px;">${teksUser ? teksUser : '<i style="opacity:0.6;">Kirim file tanpa explanation</i>'}</div>
             <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
         `;
         requestPayload = {
             pesan: teksUser 
-                ? `Rizky mengirimkan file bernama ${kyyMediaStorage.namaFile} dengan instruksi khusus: ${teksUser}\n\nBerikut adalah isi kodenya:\n${kyyMediaStorage.isiTeks}`
-                : `Rizky mengirimkan file bernama ${kyyMediaStorage.namaFile}. Berikut adalah seluruh isi kodenya, tolong pelajari:\n\n${kyyMediaStorage.isiTeks}`
+                ? `User mengirim file ${kyyMediaStorage.namaFile}: ${teksUser}\n\nIsi kode:\n${kyyMediaStorage.isiTeks}`
+                : `User mengirim file ${kyyMediaStorage.namaFile}:\n\n${kyyMediaStorage.isiTeks}`
         };
     } else {
         bubbleUser.innerHTML = `${teksUser} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
-        requestPayload = { pesan: teksUser };
+        
+        // ── [2] PENGGABUNGAN MEMORI SEBELUM DIKIRIM KE BACKEND (ANTI-AMNESIA) ──
+        requestPayload = { 
+            pesan: `MEMORI OBROLAN SEBELUMNYA (Gunakan ini sebagai konteks agar kamu tidak amnesia):\n${riwayatTeksKonteks}\nPertanyaan/Respon baru dari User saat ini: ${teksUser}`
+        };
     }
 
     aiChatMessages.appendChild(bubbleUser); 
@@ -2033,7 +2048,7 @@ const kyyBrain = {
     aiChatMessages.appendChild(bubbleLoading); 
     aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 
-        // 1. TARUH DI SINI (Di atas try)
+    // Kunci kolom input biar user gak spam ketikan pas server lagi loading
     if (aiInputTeks) aiInputTeks.disabled = true;
 
     try {
@@ -2049,7 +2064,7 @@ const kyyBrain = {
         
         bubbleLoading.remove(); 
         
-        // 2. TARUH DI SINI (Setelah loading dihapus)
+        // Lepas kuncian kolom input teks biar bisa diketik lagi
         if (aiInputTeks) aiInputTeks.disabled = false;
  
         if (data.balasan) {
@@ -2064,12 +2079,12 @@ const kyyBrain = {
             throw new Error(data.error || "Gagal menghubungi server.");
         }
     } catch (error) { 
-        bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; 
+        if (bubbleLoading) bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; 
     }
     aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 }
 
-
+                                  
       // =====================================================================
 // MANAJEMEN SISTEM SLIDER DRAG ANTI-REFRESH (HORIZONTAL SWIPE EDGE)
 // =====================================================================
@@ -2417,7 +2432,6 @@ function tutupViewProfileKyy() {
     aiInputTeks.addEventListener('keypress', (e) => { if (e.key === 'Enter') kirimPesanUser(); });
 }
 
-        
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark'; const checkbox = document.getElementById('theme-toggle-checkbox'); const icon = document.getElementById('theme-icon'); const text = document.getElementById('theme-text');
         if (savedTheme === 'light') {
             document.body.classList.add('light-theme'); if(checkbox) checkbox.checked = false; if(icon) { icon.className = 'fas fa-sun'; icon.style.color = '#ffb300'; } if(text) { text.innerText = 'Mode Terang'; }
@@ -2429,6 +2443,7 @@ function tutupViewProfileKyy() {
             document.querySelectorAll('.theme-dot').forEach(d => { d.classList.remove('selected'); if(d.style.backgroundColor === pubColor || d.style.backgroundColor === pubColor.replace(' ','')) { d.classList.add('selected'); } }); 
         }
     });
+      
   </script>
 </body>
 </html>

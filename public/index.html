@@ -1135,6 +1135,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         justify-content: space-between;
         align-items: center;
         border-bottom: 1px solid rgba(255,255,255,0.05);
+        width: 100%; /* Kunci lebar penuh */
     }
     .mac-dots {
         display: flex;
@@ -1169,10 +1170,20 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         gap: 6px;
         transition: all 0.2s;
     }
-    .btn-salin-code:active {
-        transform: scale(0.92);
-        background: rgba(51, 144, 236, 0.2);
-        color: #3390ec;
+    .btn-salin-code {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #7f91a4;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+        flex-shrink: 0; /* Mencegah tombol gepeng di desktop */
+        margin-left: auto; /* Memaksa tombol tetap mepet kanan di desktop */
     }
     .code-box-body {
         padding: 14px;
@@ -1183,6 +1194,11 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         line-height: 1.5;
         white-space: pre;
     }
+    /* Pewarnaan Sintaksis Kode Mode Dev Kyy */
+    .code-box-body .hl-keyword { color: #ff79c6; font-weight: bold; } /* include, int, class, return */
+    .code-box-body .hl-string  { color: #f1fa8c; } /* "teks string" */
+    .code-box-body .hl-comment { color: #6272a4; font-style: italic; } /* // komentar */
+    .code-box-body .hl-type    { color: #8be9fd; } /* void, std::string, time_t */
 
   </style>
 </head>
@@ -2219,26 +2235,47 @@ async function kirimPesanUser() {
             // Parser Pintar mengubah markdown ``` menjadi Code Box bergaya Mac + Tombol Salin
             let rawReply = data.balasan;
             
-            // 1. Ganti format Bold murni markdown
+                       // 1. Ganti format Bold murni markdown
             rawReply = rawReply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             
-            // 2. Deteksi blok kode dan ubah menjadi struktur tabel Mac Editor
+            // FIX: Mengubah bintang tunggal (*) menjadi tulisan miring HTML biar gak bocor mentah di HP
+            rawReply = rawReply.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+                        // 2. Deteksi blok kode, ubah label CPP ke C++, dan warnai teks sintaksisnya
             const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
             let formattedReply = rawReply.replace(codeBlockRegex, (match, lang, code) => {
                 let cleanCode = code.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                 let uniqueId = "code-" + Math.random().toString(36).substr(2, 9);
-                let displayLang = lang ? lang : "code";
                 
+                // FIX LABEL: Ubah tulisan penanda cpp / CPP menjadi C++
+                let displayLang = lang ? lang : "code";
+                if (displayLang.toLowerCase() === 'cpp') {
+                    displayLang = 'C++';
+                }
+
+                // ENGINE HIGH LIGHTER MANUAL (Pewarnaan Sintaksis Otomatis)
+                // Warnai Komentar //
+                cleanCode = cleanCode.replace(/(\/\/.*)/g, '<span class="hl-comment">$1</span>');
+                // Warnai String di dalam tanda kutip ""
+                cleanCode = cleanCode.replace(/(&quot;.*?&quot;|".*?")/g, '<span class="hl-string">$1</span>');
+                                // Warnai Kata Kunci Utama Semua Bahasa (Universal Keywords)
+                const keywords = /\b(include|int|class|public|private|protected|static|return|if|else|const|struct|export|default|function|new|delete|var|let|const|import|from|require|module|final|void|try|catch|finally|throw|throws)\b/g;
+                cleanCode = cleanCode.replace(keywords, '<span class="hl-keyword">$1</span>');
+                
+                // Warnai Tipe Data, Objek bawaan, & Namespace Universal
+                const types = /\b(void|std::string|std::cout|std::endl|time_t|char|vector|string|bool|float|double|console|log|window|document|process|env|res|req|response|fetch|XMLHttpRequest)\b/g;
+                cleanCode = cleanCode.replace(types, '<span class="hl-type">$1</span>');
+       
                 return `
                     <div class="code-box-wrapper">
                         <div class="code-box-header">
-                            <div style="display:flex; align-items:center;">
-                                <div class="mac-dots">
+                            <div style="display:flex; align-items:center; min-width:0;">
+                                <div class="mac-dots" style="flex-shrink:0;">
                                     <div class="mac-dot red"></div>
                                     <div class="mac-dot yellow"></div>
                                     <div class="mac-dot green"></div>
                                 </div>
-                                <span class="code-lang-label">${displayLang}</span>
+                                <span class="code-lang-label" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayLang}</span>
                             </div>
                             <button class="btn-salin-code" onclick="salinKodeKyy('${uniqueId}', this)">
                                 <i class="far fa-copy"></i> Salin
@@ -2248,6 +2285,7 @@ async function kirimPesanUser() {
                     </div>
                 `;
             });
+
 
             // 3. Ubah sisa baris baru biasa menjadi tag break, namun bypass area code-box
             let teksClean = formattedReply.split(/(<div class="code-box-wrapper">[\s\S]*?<\/div>)/g).map(part => {

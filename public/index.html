@@ -2135,7 +2135,7 @@ async function kirimPesanUser() {
         };
     }
 
-    aiChatMessages.appendChild(bubbleUser); 
+        aiChatMessages.appendChild(bubbleUser); 
     aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
     
     document.getElementById('kyy-media-preview-container')?.remove();
@@ -2143,9 +2143,16 @@ async function kirimPesanUser() {
 
     aiInputTeks.value = ''; 
     if (aiBtnSend) aiBtnSend.disabled = true;
-    localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+    
+    // AMAN: Pengaman try-catch pertama untuk chat history user
+    try {
+        localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+    } catch (e) {
+        console.warn("Storage HP penuh, media gambar tidak masuk history offline.");
+    }
 
     const bubbleLoading = document.createElement('div'); 
+
     bubbleLoading.className = 'ai-bubble-bot';
     bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS memproses pesan...</span>`;
     aiChatMessages.appendChild(bubbleLoading); 
@@ -2215,14 +2222,24 @@ async function kirimPesanUser() {
             bubbleAI.innerHTML = `${teksClean} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
             aiChatMessages.appendChild(bubbleAI); 
             aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
-            localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+            
+            // AMAN: Pengaman try-catch kedua untuk balasan AI script dev kyy
+            try {
+                localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+            } catch (e) {
+                console.warn("Gagal sinkronisasi history karena batasan kuota storage lokal.");
+            }
 
         } else {
             throw new Error(data.error || "Gagal menghubungi server.");
+
         }
-    } catch (error) { 
+        } catch (error) { 
         if (bubbleLoading) bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; 
+        // FIX: Lepas kuncian input jika server crash akibat file kegedean
+        if (aiInputTeks) aiInputTeks.disabled = false;
     }
+
     aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 }
 

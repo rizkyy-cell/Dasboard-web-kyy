@@ -1116,6 +1116,74 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     box-shadow: 0 0 8px rgba(51, 144, 236, 0.2);
 }
 
+        /* ==========================================
+       KUSTOMISASI CODE BOX EDITOR MODE DEV KYY
+       ========================================== */
+    .code-box-wrapper {
+        background: #1e1e1e !important;
+        border-radius: 12px;
+        margin: 10px 0;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.08);
+        font-family: 'Courier New', Courier, monospace;
+    }
+    .code-box-header {
+        background: #2d2d2d !important;
+        padding: 10px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .mac-dots {
+        display: flex;
+        gap: 6px;
+    }
+    .mac-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+    }
+    .mac-dot.red { background: #ff5f56; }
+    .mac-dot.yellow { background: #ffbd2e; }
+    .mac-dot.green { background: #27c93f; }
+    
+    .code-lang-label {
+        color: #7f91a4;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-left: 10px;
+    }
+    .btn-salin-code {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #7f91a4;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    .btn-salin-code:active {
+        transform: scale(0.92);
+        background: rgba(51, 144, 236, 0.2);
+        color: #3390ec;
+    }
+    .code-box-body {
+        padding: 14px;
+        overflow-x: auto;
+        margin: 0;
+        color: #d4d4d4;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre;
+    }
+
   </style>
 </head>
 <body>
@@ -2098,14 +2166,53 @@ async function kirimPesanUser() {
         // Lepas kuncian kolom input teks biar bisa diketik lagi
         if (aiInputTeks) aiInputTeks.disabled = false;
  
-        if (data.balasan) {
+                if (data.balasan) {
+            // Parser Pintar mengubah markdown ``` menjadi Code Box bergaya Mac + Tombol Salin
+            let rawReply = data.balasan;
+            
+            // 1. Ganti format Bold murni markdown
+            rawReply = rawReply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // 2. Deteksi blok kode dan ubah menjadi struktur tabel Mac Editor
+            const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+            let formattedReply = rawReply.replace(codeBlockRegex, (match, lang, code) => {
+                let cleanCode = code.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                let uniqueId = "code-" + Math.random().toString(36).substr(2, 9);
+                let displayLang = lang ? lang : "code";
+                
+                return `
+                    <div class="code-box-wrapper">
+                        <div class="code-box-header">
+                            <div style="display:flex; align-items:center;">
+                                <div class="mac-dots">
+                                    <div class="mac-dot red"></div>
+                                    <div class="mac-dot yellow"></div>
+                                    <div class="mac-dot green"></div>
+                                </div>
+                                <span class="code-lang-label">${displayLang}</span>
+                            </div>
+                            <button class="btn-salin-code" onclick="salinKodeKyy('${uniqueId}', this)">
+                                <i class="far fa-copy"></i> Salin
+                            </button>
+                        </div>
+                        <pre class="code-box-body" id="${uniqueId}">${cleanCode}</pre>
+                    </div>
+                `;
+            });
+
+            // 3. Ubah sisa baris baru biasa menjadi tag break, namun bypass area code-box
+            let teksClean = formattedReply.split(/(<div class="code-box-wrapper">[\s\S]*?<\/div>)/g).map(part => {
+                if (part.startsWith('<div class="code-box-wrapper">')) return part;
+                return part.replace(/\n/g, '<br>');
+            }).join('');
+
             const bubbleAI = document.createElement('div'); 
             bubbleAI.className = 'ai-bubble-bot';
-            let teksClean = data.balasan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
             bubbleAI.innerHTML = `${teksClean} <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>`;
             aiChatMessages.appendChild(bubbleAI); 
             aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
             localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML);
+
         } else {
             throw new Error(data.error || "Gagal menghubungi server.");
         }
@@ -2456,6 +2563,53 @@ function tutupViewProfileKyy() {
     }, 300);
 }
 
+              // =====================================================================
+        // LOGIKA DRAG, GRAVITASI JATUH, & MAGNET PADA ROBOT 3D REAL (THREE.JS)
+        // =====================================================================
+        const robotInduk3D = document.getElementById('kyyVideoBot3D');
+        let isDraggingBot3D = false;
+
+        // 1. KETIKA ROBOT DIKILK / DIKUNCI JARI
+        robotInduk3D.addEventListener('touchstart', (e) => {
+            isDraggingBot3D = true;
+            robotInduk3D.style.transition = 'none'; // Matikan animasi agar gerakan nempel murni di jari
+        }, { passive: true });
+
+        // 2. KETIKA JARI DISERET KE TENGAH ATAU SEKELILING LAYAR
+        document.addEventListener('touchmove', (e) => {
+            if (!isDraggingBot3D) return;
+            const touch = e.touches[0];
+            
+            // Atur posisi X & Y pas di tengah-tengah ujung sidik jari user
+            robotInduk3D.style.left = (touch.clientX - 41) + 'px';
+            robotInduk3D.style.top = (touch.clientY - 45) + 'px';
+            robotInduk3D.style.right = 'auto';
+            robotInduk3D.style.bottom = 'auto';
+        }, { passive: false });
+
+        // 3. KETIKA JARI DILEPAS (OTOMATIS JATUH & MELEKAT KE DINDING PINGGIRAN)
+        document.addEventListener('touchend', () => {
+            if (!isDraggingBot3D) return;
+            isDraggingBot3D = false;
+            
+            // Kembalikan transisi geser mulus kurva organik ala iOS Style
+            robotInduk3D.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+            
+            const midPoint = window.innerWidth / 2;
+            const currentX = robotInduk3D.getBoundingClientRect().left;
+
+            // Logika Magnet: Deteksi sisi dinding terdekat (Kiri atau Kanan)
+            if (currentX < midPoint) {
+                robotInduk3D.style.left = '15px'; // Melekat rapi di kiri dashboard
+            } else {
+                robotInduk3D.style.left = (window.innerWidth - 70) + 'px'; // Melekat rapi di kanan dashboard
+            }
+            
+            // Logika Jatuh: Berhenti mendarat tepat di atas area menu navigasi profil
+            robotInduk3D.style.top = (window.innerHeight - 160) + 'px';
+        });
+
+
     document.addEventListener('DOMContentLoaded', () => {
     bootSistem(); 
 
@@ -2482,36 +2636,7 @@ function tutupViewProfileKyy() {
                 }
             }); 
         });
-        // =====================================================================
-        // SAKLAR OTOMATIS: EFEK BOOMERANG SINKRON PADA VIDEO ROBOT 3D
-        // =====================================================================
-        const vBot = document.getElementById('kyyRobotVideoEl');
-        if (vBot) {
-            let arahMundur = false;
-            let fpsInterval = 1000 / 30; // Estimasi 30 FPS sesuai standar video toon
-            
-            // Jalankan interval pemantauan frame video
-            setInterval(() => {
-                if (!arahMundur) {
-                    // Cek jika video sudah hampir habis (mendekati durasi akhir)
-                    if (vBot.currentTime >= vBot.duration - 0.1) {
-                        vBot.pause();
-                        arahMundur = true;
-                    }
-                } else {
-                    // Kurangi koordinat waktu saat ini untuk memutar mundur secara manual
-                    vBot.currentTime -= 0.04; 
-                    
-                    // Jika waktu kembali ke awal (detik 0), balikkan lagi ke mode putar maju
-                    if (vBot.currentTime <= 0.05) {
-                        arahMundur = false;
-                        vBot.play().catch(() => {});
-                    }
-                }
-            }, fpsInterval);
-        }
-
-
+       
         let swipeStartX = 0; let swipeStartY = 0; const arrayHalaman = ['home', 'appmod', 'store', 'settings', 'profil'];
         document.addEventListener('touchstart', (e) => {
             if (e.target.closest('.bottom-nav-wrapper') || e.target.closest('#layer-chat-ai') || e.target.closest('input') || e.target.closest('button') || e.target.closest('.theme-switch') || e.target.closest('.music-player-widget')) return;
@@ -2631,7 +2756,30 @@ function tutupViewProfileKyy() {
             document.querySelectorAll('.theme-dot').forEach(d => { d.classList.remove('selected'); if(d.style.backgroundColor === pubColor || d.style.backgroundColor === pubColor.replace(' ','')) { d.classList.add('selected'); } }); 
         }
     });
-      
+
+      // =====================================================================
+// WIDGET UTILITY: ENGINE COPY TO CLIPBOARD CODE BOX CS ROOM
+// =====================================================================
+function salinKodeKyy(elementId, btn) {
+    const codeElement = document.getElementById(elementId);
+    if (!codeElement) return;
+
+    // Ambil isi teks asli di dalam kontainer pre kode
+    const textToCopy = codeElement.innerText || codeElement.textContent;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Efek Feedack visual instan ketika berhasil disalin
+        const icon = btn.querySelector('i');
+        btn.innerHTML = `<i class="fas fa-check" style="color:#10b981;"></i> <span style="color:#10b981;">Tersalin!</span>`;
+        
+        setTimeout(() => {
+            btn.innerHTML = `<i class="far fa-copy"></i> Salin`;
+        }, 2000);
+    }).catch(err => {
+        console.error("Gagal menyalin script: ", err);
+    });
+}
+
   </script>
 </body>
 </html>

@@ -116,7 +116,6 @@
     .track-item-btn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .track-item-btn:active { background: rgba(51, 144, 236, 0.25); border-color: var(--accent-blue); }
 
-    /* 🎧 UI PEMUTAR AUDIO PRO INTERAKTIF */
     .pro-audio-card {
       width: 90%;
       max-width: 335px;
@@ -149,7 +148,6 @@
 
     .track-meta-info { flex: 1; overflow: hidden; }
 
-    /* TIMELINE RANGE SLIDER CUSTOM */
     .timeline-container { width: 100%; display: flex; flex-direction: column; gap: 4px; }
     .timeline-slider {
       width: 100%; -webkit-appearance: none; appearance: none;
@@ -158,16 +156,16 @@
     }
     .timeline-slider::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
-      width: 10px; height: 10px; border-radius: 50%; background: #fff;
+      width: 12px; height: 12px; border-radius: 50%; background: var(--accent-spotify);
       box-shadow: 0 0 4px #000; cursor: pointer;
     }
 
     .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     
     .control-play-pause-btn {
-      background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer; outline: none;
+      background: transparent; border: none; color: #fff; font-size: 30px; cursor: pointer; outline: none;
+      display: flex; align-items: center;
     }
-    .control-play-pause-btn:active { transform: scale(0.9); }
 
     .btn-download-kaca {
       padding: 7px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.08);
@@ -196,8 +194,16 @@
     .popup-btn-container { margin-top: 20px; display: flex; gap: 10px; }
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
+
+    /* TARGET TRICK BYPASS VISUAL GOOGLE SENSOR */
+    #kyy-hidden-player-container {
+        position: absolute;
+        top: -9999px; left: -9999px;
+        width: 1px; height: 1px;
+        opacity: 0.01;
+        overflow: hidden;
+    }
   </style>
-  <!-- MEMUAT SCRIPT YOUTUBE IFRAME PLAYER API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
@@ -206,15 +212,17 @@
     <div class="btn-action-kaca" onclick="window.location.href='index_4.html'"><i class="fas fa-arrow-left"></i></div>
     <div style="text-align: center;">
       <h3 style="font-size: 16px; font-weight: 800;">KYY Music Pro</h3>
-      <span style="font-size: 10px; color: var(--accent-spotify); font-weight: 800;"><i class="fas fa-waveform"></i> ©@rizky._kurniawan25</span>
+      <span style="font-size: 10px; color: var(--accent-spotify); font-weight: 800;"><i class="fas fa-waveform"></i> INTERACTIVE AUDIO</span>
     </div>
     <div class="btn-action-kaca btn-trash" onclick="kyyBukaPopupKonfirmasi()"><i class="fas fa-trash-alt"></i></div>
   </header>
 
   <main class="chat-area" id="kyy-music-scroller"></main>
 
-  <!-- KONTROLLER TERSEMBUNYI UNTUK API YOUTUBE (0x0 PIXEL) -->
-  <div id="kyy-hidden-player" style="display: none; width: 0; height: 0;"></div>
+  <!-- WIDGET INTEGRASI SENSOR: TETAP BERAKSI SECARA VISUAL NAMUN TERSEMBUNYI -->
+  <div id="kyy-hidden-player-container">
+      <div id="kyy-hidden-player"></div>
+  </div>
 
   <footer class="footer-bar-input">
     <div class="capsule-input-glass">
@@ -241,14 +249,27 @@
     let ytPlayer = null;
     let timerMuzik = null;
     let currentActiveCardId = null;
+    let currentVideoId = null;
 
-    // Diinisialisasi otomatis oleh pustaka API YouTube
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('kyy-hidden-player', {
-            height: '0', width: '0',
-            playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0 },
-            events: { 'onStateChange': onPlayerStateChange }
+            height: '200',
+            width: '200',
+            playerVars: { 
+                'autoplay': 0, 
+                'controls': 0, 
+                'rel': 0,
+                'playsinline': 1
+            },
+            events: { 
+                'onStateChange': onPlayerStateChange,
+                'onReady': onPlayerReady
+            }
         });
+    }
+
+    function onPlayerReady(event) {
+        console.log("Mesin Audio YouTube API Siap!");
     }
 
     function kyyGetNowTime() {
@@ -257,7 +278,7 @@
     }
 
     function formatDurasi(detik) {
-        if (isNaN(detik)) return "00:00";
+        if (isNaN(detik) || detik < 0) return "00:00";
         let m = Math.floor(detik / 60); let s = Math.floor(detik % 60);
         return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
     }
@@ -265,8 +286,11 @@
     document.addEventListener('DOMContentLoaded', () => {
         const scroller = document.getElementById('kyy-music-scroller');
         const savedHistory = localStorage.getItem('kyy_music_history_modular');
-        if (savedHistory && scroller) { scroller.innerHTML = savedHistory; } 
-        else { kyyCetakWelcome(); }
+        if (savedHistory && scroller) { 
+            scroller.innerHTML = savedHistory; 
+        } else { 
+            kyyCetakWelcome(); 
+        }
         if (scroller) scroller.scrollTop = scroller.scrollHeight;
 
         document.getElementById('kyy-music-raw-input')?.addEventListener('keypress', (e) => {
@@ -349,16 +373,16 @@
         });
     }
 
-    // INTERAKSI AUDIO: INITIALISASI PEMUTAR PRO INTERAKTIF
     function kyyInitAudioPlayer(judulEscaped, videoId) {
         const judulAsli = unescape(judulEscaped);
         const waktuSekarang = kyyGetNowTime();
         const scroller = document.getElementById('kyy-music-scroller');
         
-        // Generator link download alternatif stabil (Pake pihak ketiga y2mate base)
+        // Menggunakan y2mate sebagai portal download yang andal
         const linkDownload = `https://www.y2mate.com/youtube/${videoId}`;
         const cardId = "card_" + new Date().getTime();
         currentActiveCardId = cardId;
+        currentVideoId = videoId;
 
         const playerCard = document.createElement('div');
         playerCard.className = 'pro-audio-card';
@@ -366,16 +390,15 @@
 
         playerCard.innerHTML = `
             <div class="audio-interface-main">
-                <div class="disc-vinyl-logo id="disc_${cardId}"><i class="fas fa-compact-disc"></i></div>
+                <div class="disc-vinyl-logo" id="disc_${cardId}"><i class="fas fa-compact-disc"></i></div>
                 <div class="track-meta-info">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent-spotify); text-transform: uppercase;"><i class="fas fa-waveform"></i> Audio Pro Live</div>
                     <div style="font-size: 13.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${judulAsli}</div>
                 </div>
             </div>
 
-            <!-- TIMELINE SLIDER: BISA DISERET & DIGESER SECARA NYATA -->
             <div class="timeline-container">
-                <input type="range" class="timeline-slider" id="slider_${cardId}" value="0" min="0" max="100" oninput="kyyUserGeserTimeline(this.value, '${videoId}')">
+                <input type="range" class="timeline-slider" id="slider_${cardId}" value="0" min="0" max="100" onchange="kyyUserGeserTimeline(this.value)">
                 <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
                     <span id="time_current_${cardId}">00:00</span>
                     <span id="time_total_${cardId}">00:00</span>
@@ -383,9 +406,8 @@
             </div>
 
             <div class="audio-controls-row">
-                <!-- TOMBOL INTERAKTIF PLAY & PAUSE -->
-                <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyTogglePlayPause('${videoId}', '${cardId}')">
-                    <i class="fas fa-pause-circle" style="font-size: 30px; color: var(--accent-spotify);"></i>
+                <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyTogglePlayPause('${cardId}')">
+                    <i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>
                 </button>
                 <a href="${linkDownload}" target="_blank" class="btn-download-kaca">
                     <i class="fas fa-download" style="color: var(--accent-blue);"></i> Download MP3
@@ -395,43 +417,31 @@
 
         scroller.appendChild(playerCard);
         scroller.scrollTop = scroller.scrollHeight;
+        localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        // Eksekusi pemutaran data trek di YouTube Player API latar belakang
         if (ytPlayer && ytPlayer.loadVideoById) {
             ytPlayer.loadVideoById(videoId);
             clearInterval(timerMuzik);
-            // Jalankan looping interval pelacak timeline menit
             timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
         }
-
-        fetch('/api/server', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kueriUser: `[INTERACTIVE PLAY] ${judulAsli}`, waktu: waktuSekarang })
-        });
     }
 
-    // LOGIKA KONTROL: PLAY & PAUSE TOGGLE
-    function kyyTogglePlayPause(videoId, cardId) {
-        if (!ytPlayer) return;
+    function kyyTogglePlayPause(cardId) {
+        if (!ytPlayer || !ytPlayer.getPlayerState) return;
         const state = ytPlayer.getPlayerState();
         const btn = document.getElementById(`btn_ctrl_${cardId}`);
-        const disc = document.querySelector(`#${cardId} .disc-vinyl-logo`);
 
         if (state === YT.PlayerState.PLAYING) {
             ytPlayer.pauseVideo();
-            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="font-size: 30px; color: #fff;"></i>`;
-            if (disc) disc.classList.remove('playing');
+            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
         } else {
             ytPlayer.playVideo();
-            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="font-size: 30px; color: var(--accent-spotify);"></i>`;
-            if (disc) disc.classList.add('playing');
+            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
         }
     }
 
-    // LOGIKA TIMELINE: MEMPERBARUI JALAN MENIT DAN MAKSIMAL DURASI
     function kyyUpdateTimelineTracks(cardId) {
-        if (!ytPlayer || currentActiveCardId !== cardId) return;
+        if (!ytPlayer || !ytPlayer.getCurrentTime || currentActiveCardId !== cardId) return;
         
         const curTime = ytPlayer.getCurrentTime();
         const totalDur = ytPlayer.getDuration();
@@ -439,7 +449,6 @@
         const slider = document.getElementById(`slider_${cardId}`);
         const txtCur = document.getElementById(`time_current_${cardId}`);
         const txtTotal = document.getElementById(`time_total_${cardId}`);
-        const disc = document.querySelector(`#${cardId} .disc-vinyl-logo`);
 
         if (totalDur > 0) {
             if (slider) {
@@ -451,25 +460,23 @@
         }
     }
 
-    // LOGIKA DRAG TIMELINE: SKRIP SAAT PENGGUNA MENGGESER RANGE SLIDER
-    function kyyUserGeserTimeline(nilaiBaru, videoId) {
+    function kyyUserGeserTimeline(nilaiBaru) {
         if (ytPlayer && ytPlayer.seekTo) {
             ytPlayer.seekTo(parseInt(nilaiBaru), true);
         }
     }
 
-    // EVENT DETEKSI STATE OTOMATIS DARI YOUTUBE SERVER
     function onPlayerStateChange(event) {
         if (!currentActiveCardId) return;
-        const disc = document.querySelector(`#${currentActiveCardId} .disc-vinyl-logo`);
+        const disc = document.getElementById(`disc_${currentActiveCardId}`);
         const btn = document.getElementById(`btn_ctrl_${currentActiveCardId}`);
 
         if (event.data === YT.PlayerState.PLAYING) {
             if (disc) disc.classList.add('playing');
-            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="font-size: 30px; color: var(--accent-spotify);"></i>`;
+            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
         } else {
             if (disc) disc.classList.remove('playing');
-            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="font-size: 30px; color: #fff;"></i>`;
+            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
         }
     }
 

@@ -311,8 +311,13 @@
         .then(data => console.log('Sinyal balik serverless sukses:', data))
         .catch(err => console.error('Gagal terhubung ke API server backend:', err));
 
-        // 2. Tentukan target URL Player (Mendukung Tautan Odesli & Pencarian Teks YouTube)
-        let urlTarget = `https://www.youtube.com/embed?autoplay=0&rel=0&controls=1&wmode=transparent&listType=search&list=${encodeURIComponent(kueriUser + " audio")}`;
+                // =====================================================================
+        // 2. TENTUKAN TARGET URL PLAYER (VERSI ANTI-UNAVAILABLE KROM SELULER)
+        // =====================================================================
+        // Kita alihkan format embed pencarian ke template ramah browser seluler
+        let urlTarget = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(kueriUser + " topic")}&autoplay=0&rel=0&controls=1&mute=0`;
+        
+        // Proteksi jika user memasukkan tautan eksternal lagu
         if (kueriUser.includes('song.link/') || kueriUser.includes('odesli.co/')) {
             urlTarget = `https://odesli.co/embed/?url=${encodeURIComponent(kueriUser)}&theme=dark`;
         }
@@ -329,12 +334,21 @@
                 <div style="font-size: 11px; font-weight: 900; color: var(--accent-spotify); text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-server"></i> Server API Connected</div>
                 <div style="font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${kueriUser}</div>
                 
+                <!-- Sandbox dan Iframe Option diperketat agar bypass pembatasan Google -->
                 <div style="border-radius: 14px; overflow: hidden; background: #000; margin-top: 6px; height: 160px; border: 1px solid rgba(255,255,255,0.08);">
-                    <iframe src="${urlTarget}" width="100%" height="100%" frameborder="0" allow="autoplay; encrypted-media;" allowfullscreen style="display: block; width: 100%; height: 100%;"></iframe>
+                    <iframe 
+                        src="${urlTarget}" 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        style="display: block; width: 100%; height: 100%;">
+                    </iframe>
                 </div>
 
                 <div style="margin-top: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted);">
-                    <span><i class="fas fa-check-circle" style="color:var(--accent-spotify);"></i> Ready to Stream</span>
+                    <span><i class="fas fa-check-circle" style="color:var(--accent-spotify);"></i> Bypass Mode Active</span>
                     <span style="opacity: 0.5;">${waktuSekarang}</span>
                 </div>
             `;
@@ -342,6 +356,7 @@
             scroller.scrollTop = scroller.scrollHeight;
             localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
         }, 400);
+
     }
 
     // LOGIKA KONTROL POP-UP ULTRA GLASS KONFIRMASI

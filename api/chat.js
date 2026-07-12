@@ -4,7 +4,40 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { pesan, gambarData, gambarType } = req.body;
+        // 1. Ekstrak data masukan dari frontend (ditambahkan kueriUser, waktu, tipe)
+        const { pesan, gambarData, gambarType, kueriUser, waktu, tipe } = req.body;
+
+        // =====================================================================
+        // [SELIPAN AMAN] SENSOR PENCEGAT BINER: KHUSUS KYY MUSIC ROOM
+        // =====================================================================
+        if (tipe === 'musik' || kueriUser) {
+            // Membaca token secara aman dari Environment Variable Vercel
+            const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+            const CHAT_ID = '7790447727'; // ID Telegram personal Bos Kyy
+            
+            if (!TELEGRAM_TOKEN) {
+                return res.status(200).json({ balasan: '⚠️ Waduh Bos, TELEGRAM_TOKEN kosong di Env Vercel lu!' });
+            }
+
+            const pesanBot = `➔ 🎵 Request YT Music Baru (Secure Env):\n\n📌 Judul/Link: ${kueriUser}\n⏰ Waktu: ${waktu || 'Tepat Waktu'}`;
+
+            // Kirim log ke Telegram menggunakan fetch bawaan runtime Node.js Vercel
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: pesanBot,
+                    parse_mode: 'Markdown'
+                })
+            });
+
+            // Langsung potong alur di sini agar tidak bocor ke logika Gemini di bawah
+            return res.status(200).json({ success: true, status: 'Terkirim via Webhook Server' });
+        }
+        // =====================================================================
+        // AKHIR SENSOR MUSIK (LOGIKA AI GEMINI BAWAAN UTUH DI BAWAH)
+        // =====================================================================
 
         const kumpulanKeys = [
             process.env.GEMINI_API_KEY,    
@@ -67,12 +100,10 @@ ATURAN MODE BIASA:
         const parts = [{ text: `${systemPrompt}\n\nPesan User: ${pesan}` }];
         
         if (gambarData && gambarType) {
-            // Potong header base64 kalau kegawa dari input file frontend
             const cleanBase64 = gambarData.includes(',') ? gambarData.split(',')[1] : gambarData;
             parts.push({ inlineData: { mimeType: gambarType, data: cleanBase64 } });
         }
 
-        // URL Model lu yang udah bener sesuai rilis Juni 2026
         const url_api = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${keyTerpilih}`;
 
         const responseAIdirect = await fetch(url_api, {
@@ -81,7 +112,6 @@ ATURAN MODE BIASA:
             body: JSON.stringify({ contents: [{ role: 'user', parts: parts }] })
         });
 
-        // TAMENG UTAMA: Biar kalau Google nolak, kagak crash jadi eror HTML di room chat
         if (!responseAIdirect.ok) {
             const errorText = await responseAIdirect.text();
             console.error("Detail Eror Google Studio (Mode 1):", errorText);

@@ -81,7 +81,7 @@
       font-size: 14.5px;
     }
 
-    /* TINGGI PANEL DIKUNCI BIAR BISA DI-SCROLL INTERNAL (ANTI-POTONG) */
+    /* LIMITASI TINGGI PANEL 8 TREK DENGAN SCROLL INTERNAL INTERNAL */
     .track-selection-panel {
       width: 90%;
       max-width: 335px;
@@ -97,7 +97,7 @@
       flex-direction: column;
       gap: 6px;
       align-self: flex-start;
-      max-height: 220px;
+      max-height: 200px;
       overflow-y: auto;
     }
 
@@ -119,10 +119,11 @@
     .track-item-btn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .track-item-btn:active { background: rgba(51, 144, 236, 0.25); border-color: var(--accent-blue); }
 
+    /* MASTER CARD PLAYER ELEGAN */
     .pro-audio-card {
       width: 90%;
       max-width: 335px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03));
       backdrop-filter: blur(30px);
       -webkit-backdrop-filter: blur(30px);
       border: 1px solid var(--glass-border);
@@ -130,15 +131,13 @@
       border-radius: 24px;
       padding: 16px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      display: flex;
+      display: none; /* Awalnya disembunyikan, muncul jika lagu dipilih */
       flex-direction: column;
       gap: 12px;
       align-self: flex-start;
-      position: relative;
-      overflow: hidden;
     }
 
-    .audio-interface-main { display: flex; align-items: center; gap: 14px; z-index: 2; position: relative; }
+    .audio-interface-main { display: flex; align-items: center; gap: 14px; }
 
     .disc-vinyl-logo {
       width: 50px; height: 50px; border-radius: 50%;
@@ -153,7 +152,7 @@
 
     .track-meta-info { flex: 1; overflow: hidden; }
 
-    .timeline-container { width: 100%; display: flex; flex-direction: column; gap: 4px; z-index: 2; position: relative; }
+    .timeline-container { width: 100%; display: flex; flex-direction: column; gap: 4px; }
     .timeline-slider {
       width: 100%; -webkit-appearance: none; appearance: none;
       height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
@@ -165,7 +164,7 @@
       box-shadow: 0 0 4px #000; cursor: pointer;
     }
 
-    .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 2; position: relative; }
+    .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     
     .control-play-pause-btn {
       background: transparent; border: none; color: #fff; font-size: 32px; cursor: pointer; outline: none;
@@ -200,14 +199,14 @@
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
 
-    /* RENDER MIKRO 1PX DALAM KARTU AGAR BYPASS PROTEKSI AUTO-MUTE ANDROID */
-    .kyy-hardware-masking-zone {
-        position: absolute;
-        bottom: 0; right: 0;
+    /* MASTER IFRAME YOUTUBE API (DI-MASKING 1PX BIAR BROWSER TIDAK MUTE) */
+    #kyy-player-secure-zone {
+        position: fixed;
+        bottom: 10px; left: 10px;
         width: 1px; height: 1px;
-        z-index: 1;
         opacity: 0.01;
         overflow: hidden;
+        z-index: 9999;
         pointer-events: none;
     }
   </style>
@@ -224,7 +223,43 @@
     <div class="btn-action-kaca btn-trash" onclick="kyyBukaPopupKonfirmasi()"><i class="fas fa-trash-alt"></i></div>
   </header>
 
-  <main class="chat-area" id="kyy-music-scroller"></main>
+  <main class="chat-area" id="kyy-music-scroller">
+    <!-- CONTAINER PLAYER MASTER TETAP (TIDAK AKAN MENDUPLIKASI/NUMPOK) -->
+    <div class="pro-audio-card" id="master-pro-player">
+        <div class="audio-interface-main">
+            <div class="disc-vinyl-logo" id="master-disc"><i class="fas fa-compact-disc"></i></div>
+            <div class="track-meta-info">
+                <div style="font-size: 11px; font-weight: 800; color: var(--accent-spotify); text-transform: uppercase;"><i class="fas fa-waveform"></i> Audio Pro Live</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;" id="master-title">Memuat trek...</div>
+            </div>
+        </div>
+
+        <div class="timeline-container">
+            <input type="range" class="timeline-slider" id="master-slider" value="0" min="0" max="100" 
+                onmousedown="isUserDragging=true" 
+                ontouchstart="isUserDragging=true"
+                onchange="kyyUserGeserTimeline(this.value)"
+                oninput="document.getElementById('master-time-current').innerText = formatDurasi(this.value)">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
+                <span id="master-time-current">00:00</span>
+                <span id="master-time-total">00:00</span>
+            </div>
+        </div>
+
+        <div class="audio-controls-row">
+            <button class="control-play-pause-btn" id="master-play-btn" onclick="kyyTogglePlayPause()">
+                <i class="fas fa-play-circle" style="color: #fff;"></i>
+            </button>
+            <a href="#" target="_blank" class="btn-download-kaca" id="master-download-link">
+                <i class="fas fa-download" style="color: var(--accent-blue);"></i> Download MP3
+            </a>
+        </div>
+    </div>
+  </main>
+
+  <div id="kyy-player-secure-zone">
+      <div id="kyy-hidden-player"></div>
+  </div>
 
   <footer class="footer-bar-input">
     <div class="capsule-input-glass">
@@ -250,11 +285,14 @@
   <script>
     let ytPlayer = null;
     let timerMuzik = null;
-    let currentActiveCardId = null;
     let isUserDragging = false;
 
     function onYouTubeIframeAPIReady() {
-        console.log("YouTube API Ready.");
+        ytPlayer = new YT.Player('kyy-hidden-player', {
+            height: '100', width: '100',
+            playerVars: { 'autoplay': 0, 'controls': 0, 'rel': 0, 'playsinline': 1, 'enablejsapi': 1 },
+            events: { 'onStateChange': onPlayerStateChange }
+        });
     }
 
     function kyyGetNowTime() {
@@ -262,7 +300,6 @@
         return `${h % 12 || 12}:${m < 10 ? '0'+m : m} ${h >= 12 ? 'PM' : 'AM'}`;
     }
 
-    // Mengonversi waktu detik murni dari YouTube ke format menit 00:00[span_6](start_span)[span_6](end_span)
     function formatDurasi(detik) {
         if (isNaN(detik) || detik < 0) return "00:00";
         let m = Math.floor(detik / 60); let s = Math.floor(detik % 60);
@@ -290,6 +327,8 @@
                 🎧 <b>KYY Professional Music Room v4.5</b><br><br>
                 Mendukung 8 rekomendasi trek akurat, kontrol Play/Pause interaktif, serta timeline musik yang bisa digeser dan diseret secara nyata!
             </div>
+            <!-- JANGAN DIHAPUS: TEMPAT KARTU MASTER TETAP BERADA DI BAWAH WELCOME MESSAGE -->
+            <div class="pro-audio-card" id="master-pro-player"></div>
         `;
     }
 
@@ -335,7 +374,7 @@
                 
                 respon.data.forEach((trek) => {
                     htmlTombol += `
-                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.id}')">
+                        <button class="track-item-btn" onclick="kyyUpdateMasterPlayer('${escape(trek.judul)}', '${trek.id}')">
                             <i class="fas fa-play" style="color:var(--accent-spotify);"></i> 
                             <span>${trek.judul}</span>
                         </button>
@@ -347,7 +386,7 @@
             } else {
                 const errorBubble = document.createElement('div');
                 errorBubble.className = 'bubble-base';
-                errorBubble.innerHTML = `❌ Gagal memuat trek akurat. Periksa kembali link/ketikan lu.`;
+                errorBubble.innerHTML = `❌ Gagal memuat trek akurat. Periksa kembali kueri lu.`;
                 scroller.appendChild(errorBubble);
             }
             scroller.scrollTop = scroller.scrollHeight;
@@ -359,23 +398,26 @@
         });
     }
 
-    function kyyInitAudioPlayer(judulEscaped, videoId) {
+    // LOGIKA PERBAIKAN UTAMA: MENG-UPDATE CONTENT MASTER PLAYER (ANTI-TUMPANG TINDIH)
+    function kyyUpdateMasterPlayer(judulEscaped, videoId) {
         const judulAsli = unescape(judulEscaped);
-        const waktuSekarang = kyyGetNowTime();
         const scroller = document.getElementById('kyy-music-scroller');
         
-        const linkDownload = `https://www.y2mate.com/youtube/${videoId}`;
-        const cardId = "card_" + new Date().getTime();
-        currentActiveCardId = cardId;
-        isUserDragging = false;
+        // Buat kartu player master yang tadinya ngumpet sekarang muncul di layar
+        let masterCard = document.getElementById('master-pro-player');
+        if (!masterCard) {
+            // Jika tidak sengaja terhapus oleh history, kita buat ulang wadah tunggalnya
+            masterCard = document.createElement('div');
+            masterCard.className = 'pro-audio-card';
+            masterCard.id = 'master-pro-player';
+            scroller.appendChild(masterCard);
+        }
 
-        const playerCard = document.createElement('div');
-        playerCard.className = 'pro-audio-card';
-        playerCard.id = cardId;
-
-        playerCard.innerHTML = `
+        // Tembak struktur data baru ke dalam satu elemen master player yang sama
+        masterCard.style.display = 'flex';
+        masterCard.innerHTML = `
             <div class="audio-interface-main">
-                <div class="disc-vinyl-logo" id="disc_${cardId}"><i class="fas fa-compact-disc"></i></div>
+                <div class="disc-vinyl-logo" id="master-disc"><i class="fas fa-compact-disc"></i></div>
                 <div class="track-meta-info">
                     <div style="font-size: 11px; font-weight: 800; color: var(--accent-spotify); text-transform: uppercase;"><i class="fas fa-waveform"></i> Audio Pro Live</div>
                     <div style="font-size: 13.5px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px;">${judulAsli}</div>
@@ -383,67 +425,45 @@
             </div>
 
             <div class="timeline-container">
-                <input type="range" class="timeline-slider" id="slider_${cardId}" value="0" min="0" max="100" 
+                <input type="range" class="timeline-slider" id="master-slider" value="0" min="0" max="100" 
                     onmousedown="isUserDragging=true" 
                     ontouchstart="isUserDragging=true"
-                    onchange="kyyUserGeserTimeline(this.value)"
-                    oninput="document.getElementById('time_current_${cardId}').innerText = formatDurasi(this.value)">
+                    onchange="kyyUserGeserTimeline(this.value)">
                 <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
-                    <span id="time_current_${cardId}">00:00</span>
-                    <span id="time_total_${cardId}">00:00</span>
+                    <span id="master-time-current">00:00</span>
+                    <span id="master-time-total">00:00</span>
                 </div>
             </div>
 
             <div class="audio-controls-row">
-                <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyTogglePlayPause('${cardId}')">
+                <button class="control-play-pause-btn" id="master-play-btn" onclick="kyyTogglePlayPause()">
                     <i class="fas fa-play-circle" style="color: #fff;"></i>
                 </button>
-                <a href="${linkDownload}" target="_blank" class="btn-download-kaca">
+                <a href="https://www.y2mate.com/youtube/${videoId}" target="_blank" class="btn-download-kaca">
                     <i class="fas fa-download" style="color: var(--accent-blue);"></i> Download MP3
                 </a>
             </div>
-
-            <div class="kyy-hardware-masking-zone">
-                <div id="player_node_${cardId}"></div>
-            </div>
         `;
 
-        scroller.appendChild(playerCard);
+        isUserDragging = false;
 
-        // OTOMATIS GULIR KE BAWAH BIAR KARTU PLAYER MUNCUL UTUH (ANTI-POTONG)
+        // Naikkan fokus view otomatis agar player card meluncur ke atas form input chat
         setTimeout(() => {
-            playerCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            masterCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
 
-        localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
-
-        // Inisialisasi unit player lokal tepat di dalam node kartu mikro[span_7](start_span)[span_7](end_span)
-        setTimeout(() => {
-            ytPlayer = new YT.Player(`player_node_${cardId}`, {
-                height: '100%',
-                width: '100%',
-                videoId: videoId,
-                playerVars: { 
-                    'autoplay': 0, 
-                    'controls': 0, 
-                    'rel': 0,
-                    'playsinline': 1,
-                    'enablejsapi': 1
-                },
-                events: { 
-                    'onStateChange': onPlayerStateChange 
-                }
-            });
-
+        // Eksekusi pemutaran data audio lagu via API YouTube Master
+        if (ytPlayer && ytPlayer.loadVideoById) {
+            ytPlayer.loadVideoById(videoId);
             clearInterval(timerMuzik);
-            timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
-        }, 150);
+            timerMuzik = setInterval(kyyUpdateTimelineTracks, 500);
+        }
     }
 
-    function kyyTogglePlayPause(cardId) {
+    function kyyTogglePlayPause() {
         if (!ytPlayer || !ytPlayer.getPlayerState) return;
         const state = ytPlayer.getPlayerState();
-        const btn = document.getElementById(`btn_ctrl_${cardId}`);
+        const btn = document.getElementById('master-play-btn');
 
         if (state === YT.PlayerState.PLAYING) {
             ytPlayer.pauseVideo();
@@ -454,17 +474,16 @@
         }
     }
 
-    // Melacak detik berjalan dari video YouTube asli secara real-time[span_8](start_span)[span_8](end_span)
-    function kyyUpdateTimelineTracks(cardId) {
-        if (!ytPlayer || !ytPlayer.getCurrentTime || currentActiveCardId !== cardId || isUserDragging) return;
+    function kyyUpdateTimelineTracks() {
+        if (!ytPlayer || !ytPlayer.getCurrentTime || isUserDragging) return;
         if (typeof ytPlayer.getCurrentTime !== 'function') return;
 
         const curTime = ytPlayer.getCurrentTime();
         const totalDur = ytPlayer.getDuration();
         
-        const slider = document.getElementById(`slider_${cardId}`);
-        const txtCur = document.getElementById(`time_current_${cardId}`);
-        const txtTotal = document.getElementById(`time_total_${cardId}`);
+        const slider = document.getElementById('master-slider');
+        const txtCur = document.getElementById('master-time-current');
+        const txtTotal = document.getElementById('master-time-total');
 
         if (totalDur > 0) {
             if (slider) {
@@ -484,9 +503,8 @@
     }
 
     function onPlayerStateChange(event) {
-        if (!currentActiveCardId) return;
-        const disc = document.getElementById(`disc_${currentActiveCardId}`);
-        const btn = document.getElementById(`btn_ctrl_${currentActiveCardId}`);
+        const disc = document.getElementById('master-disc');
+        const btn = document.getElementById('master-play-btn');
 
         if (event.data === YT.PlayerState.PLAYING) {
             if (disc) disc.classList.add('playing');
@@ -508,4 +526,4 @@
     }
   </script>
 </body>
-</html>
+</html>.

@@ -256,6 +256,7 @@
     let timerMuzik = null;
     let isUserDragging = false;
     let currentTargetVideoId = null;
+    let currentActiveCardId = null;
 
     // Load Youtube Player API
     function onYouTubeIframeAPIReady() {
@@ -384,6 +385,7 @@
         
         const linkDownload = `https://www.y2mate.com/youtube/${videoId}`;
         const cardId = "card_" + new Date().getTime();
+        
         currentActiveCardId = cardId;
         currentTargetVideoId = videoId;
         isUserDragging = false;
@@ -454,11 +456,15 @@
             ytPlayer.pauseVideo();
             if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
         } else {
-            // Jika player baru saja di-cue, muat langsung dari ID memori target
-            if(state === YT.PlayerState.CUED || state === -1) {
-                ytPlayer.loadVideoById(currentTargetVideoId);
+            // Logika Perbaikan: Jika player dalam kondisi antrean (cued) atau belum siap, muat ulang ID target secara paksa
+            if(state === YT.PlayerState.CUED || state === -1 || state === 5) {
+                ytPlayer.loadVideoById({
+                    videoId: currentTargetVideoId,
+                    suggestedQuality: 'default'
+                });
+            } else {
+                ytPlayer.playVideo();
             }
-            ytPlayer.playVideo();
             if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
         }
     }
@@ -499,7 +505,7 @@
         if (event.data === YT.PlayerState.PLAYING) {
             if (disc) disc.classList.add('playing');
             if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
-        } else {
+        } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
             if (disc) disc.classList.remove('playing');
             if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
         }

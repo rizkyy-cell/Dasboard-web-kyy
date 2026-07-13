@@ -163,9 +163,10 @@
     .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
     
     .control-play-pause-btn {
-      background: transparent; border: none; color: #fff; font-size: 30px; cursor: pointer; outline: none;
-      display: flex; align-items: center;
+      background: transparent; border: none; color: #fff; font-size: 32px; cursor: pointer; outline: none;
+      display: flex; align-items: center; transition: transform 0.1s ease;
     }
+    .control-play-pause-btn:active { transform: scale(0.9); }
 
     .btn-download-kaca {
       padding: 7px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.08);
@@ -195,13 +196,14 @@
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
 
-    /* TARGET TRICK BYPASS VISUAL GOOGLE SENSOR */
+    /* BYPASS CONTAINER ELEMEN UTAMA GOOGLE SENSOR */
     #kyy-hidden-player-container {
         position: absolute;
-        top: -9999px; left: -9999px;
+        top: 0; left: 0;
         width: 1px; height: 1px;
         opacity: 0.01;
         overflow: hidden;
+        z-index: -999;
     }
   </style>
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -219,7 +221,6 @@
 
   <main class="chat-area" id="kyy-music-scroller"></main>
 
-  <!-- WIDGET INTEGRASI SENSOR: TETAP BERAKSI SECARA VISUAL NAMUN TERSEMBUNYI -->
   <div id="kyy-hidden-player-container">
       <div id="kyy-hidden-player"></div>
   </div>
@@ -249,7 +250,6 @@
     let ytPlayer = null;
     let timerMuzik = null;
     let currentActiveCardId = null;
-    let currentVideoId = null;
 
     function onYouTubeIframeAPIReady() {
         ytPlayer = new YT.Player('kyy-hidden-player', {
@@ -259,17 +259,13 @@
                 'autoplay': 0, 
                 'controls': 0, 
                 'rel': 0,
-                'playsinline': 1
+                'playsinline': 1,
+                'enablejsapi': 1
             },
             events: { 
-                'onStateChange': onPlayerStateChange,
-                'onReady': onPlayerReady
+                'onStateChange': onPlayerStateChange
             }
         });
-    }
-
-    function onPlayerReady(event) {
-        console.log("Mesin Audio YouTube API Siap!");
     }
 
     function kyyGetNowTime() {
@@ -288,6 +284,13 @@
         const savedHistory = localStorage.getItem('kyy_music_history_modular');
         if (savedHistory && scroller) { 
             scroller.innerHTML = savedHistory; 
+            // Bersihkan sisa tombol loading jika ada yang tersangkut di cache
+            document.querySelectorAll('.control-play-pause-btn').forEach(btn => {
+                const cardId = btn.id.replace('btn_ctrl_', '');
+                btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
+                const disc = document.getElementById(`disc_${cardId}`);
+                if (disc) disc.classList.remove('playing');
+            });
         } else { 
             kyyCetakWelcome(); 
         }
@@ -378,11 +381,9 @@
         const waktuSekarang = kyyGetNowTime();
         const scroller = document.getElementById('kyy-music-scroller');
         
-        // Menggunakan y2mate sebagai portal download yang andal
         const linkDownload = `https://www.y2mate.com/youtube/${videoId}`;
         const cardId = "card_" + new Date().getTime();
         currentActiveCardId = cardId;
-        currentVideoId = videoId;
 
         const playerCard = document.createElement('div');
         playerCard.className = 'pro-audio-card';
@@ -406,8 +407,9 @@
             </div>
 
             <div class="audio-controls-row">
-                <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyTogglePlayPause('${cardId}')">
-                    <i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>
+                <!-- INI KUNCI UTAMANYA: AWALNYA DISET TOMBOL PLAY BIASA BIAR AKSI KETUK JARI USER AKTIF -->
+                <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyEksekusiPlayPertama('${videoId}', '${cardId}')">
+                    <i class="fas fa-play-circle" style="color: #fff;"></i>
                 </button>
                 <a href="${linkDownload}" target="_blank" class="btn-download-kaca">
                     <i class="fas fa-download" style="color: var(--accent-blue);"></i> Download MP3
@@ -419,8 +421,31 @@
         scroller.scrollTop = scroller.scrollHeight;
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
+        // Siapkan ID video di memori, tapi jangan dimainkan otomatis dulu biar gak dibungkam browser
+        if (ytPlayer && ytPlayer.cueVideoById) {
+            ytPlayer.cueVideoById(videoId);
+        }
+
+        fetch('/api/server', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kueriUser: `[AUDIO GENERATED] ${judulAsli}`, waktu: waktuSekarang })
+        });
+    }
+
+    // TRIGGER DARI JARI USER: BUKA GERBANG BLOKIR AUDIO BROWSER HP
+    function kyyEksekusiPlayPertama(videoId, cardId) {
         if (ytPlayer && ytPlayer.loadVideoById) {
             ytPlayer.loadVideoById(videoId);
+            ytPlayer.playVideo();
+            
+            // Ubah fungsi tombol onClick menjadi toggle play/pause biasa
+            const btn = document.getElementById(`btn_ctrl_${cardId}`);
+            if (btn) {
+                btn.setAttribute("onclick", `kyyTogglePlayPause('${cardId}')`);
+                btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
+            }
+
             clearInterval(timerMuzik);
             timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
         }

@@ -81,7 +81,7 @@
       font-size: 14.5px;
     }
 
-    .track-selection-panel {
+    .    .track-selection-panel {
       width: 90%;
       max-width: 335px;
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
@@ -96,7 +96,12 @@
       flex-direction: column;
       gap: 6px;
       align-self: flex-start;
+      
+      /* TAMBAHAN BIAR PANEL TIDAK TERLALU MEMANJANG MEMAKAN LAYAR */
+      max-height: 220px;
+      overflow-y: auto;
     }
+
 
     .track-item-btn {
       width: 100%;
@@ -355,7 +360,7 @@
         });
     }
 
-    function kyyInitAudioPlayer(judulEscaped, videoId) {
+        function kyyInitAudioPlayer(judulEscaped, videoId) {
         const judulAsli = unescape(judulEscaped);
         const waktuSekarang = kyyGetNowTime();
         const scroller = document.getElementById('kyy-music-scroller');
@@ -399,38 +404,29 @@
                 </a>
             </div>
 
-            <!-- HARDWARE PORT DITANAMKAN LANGSUNG DENGAN ASPEK UKURAN NYATA AGAR ZERO BLOKIR AUDIO BROWSER -->
             <div class="kyy-hardware-masking-zone">
                 <div id="player_node_${cardId}"></div>
             </div>
         `;
 
         scroller.appendChild(playerCard);
-        scroller.scrollTop = scroller.scrollHeight;
+        
+        // =====================================================================
+        // PERBAIKAN LOGIKA: FORCE AUTO-SCROLL SEHINGGA PLAYER CARD KELUAR UTUH
+        // =====================================================================
+        setTimeout(() => {
+            playerCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
+
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        // Inisialisasi unit player lokal tepat di dalam node kartu
-        setTimeout(() => {
-            ytPlayer = new YT.Player(`player_node_${cardId}`, {
-                height: '100%',
-                width: '100%',
-                videoId: videoId,
-                playerVars: { 
-                    'autoplay': 0, 
-                    'controls': 0, 
-                    'rel': 0,
-                    'playsinline': 1,
-                    'enablejsapi': 1
-                },
-                events: { 
-                    'onStateChange': onPlayerStateChange 
-                }
-            });
-
+        if (ytPlayer && ytPlayer.loadVideoById) {
+            ytPlayer.loadVideoById(videoId);
             clearInterval(timerMuzik);
             timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
-        }, 150);
+        }
     }
+
 
     function kyyTogglePlayPause(cardId) {
         if (!ytPlayer || !ytPlayer.getPlayerState) return;

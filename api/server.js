@@ -1,6 +1,6 @@
 // api/server.js
 export default async function handler(req, res) {
-    // 1. Set header CORS agar aman diakses dari frontend web musik lu
+    // 1. SET HEADER CORS UNTUK KEAMANAN AKSES FRONTEND
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method tidak diizinkan. Harus POST, Bos Kyy!' });
+        return res.status(405).json({ error: 'Method tidak diizinkan, Bos Kyy!' });
     }
 
     try {
@@ -26,19 +26,18 @@ export default async function handler(req, res) {
             kueriUser = kueriUser.split('youtu.be/')[1].split('?')[0];
         }
 
-        // 2. FETCH LIVE DATA DARI YOUTUBE AUDIO
+        // 2. FETCH LIVE DATA SCRAPING TANPA LIMITASI API KEY GOOGLE
         const urlCari = `https://www.youtube.com/results?search_query=${encodeURIComponent(kueriUser + " audio")}`;
         const responYT = await fetch(urlCari, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
         });
         const htmlMentah = await responYT.text();
 
-        // 3. EKSTRAKSI DATA MENGGUNAKAN REGEX BINER (LIMIT DIUPGRADE KE 8 TREK AKURAT)
+        // 3. EKSTRAKSI MENGGUNAKAN REGEX BINER (LIMIT MAKSIMAL 8 TREK AKURAT)
         const regexVideo = /"videoRenderer":{"videoId":"([^"]+)","thumbnail".*?"title":{"runs":\[{"text":"([^"]+)"}\]/g;
         const hasilTrek = [];
         let pencocokan;
         
-        // Loop ini diatur maksimal sampai 8 item trek terkumpul
         while ((pencocokan = regexVideo.exec(htmlMentah)) !== null && hasilTrek.length < 8) {
             hasilTrek.push({
                 id: pencocokan[1],
@@ -46,7 +45,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // 4. PUSH DATA KE TELEGRAM LOG SEBAGAI TRACKING REPORT
+        // 4. KIRIM LOG REPORT KE BOT TELEGRAM LU
         if (TELEGRAM_TOKEN) {
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -59,11 +58,10 @@ export default async function handler(req, res) {
             });
         }
 
-        // Kembalikan 8 data array asli ke frontend web musik lu
+        // Kembalikan data array bersih ke frontend music.html
         return res.status(200).json({ success: true, data: hasilTrek });
 
     } catch (error) {
-        // Tangkap eror backend agar serverless tidak crash total
         return res.status(500).json({ error: error.message });
     }
 }

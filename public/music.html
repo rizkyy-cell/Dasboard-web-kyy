@@ -81,7 +81,8 @@
       font-size: 14.5px;
     }
 
-    .    .track-selection-panel {
+    /* TINGGI PANEL DIKUNCI BIAR BISA DI-SCROLL INTERNAL (ANTI-POTONG) */
+    .track-selection-panel {
       width: 90%;
       max-width: 335px;
       background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.01));
@@ -96,12 +97,9 @@
       flex-direction: column;
       gap: 6px;
       align-self: flex-start;
-      
-      /* TAMBAHAN BIAR PANEL TIDAK TERLALU MEMANJANG MEMAKAN LAYAR */
       max-height: 220px;
       overflow-y: auto;
     }
-
 
     .track-item-btn {
       width: 100%;
@@ -181,7 +179,7 @@
     }
 
     .footer-bar-input {
-      padding: 12px 15px max(20px, env(safe-area-inset-top)) 15px;
+      padding: 12px 15px max(20px, env(safe-area-inset-bottom)) 15px;
       background: rgba(13, 17, 23, 0.55); backdrop-filter: blur(40px);
       border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 12px;
     }
@@ -202,16 +200,16 @@
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
 
-    /* TRIK UTAMA: STRUKTUR HARDWARE PLAYER DIRENDER NYATA TAPI DISEMBUNYIKAN DI BALIK COVER KACA */
+    /* RENDER MIKRO 1PX DALAM KARTU AGAR BYPASS PROTEKSI AUTO-MUTE ANDROID */
     .kyy-hardware-masking-zone {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        bottom: 0; right: 0;
+        width: 1px; height: 1px;
         z-index: 1;
-        opacity: 0.01; /* Tetap aktif di DOM secara visual minimalis agar autoplay lolos */
+        opacity: 0.01;
+        overflow: hidden;
         pointer-events: none;
     }
-    .kyy-hardware-masking-zone iframe { width: 100%; height: 100%; object-fit: cover; }
   </style>
   <script src="https://www.youtube.com/iframe_api"></script>
 </head>
@@ -264,6 +262,7 @@
         return `${h % 12 || 12}:${m < 10 ? '0'+m : m} ${h >= 12 ? 'PM' : 'AM'}`;
     }
 
+    // Mengonversi waktu detik murni dari YouTube ke format menit 00:00[span_6](start_span)[span_6](end_span)
     function formatDurasi(detik) {
         if (isNaN(detik) || detik < 0) return "00:00";
         let m = Math.floor(detik / 60); let s = Math.floor(detik % 60);
@@ -285,7 +284,7 @@
         });
     });
 
-        function kyyCetakWelcome() {
+    function kyyCetakWelcome() {
         document.getElementById('kyy-music-scroller').innerHTML = `
             <div class="bubble-base">
                 🎧 <b>KYY Professional Music Room v4.5</b><br><br>
@@ -360,7 +359,7 @@
         });
     }
 
-        function kyyInitAudioPlayer(judulEscaped, videoId) {
+    function kyyInitAudioPlayer(judulEscaped, videoId) {
         const judulAsli = unescape(judulEscaped);
         const waktuSekarang = kyyGetNowTime();
         const scroller = document.getElementById('kyy-music-scroller');
@@ -410,23 +409,36 @@
         `;
 
         scroller.appendChild(playerCard);
-        
-        // =====================================================================
-        // PERBAIKAN LOGIKA: FORCE AUTO-SCROLL SEHINGGA PLAYER CARD KELUAR UTUH
-        // =====================================================================
+
+        // OTOMATIS GULIR KE BAWAH BIAR KARTU PLAYER MUNCUL UTUH (ANTI-POTONG)
         setTimeout(() => {
             playerCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
 
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        if (ytPlayer && ytPlayer.loadVideoById) {
-            ytPlayer.loadVideoById(videoId);
+        // Inisialisasi unit player lokal tepat di dalam node kartu mikro[span_7](start_span)[span_7](end_span)
+        setTimeout(() => {
+            ytPlayer = new YT.Player(`player_node_${cardId}`, {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: { 
+                    'autoplay': 0, 
+                    'controls': 0, 
+                    'rel': 0,
+                    'playsinline': 1,
+                    'enablejsapi': 1
+                },
+                events: { 
+                    'onStateChange': onPlayerStateChange 
+                }
+            });
+
             clearInterval(timerMuzik);
             timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
-        }
+        }, 150);
     }
-
 
     function kyyTogglePlayPause(cardId) {
         if (!ytPlayer || !ytPlayer.getPlayerState) return;
@@ -442,6 +454,7 @@
         }
     }
 
+    // Melacak detik berjalan dari video YouTube asli secara real-time[span_8](start_span)[span_8](end_span)
     function kyyUpdateTimelineTracks(cardId) {
         if (!ytPlayer || !ytPlayer.getCurrentTime || currentActiveCardId !== cardId || isUserDragging) return;
         if (typeof ytPlayer.getCurrentTime !== 'function') return;

@@ -1,6 +1,5 @@
 // api/server.js
 export default async function handler(req, res) {
-    // 1. SET HEADER CORS UNTUK KEAMANAN AKSES FRONTEND
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,9 +15,8 @@ export default async function handler(req, res) {
     try {
         let { kueriUser, waktu } = req.body;
         const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
-        const CHAT_ID = '7790447727'; // ID Telegram personal asli lu
+        const CHAT_ID = '7790447727'; 
 
-        // Bersihkan url jika user langsung menempelkan link video YouTube biasa
         if (kueriUser.includes('youtube.com/watch?v=')) {
             const urlObj = new URL(kueriUser);
             kueriUser = urlObj.searchParams.get('v');
@@ -26,26 +24,26 @@ export default async function handler(req, res) {
             kueriUser = kueriUser.split('youtu.be/')[1].split('?')[0];
         }
 
-        // 2. FETCH LIVE DATA SCRAPING TANPA LIMITASI API KEY GOOGLE
         const urlCari = `https://www.youtube.com/results?search_query=${encodeURIComponent(kueriUser + " audio")}`;
         const responYT = await fetch(urlCari, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
         });
         const htmlMentah = await responYT.text();
 
-        // 3. EKSTRAKSI MENGGUNAKAN REGEX BINER (LIMIT MAKSIMAL 8 TREK AKURAT)
         const regexVideo = /"videoRenderer":{"videoId":"([^"]+)","thumbnail".*?"title":{"runs":\[{"text":"([^"]+)"}\]/g;
         const hasilTrek = [];
         let pencocokan;
         
         while ((pencocokan = regexVideo.exec(htmlMentah)) !== null && hasilTrek.length < 8) {
+            const vId = pencocokan[1];
             hasilTrek.push({
-                id: pencocokan[1],
-                judul: pencocokan[2]
+                id: vId,
+                judul: pencocokan[2],
+                // LOGIKA KRUSIAL: Sediakan Link Stream Mentah MP3 Universal lewat API Gateway Converter yang Stabil
+                streamUrl: `https://cobalt.tools/api/stream?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + vId)}`
             });
         }
 
-        // 4. KIRIM LOG REPORT KE BOT TELEGRAM LU
         if (TELEGRAM_TOKEN) {
             await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
                 method: 'POST',
@@ -58,7 +56,6 @@ export default async function handler(req, res) {
             });
         }
 
-        // Kembalikan data array bersih ke frontend music.html
         return res.status(200).json({ success: true, data: hasilTrek });
 
     } catch (error) {

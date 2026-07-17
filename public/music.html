@@ -81,7 +81,6 @@
       font-size: 14.5px;
     }
 
-    /* CONTAINER LIST 8 LAGU */
     .track-selection-panel {
       width: 90%;
       max-width: 335px;
@@ -117,7 +116,6 @@
     .track-item-btn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
     .track-item-btn:active { background: rgba(51, 144, 236, 0.25); border-color: var(--accent-blue); }
 
-    /* AUDIO PRO LIVE CARD DARI SCREENSHOT LU */
     .pro-audio-card {
       width: 90%;
       max-width: 335px;
@@ -199,18 +197,7 @@
     .popup-btn-container { margin-top: 20px; display: flex; gap: 10px; }
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
-
-    /* SINGLE MASTER IFRAME SECURE ZONE */
-    #kyy-master-hardware-zone {
-        position: fixed;
-        bottom: 0; left: 0;
-        width: 200px; height: 200px;
-        opacity: 0.001;
-        pointer-events: none;
-        z-index: -999;
-    }
   </style>
-  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
@@ -224,11 +211,6 @@
   </header>
 
   <main class="chat-area" id="kyy-music-scroller"></main>
-
-  <!-- MASTER YOUTUBE ENGINE -->
-  <div id="kyy-master-hardware-zone">
-      <div id="kyy-hidden-player"></div>
-  </div>
 
   <footer class="footer-bar-input">
     <div class="capsule-input-glass">
@@ -252,30 +234,12 @@
   </div>
 
   <script>
-    let ytPlayer = null;
-    let timerMuzik = null;
-    let isUserDragging = false;
-    let currentTargetVideoId = null;
+    // 🎧 SATU MASTER INSTANCE AUDIO NATIVE ABADI DI MEMORI
+    const kyyAudioEngine = new Audio(); 
     let currentActiveCardId = null;
+    let isUserDragging = false;
 
-    // Load Youtube Player API
-    function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('kyy-hidden-player', {
-            height: '200',
-            width: '200',
-            playerVars: { 
-                'autoplay': 0, 
-                'controls': 0, 
-                'rel': 0,
-                'playsinline': 1,
-                'enablejsapi': 1
-            },
-            events: { 
-                'onStateChange': onPlayerStateChange,
-                'onReady': () => console.log("KYY Audio Engine Ready!")
-            }
-        });
-    }
+    kyyAudioEngine.preload = "metadata";
 
     function kyyGetNowTime() {
         const d = new Date(); let h = d.getHours(); let m = d.getMinutes();
@@ -293,6 +257,7 @@
         const savedHistory = localStorage.getItem('kyy_music_history_modular');
         if (savedHistory && scroller) { 
             scroller.innerHTML = savedHistory; 
+            kyyResetStatusUI();
         } else { 
             kyyCetakWelcome(); 
         }
@@ -310,6 +275,15 @@
                 Mendukung 8 rekomendasi trek akurat, kontrol Play/Pause interaktif, serta timeline musik yang bisa digeser dan diseret secara nyata!
             </div>
         `;
+    }
+
+    function kyyResetStatusUI() {
+        document.querySelectorAll('.control-play-pause-btn').forEach(btn => {
+            btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
+        });
+        document.querySelectorAll('.disc-vinyl-logo').forEach(disc => {
+            disc.classList.remove('playing');
+        });
     }
 
     function kyyExecuteEngineMusik() {
@@ -354,7 +328,7 @@
                 
                 respon.data.forEach((trek) => {
                     htmlTombol += `
-                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.id}')">
+                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.streamUrl}', '${trek.id}')">
                             <i class="fas fa-play" style="color:var(--accent-spotify);"></i> 
                             <span>${trek.judul}</span>
                         </button>
@@ -378,8 +352,7 @@
         });
     }
 
-    // LOGIKA RETENTION: SEPERTI DI SCREENSHOT LU (MUNCUL CARDBASE SINGLE PLAYER BARU DI BAWAH LIST)
-    function kyyInitAudioPlayer(judulEscaped, videoId) {
+    function kyyInitAudioPlayer(judulEscaped, streamUrl, videoId) {
         const judulAsli = unescape(judulEscaped);
         const scroller = document.getElementById('kyy-music-scroller');
         
@@ -387,10 +360,8 @@
         const cardId = "card_" + new Date().getTime();
         
         currentActiveCardId = cardId;
-        currentTargetVideoId = videoId;
         isUserDragging = false;
 
-        // Hapus player card lama jika ada, agar tidak terjadi penumpukan UI
         const oldCard = document.querySelector('.pro-audio-card');
         if (oldCard) oldCard.remove();
 
@@ -432,91 +403,88 @@
 
         scroller.appendChild(playerCard);
 
-        // Auto gulir halus agar kartu player meluncur naik ke atas input bar
         setTimeout(() => {
             playerCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
 
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        // Masukkan video ke antrean API YouTube (cueVideo), tunggu user tap Play untuk memicu suara bypass
-        if (ytPlayer && ytPlayer.cueVideoById) {
-            ytPlayer.cueVideoById(videoId);
-            clearInterval(timerMuzik);
-            timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 500);
-        }
+        // LOGIKA INTERUPSI: AMANKAN RE-BUFFERING DATA STREAMING BARU
+        kyyAudioEngine.pause();
+        kyyAudioEngine.src = streamUrl;
+        kyyAudioEngine.load();
+
+        // NATIVE EVENT 1: MONITOR VALIDASI LOADING METADATA BERKAS AUDIO
+        kyyAudioEngine.onloadedmetadata = () => {
+            const txtTotal = document.getElementById(`time_total_${cardId}`);
+            const slider = document.getElementById(`slider_${cardId}`);
+            if (txtTotal) txtTotal.innerText = formatDurasi(kyyAudioEngine.duration);
+            if (slider) slider.max = Math.floor(kyyAudioEngine.duration);
+        };
+
+        // NATIVE EVENT 2: TRACKING PROGRESS TIME BERJALAN RIIL
+        kyyAudioEngine.ontimeupdate = () => {
+            if (isUserDragging) return;
+            const slider = document.getElementById(`slider_${cardId}`);
+            const txtCur = document.getElementById(`time_current_${cardId}`);
+            if (slider) slider.value = Math.floor(kyyAudioEngine.currentTime);
+            if (txtCur) txtCur.innerText = formatDurasi(kyyAudioEngine.currentTime);
+        };
+
+        // NATIVE EVENT 3: PENANGANAN SKRIP EROR JIKA LINK AUDIO CACAT/DOWN
+        kyyAudioEngine.onerror = () => {
+            const txtCur = document.getElementById(`time_current_${cardId}`);
+            if (txtCur) txtCur.innerHTML = `<span style="color:#ff3b30;">❌ Buffering Error</span>`;
+        };
+
+        kyyAudioEngine.onended = () => {
+            kyyUbahVisualUI(cardId, false);
+        };
+
+        // Trigger Play Fisik Pertama yang Sah Lolos Kebijakan Privasi Seluler
+        kyyAudioEngine.play()
+            .then(() => kyyUbahVisualUI(cardId, true))
+            .catch(err => kyyUbahVisualUI(cardId, false));
     }
 
     function kyyTogglePlayPause(cardId) {
-        if (!ytPlayer || !ytPlayer.getPlayerState) return;
-        const state = ytPlayer.getPlayerState();
-        const btn = document.getElementById(`btn_ctrl_${cardId}`);
+        if (kyyAudioEngine.src === "" || currentActiveCardId !== cardId) return;
 
-        if (state === YT.PlayerState.PLAYING) {
-            ytPlayer.pauseVideo();
-            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
+        if (kyyAudioEngine.paused) {
+            kyyAudioEngine.play()
+                .then(() => kyyUbahVisualUI(cardId, true))
+                .catch(err => console.error(err));
         } else {
-            // Logika Perbaikan: Jika player dalam kondisi antrean (cued) atau belum siap, muat ulang ID target secara paksa
-            if(state === YT.PlayerState.CUED || state === -1 || state === 5) {
-                ytPlayer.loadVideoById({
-                    videoId: currentTargetVideoId,
-                    suggestedQuality: 'default'
-                });
-            } else {
-                ytPlayer.playVideo();
-            }
-            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
+            kyyAudioEngine.pause();
+            kyyUbahVisualUI(cardId, false);
         }
     }
 
-    function kyyUpdateTimelineTracks(cardId) {
-        if (!ytPlayer || !ytPlayer.getCurrentTime || currentActiveCardId !== cardId || isUserDragging) return;
-        if (typeof ytPlayer.getCurrentTime !== 'function') return;
+    function kyyUbahVisualUI(cardId, isPlaying) {
+        const btn = document.getElementById(`btn_ctrl_${cardId}`);
+        const disc = document.getElementById(`disc_${cardId}`);
 
-        const curTime = ytPlayer.getCurrentTime();
-        const totalDur = ytPlayer.getDuration();
-        
-        const slider = document.getElementById(`slider_${cardId}`);
-        const txtCur = document.getElementById(`time_current_${cardId}`);
-        const txtTotal = document.getElementById(`time_total_${cardId}`);
-
-        if (totalDur > 0) {
-            if (slider) {
-                slider.max = Math.floor(totalDur);
-                slider.value = Math.floor(curTime);
-            }
-            if (txtCur) txtCur.innerText = formatDurasi(curTime);
-            if (txtTotal) txtTotal.innerText = formatDurasi(totalDur);
+        if (isPlaying) {
+            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i >`;
+            if (disc) disc.classList.add('playing');
+        } else {
+            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
+            if (disc) disc.classList.remove('playing');
         }
     }
 
     function kyyUserGeserTimeline(nilaiBaru) {
         isUserDragging = false;
-        if (ytPlayer && ytPlayer.seekTo) {
-            ytPlayer.seekTo(parseInt(nilaiBaru), true);
-        }
-    }
-
-    function onPlayerStateChange(event) {
-        if (!currentActiveCardId) return;
-        const disc = document.getElementById(`disc_${currentActiveCardId}`);
-        const btn = document.getElementById(`btn_ctrl_${currentActiveCardId}`);
-
-        if (event.data === YT.PlayerState.PLAYING) {
-            if (disc) disc.classList.add('playing');
-            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
-        } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-            if (disc) disc.classList.remove('playing');
-            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
-        }
+        // Penempatan Nilai Baru ke Alokasi Aliran Audio Hardware
+        kyyAudioEngine.currentTime = parseInt(nilaiBaru);
     }
 
     function kyyBukaPopupKonfirmasi() { document.getElementById('kyy-modal-konfirmasi')?.classList.add('show'); }
     function kyyTutupPopupKonfirmasi() { document.getElementById('kyy-modal-konfirmasi')?.classList.remove('show'); }
     function kyyEksekusiHapusHistory() {
         localStorage.removeItem('kyy_music_history_modular');
-        clearInterval(timerMuzik);
-        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+        kyyAudioEngine.pause();
+        kyyAudioEngine.src = "";
         kyyCetakWelcome();
         kyyTutupPopupKonfirmasi();
     }

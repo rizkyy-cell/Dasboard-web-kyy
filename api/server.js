@@ -35,12 +35,9 @@ export default async function handler(req, res) {
         let pencocokan;
         
         while ((pencocokan = regexVideo.exec(htmlMentah)) !== null && hasilTrek.length < 8) {
-            const vId = pencocokan[1];
             hasilTrek.push({
-                id: vId,
-                judul: pencocokan[2],
-                // LOGIKA KRUSIAL: Sediakan Link Stream Mentah MP3 Universal lewat API Gateway Converter yang Stabil
-                streamUrl: `https://cobalt.tools/api/stream?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + vId)}`
+                id: pencocokan[1],
+                judul: pencocokan[2]
             });
         }
 

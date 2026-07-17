@@ -81,7 +81,7 @@
       font-size: 14.5px;
     }
 
-    /* FIX LAYOUT: Panel dibatasi 240px dan bisa di-scroll biar tidak memotong layar bawah */
+    /* FIX TOTAL LAYOUT LIST LAGU: Menampilkan semua rekomendasi trek, tidak dipotong pendek lagi */
     .track-selection-panel {
       width: 90%;
       max-width: 335px;
@@ -97,8 +97,9 @@
       flex-direction: column;
       gap: 6px;
       align-self: flex-start;
-      max-height: 240px;
-      overflow-y: auto;
+      height: auto;
+      max-height: none;
+      overflow-y: visible;
     }
 
     .track-item-btn {
@@ -236,7 +237,7 @@
   </div>
 
   <script>
-    // 🎧 NATIVE AUDIO STREAM ENGINE (Murni Audio Tanpa Iframe Video)
+    // 🎧 NATIVE CORE AUDIO ENGINE (100% Bebas Dependensi Eksternal Video)
     const kyyAudioEngine = new Audio(); 
     let currentActiveCardId = null;
     let isUserDragging = false;
@@ -329,10 +330,10 @@
                 let htmlTombol = `<div style="font-size:11px; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;"><i class="fas fa-music"></i> Pilih Trek Audio Asli (${respon.data.length}):</div>`;
                 
                 respon.data.forEach((trek) => {
-                    // MENGGUNAKAN SERVER STREAMING HIGH-SPEED PROXY TERPERCAYA (BYPASS TOTAL CORDS ERROR)
-                    const urlUniversalAudioStream = `https://music-api.g-stream.workers.dev/stream?id=${trek.id}`;
+                    // MENGGUNAKAN STREAM ENGINE HIGH-SPEED GATEWAY BARU YANG AMAN & LOLOS BYPASS FILTERING
+                    const urlStreamFix = `https://api.vveapps.workers.dev/html5/yt/stream?id=${trek.id}`;
                     htmlTombol += `
-                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${urlUniversalAudioStream}', '${trek.id}')">
+                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${urlStreamFix}', '${trek.id}')">
                             <i class="fas fa-play" style="color:var(--accent-spotify);"></i> 
                             <span>${trek.judul}</span>
                         </button>
@@ -413,11 +414,16 @@
 
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        // KONEKSI ULANG SUMBER SUARA BARU KE MEMORI PERANGKAT
-        kyyAudioEngine.pause();
-        kyyAudioEngine.src = urlStream;
-        kyyAudioEngine.load();
+        // AMANKAN PROSES RE-BUFFERING FILE AUDIO MURNI
+        try {
+            kyyAudioEngine.pause();
+            kyyAudioEngine.src = urlStream;
+            kyyAudioEngine.load();
+        } catch(e) {
+            console.error("Gagal mengalokasikan memori streaming: ", e);
+        }
 
+        // EVENT LISTENER 1: DATA BERKAS MP3 SUDAH SELESAI DIUNDUH DI LATAR BELAKANG
         kyyAudioEngine.onloadedmetadata = () => {
             const txtTotal = document.getElementById(`time_total_${cardId}`);
             const slider = document.getElementById(`slider_${cardId}`);
@@ -425,6 +431,7 @@
             if (slider) slider.max = Math.floor(kyyAudioEngine.duration);
         };
 
+        // EVENT LISTENER 2: UPDATE SLIDER & MENIT WAKTU SECARA SINKRON REAL-TIME
         kyyAudioEngine.ontimeupdate = () => {
             if (isUserDragging) return;
             const slider = document.getElementById(`slider_${cardId}`);
@@ -433,20 +440,30 @@
             if (txtCur) txtCur.innerText = formatDurasi(kyyAudioEngine.currentTime);
         };
 
-        kyyAudioEngine.onerror = () => {
-            const txtCur = document.getElementById('time_current_' + cardId);
-            if(txtCur) txtCur.innerHTML = `<span style="color:#ff3b30; font-weight:bold;">⚠️ Server Re-Buffering...</span>`;
-            // Otomatis lakukan refresh source jika link mengalami stall/interupsi micro-second
-            setTimeout(() => { kyyAudioEngine.load(); }, 1000);
+        // EVENT LISTENER 3: RE-STALL PROTECTION JIKA TERJADI DROP LOGIKA SIGNAL INTERNET
+        kyyAudioEngine.onerror = (e) => {
+            console.error("Audio engine mengalami kendala link streaming.", e);
+            const txtCur = document.getElementById(`time_current_${cardId}`);
+            if (txtCur) txtCur.innerHTML = `<span style="color:#ff9500; font-weight:bold;">⚠️ Re-Buffering Link...</span>`;
+            setTimeout(() => {
+                if (currentActiveCardId === cardId && kyyAudioEngine.paused) {
+                    kyyAudioEngine.load();
+                    kyyAudioEngine.play().catch(() => {});
+                }
+            }, 1500);
         };
 
         kyyAudioEngine.onended = () => {
             kyyUbahVisualUI(cardId, false);
         };
 
+        // Jalankan audio murni langsung jebret keluar suaranya
         kyyAudioEngine.play()
             .then(() => kyyUbahVisualUI(cardId, true))
-            .catch(err => kyyUbahVisualUI(cardId, false));
+            .catch(err => {
+                console.log("Autoplay ditahan sistem, silakan klik tombol play manual.");
+                kyyUbahVisualUI(cardId, false);
+            });
     }
 
     function kyyTogglePlayPause(cardId) {
@@ -477,7 +494,10 @@
 
     function kyyUserGeserTimeline(nilaiBaru) {
         isUserDragging = false;
-        kyyAudioEngine.currentTime = parseInt(nilaiBaru);
+        // Loncatkan detik lagu asli ke titik koordinat slider yang dilepas jari user
+        if (kyyAudioEngine.duration) {
+            kyyAudioEngine.currentTime = parseInt(nilaiBaru);
+        }
     }
 
     function kyyBukaPopupKonfirmasi() { document.getElementById('kyy-modal-konfirmasi')?.classList.add('show'); }

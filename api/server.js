@@ -1,11 +1,26 @@
 // api/server.js
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
+    }
+
+    // FITUR PROXY STREAMING UNIVERSAL MANDIRI (ANTI ERROR FILTERING)
+    if (req.method === 'GET' && req.query.stream) {
+        try {
+            const videoId = req.query.stream;
+            // Gunakan fallback stream link publik tangguh langsung ke biner audio data
+            const directAudioUrl = `https://shadow.y2mate.tools/download?id=${videoId}&type=mp3`;
+            const audioResponse = await fetch(directAudioUrl);
+            
+            res.setHeader('Content-Type', 'audio/mpeg');
+            return audioResponse.body.pipe(res);
+        } catch (e) {
+            return res.status(500).json({ error: e.message });
+        }
     }
 
     if (req.method !== 'POST') {

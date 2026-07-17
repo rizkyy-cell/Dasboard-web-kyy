@@ -119,9 +119,7 @@
     .pro-audio-card {
       width: 90%;
       max-width: 335px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
+      background: #17212b; /* Menggunakan solid background agar menutupi video di belakangnya */
       border: 1px solid var(--glass-border);
       border-top: 1px solid var(--glass-highlight);
       border-radius: 24px;
@@ -131,9 +129,12 @@
       flex-direction: column;
       gap: 12px;
       align-self: flex-start;
+      position: relative;
+      overflow: hidden;
     }
 
-    .audio-interface-main { display: flex; align-items: center; gap: 14px; }
+    /* Elemen UI harus berada di depan video */
+    .audio-interface-main { display: flex; align-items: center; gap: 14px; position: relative; z-index: 5; background: #17212b; }
 
     .disc-vinyl-logo {
       width: 50px; height: 50px; border-radius: 50%;
@@ -148,7 +149,7 @@
 
     .track-meta-info { flex: 1; overflow: hidden; }
 
-    .timeline-container { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+    .timeline-container { width: 100%; display: flex; flex-direction: column; gap: 4px; position: relative; z-index: 5; background: #17212b; }
     .timeline-slider {
       width: 100%; -webkit-appearance: none; appearance: none;
       height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px;
@@ -160,7 +161,7 @@
       box-shadow: 0 0 4px #000; cursor: pointer;
     }
 
-    .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .audio-controls-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 5; background: #17212b; }
     
     .control-play-pause-btn {
       background: transparent; border: none; color: #fff; font-size: 36px; cursor: pointer; outline: none;
@@ -197,7 +198,17 @@
     .popup-btn-container { margin-top: 20px; display: flex; gap: 10px; }
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
+
+    /* TRIK UTAMA: Video berukuran valid ditaruh di dalam card, tapi di layer paling belakang (z-index: 1) */
+    .kyy-video-hardware-container {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
   </style>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </head>
 <body>
 
@@ -234,12 +245,14 @@
   </div>
 
   <script>
-    // 🎧 SATU MASTER INSTANCE AUDIO NATIVE ABADI DI MEMORI
-    const kyyAudioEngine = new Audio(); 
-    let currentActiveCardId = null;
+    let ytPlayer = null;
+    let timerMuzik = null;
     let isUserDragging = false;
+    let currentActiveCardId = null;
 
-    kyyAudioEngine.preload = "metadata";
+    function onYouTubeIframeAPIReady() {
+        console.log("YouTube API Loaded.");
+    }
 
     function kyyGetNowTime() {
         const d = new Date(); let h = d.getHours(); let m = d.getMinutes();
@@ -328,7 +341,7 @@
                 
                 respon.data.forEach((trek) => {
                     htmlTombol += `
-                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.streamUrl}', '${trek.id}')">
+                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.id}')">
                             <i class="fas fa-play" style="color:var(--accent-spotify);"></i> 
                             <span>${trek.judul}</span>
                         </button>
@@ -352,7 +365,7 @@
         });
     }
 
-    function kyyInitAudioPlayer(judulEscaped, streamUrl, videoId) {
+    function kyyInitAudioPlayer(judulEscaped, videoId) {
         const judulAsli = unescape(judulEscaped);
         const scroller = document.getElementById('kyy-music-scroller');
         
@@ -361,6 +374,12 @@
         
         currentActiveCardId = cardId;
         isUserDragging = false;
+
+        // Bersihkan player lama dari memori jika ada
+        clearInterval(timerMuzik);
+        if (ytPlayer && ytPlayer.destroy) {
+            try { ytPlayer.destroy(); } catch(e) { console.log(e); }
+        }
 
         const oldCard = document.querySelector('.pro-audio-card');
         if (oldCard) oldCard.remove();
@@ -399,6 +418,11 @@
                     <i class="fas fa-cloud-download" style="color: var(--accent-blue);"></i> Download MP3
                 </a>
             </div>
+
+            <!-- JANGKAR PLAYER UTAMA: Ditaruh fisik dengan ukuran valid di background card -->
+            <div class="kyy-video-hardware-container">
+                <div id="yt_node_anchor"></div>
+            </div>
         `;
 
         scroller.appendChild(playerCard);
@@ -409,82 +433,90 @@
 
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
 
-        // LOGIKA INTERUPSI: AMANKAN RE-BUFFERING DATA STREAMING BARU
-        kyyAudioEngine.pause();
-        kyyAudioEngine.src = streamUrl;
-        kyyAudioEngine.load();
-
-        // NATIVE EVENT 1: MONITOR VALIDASI LOADING METADATA BERKAS AUDIO
-        kyyAudioEngine.onloadedmetadata = () => {
-            const txtTotal = document.getElementById(`time_total_${cardId}`);
-            const slider = document.getElementById(`slider_${cardId}`);
-            if (txtTotal) txtTotal.innerText = formatDurasi(kyyAudioEngine.duration);
-            if (slider) slider.max = Math.floor(kyyAudioEngine.duration);
-        };
-
-        // NATIVE EVENT 2: TRACKING PROGRESS TIME BERJALAN RIIL
-        kyyAudioEngine.ontimeupdate = () => {
-            if (isUserDragging) return;
-            const slider = document.getElementById(`slider_${cardId}`);
-            const txtCur = document.getElementById(`time_current_${cardId}`);
-            if (slider) slider.value = Math.floor(kyyAudioEngine.currentTime);
-            if (txtCur) txtCur.innerText = formatDurasi(kyyAudioEngine.currentTime);
-        };
-
-        // NATIVE EVENT 3: PENANGANAN SKRIP EROR JIKA LINK AUDIO CACAT/DOWN
-        kyyAudioEngine.onerror = () => {
-            const txtCur = document.getElementById(`time_current_${cardId}`);
-            if (txtCur) txtCur.innerHTML = `<span style="color:#ff3b30;">❌ Buffering Error</span>`;
-        };
-
-        kyyAudioEngine.onended = () => {
-            kyyUbahVisualUI(cardId, false);
-        };
-
-        // Trigger Play Fisik Pertama yang Sah Lolos Kebijakan Privasi Seluler
-        kyyAudioEngine.play()
-            .then(() => kyyUbahVisualUI(cardId, true))
-            .catch(err => kyyUbahVisualUI(cardId, false));
+        // Inisialisasi Player Baru Langsung di Node Kartu
+        ytPlayer = new YT.Player('yt_node_anchor', {
+            height: '100%',
+            width: '100%',
+            videoId: videoId,
+            playerVars: { 
+                'autoplay': 1, // Kita set 1, lalu playVideo() dipicu via event ready agar bypass
+                'controls': 0, 
+                'rel': 0,
+                'playsinline': 1,
+                'enablejsapi': 1
+            },
+            events: { 
+                'onStateChange': onPlayerStateChange,
+                'onReady': (e) => {
+                    e.target.playVideo();
+                    timerMuzik = setInterval(() => kyyUpdateTimelineTracks(cardId), 400);
+                }
+            }
+        });
     }
 
     function kyyTogglePlayPause(cardId) {
-        if (kyyAudioEngine.src === "" || currentActiveCardId !== cardId) return;
+        if (!ytPlayer || !ytPlayer.getPlayerState) return;
+        const state = ytPlayer.getPlayerState();
+        const btn = document.getElementById(`btn_ctrl_${cardId}`);
 
-        if (kyyAudioEngine.paused) {
-            kyyAudioEngine.play()
-                .then(() => kyyUbahVisualUI(cardId, true))
-                .catch(err => console.error(err));
+        if (state === YT.PlayerState.PLAYING) {
+            ytPlayer.pauseVideo();
+            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
         } else {
-            kyyAudioEngine.pause();
-            kyyUbahVisualUI(cardId, false);
+            ytPlayer.playVideo();
+            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
         }
     }
 
-    function kyyUbahVisualUI(cardId, isPlaying) {
-        const btn = document.getElementById(`btn_ctrl_${cardId}`);
-        const disc = document.getElementById(`disc_${cardId}`);
+    function kyyUpdateTimelineTracks(cardId) {
+        if (!ytPlayer || !ytPlayer.getCurrentTime || currentActiveCardId !== cardId || isUserDragging) return;
+        if (typeof ytPlayer.getCurrentTime !== 'function') return;
 
-        if (isPlaying) {
-            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i >`;
-            if (disc) disc.classList.add('playing');
-        } else {
-            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
-            if (disc) disc.classList.remove('playing');
+        const curTime = ytPlayer.getPlayerState ? ytPlayer.getCurrentTime() : 0;
+        const totalDur = ytPlayer.getPlayerState ? ytPlayer.getDuration() : 0;
+        
+        const slider = document.getElementById(`slider_${cardId}`);
+        const txtCur = document.getElementById(`time_current_${cardId}`);
+        const txtTotal = document.getElementById(`time_total_${cardId}`);
+
+        if (totalDur > 0) {
+            if (slider) {
+                slider.max = Math.floor(totalDur);
+                slider.value = Math.floor(curTime);
+            }
+            if (txtCur) txtCur.innerText = formatDurasi(curTime);
+            if (txtTotal) txtTotal.innerText = formatDurasi(totalDur);
         }
     }
 
     function kyyUserGeserTimeline(nilaiBaru) {
         isUserDragging = false;
-        // Penempatan Nilai Baru ke Alokasi Aliran Audio Hardware
-        kyyAudioEngine.currentTime = parseInt(nilaiBaru);
+        if (ytPlayer && ytPlayer.seekTo) {
+            ytPlayer.seekTo(parseInt(nilaiBaru), true);
+        }
+    }
+
+    function onPlayerStateChange(event) {
+        if (!currentActiveCardId) return;
+        const disc = document.getElementById(`disc_${currentActiveCardId}`);
+        const btn = document.getElementById(`btn_ctrl_${currentActiveCardId}`);
+
+        if (event.data === YT.PlayerState.PLAYING) {
+            if (disc) disc.classList.add('playing');
+            if (btn) btn.innerHTML = `<i class="fas fa-pause-circle" style="color: var(--accent-spotify);"></i>`;
+        } else {
+            if (disc) disc.classList.remove('playing');
+            if (btn) btn.innerHTML = `<i class="fas fa-play-circle" style="color: #fff;"></i>`;
+        }
     }
 
     function kyyBukaPopupKonfirmasi() { document.getElementById('kyy-modal-konfirmasi')?.classList.add('show'); }
     function kyyTutupPopupKonfirmasi() { document.getElementById('kyy-modal-konfirmasi')?.classList.remove('show'); }
     function kyyEksekusiHapusHistory() {
         localStorage.removeItem('kyy_music_history_modular');
-        kyyAudioEngine.pause();
-        kyyAudioEngine.src = "";
+        clearInterval(timerMuzik);
+        if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
         kyyCetakWelcome();
         kyyTutupPopupKonfirmasi();
     }

@@ -1,4 +1,3 @@
-// api/server.js - FIXED VERSION
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -20,56 +19,50 @@ export default async function handler(req, res) {
             kueriUser = kueriUser.split('youtu.be/')[1].split('?')[0];
         }
 
-        // 1. CARI DI YOUTUBE
-        const urlCari = `https://www.youtube.com/results?search_query=${encodeURIComponent(kueriUser + " official")}`;
-        const responYT = await fetch(urlCari, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-        });
-        const htmlMentah = await responYT.text();
-
-        const regexVideo = /"videoRenderer":{"videoId":"([^"]+)","thumbnail".*?"title":{"runs":\[{"text":"([^"]+)"}\]/g;
-        const hasilTrek = [];
-        let pencocokan;
+        // Query Odesli API untuk dapat Spotify ID + metadata
+        const odesliRes = await fetch(
+            `https://api.song.link/v1-alpha.1/search?q=${encodeURIComponent(kueriUser)}&type=track`
+        );
         
-        while ((pencocokan = regexVideo.exec(htmlMentah)) !== null && hasilTrek.length < 8) {
-            hasilTrek.push({
-                id: pencocokan[1],
-                judul: pencocokan[2],
-                source: 'youtube'
+        if (!odesliRes.ok) {
+            throw new Error('Odesli API error');
+        }
+
+        const odesliData = await odesliRes.json();
+        
+        if (!odesliData.tracks || odesliData.tracks.length === 0) {
+            return res.status(200).json({ 
+                success: false,
+                data: []
             });
         }
 
-        // 2. JIKA TIDAK KETEMU, CARI DI ODESLI (song.link API)
-        if (hasilTrek.length === 0) {
-            try {
-                const odesliRes = await fetch(
-                    `https://api.song.link/v1-alpha.1/search?q=${encodeURIComponent(kueriUser)}&type=track`,
-                    { method: 'GET' }
-                );
-                const odesliData = await odesliRes.json();
-                
-                if (odesliData.tracks && odesliData.tracks.length > 0) {
-                    odesliData.tracks.slice(0, 8).forEach((track, idx) => {
-                        hasilTrek.push({
-                            id: track.id,
-                            judul: `${track.artistName} - ${track.trackName}`,
-                            source: 'odesli',
-                            spotifyId: track.spotifyId,
-                            youtubeId: track.youtubeVideoId
-                        });
-                    });
-                }
-            } catch (e) {
-                console.log('Odesli API fallback failed', e);
+        // Extrak dari 8 hasil pertama
+        const hasilTrek = odesliData.tracks.slice(0, 8).map((track) => {
+            // Cari Spotify ID dari linksByPlatform
+            let spotifyId = null;
+            if (track.linksByPlatform?.spotify) {
+                const spotifyUrl = track.linksByPlatform.spotify;
+                // Extract ID dari URL: https://open.spotify.com/track/ID atau spotify:track:ID
+                spotifyId = spotifyUrl.split('/').pop()?.split('?')[0] || spotifyUrl.split(':').pop();
             }
-        }
+
+            return {
+                id: track.id || spotifyId, // Fallback ke spotify ID
+                judul: `${track.artistName} - ${track.trackName}`,
+                spotifyId: spotifyId,
+                cover: track.thumbnailUrl || null,
+                links: track.linksByPlatform || {}
+            };
+        });
 
         return res.status(200).json({ 
-            success: hasilTrek.length > 0, 
-            data: hasilTrek 
+            success: true,
+            data: hasilTrek
         });
 
     } catch (error) {
+        console.error('Error:', error);
         return res.status(500).json({ error: error.message });
     }
 }

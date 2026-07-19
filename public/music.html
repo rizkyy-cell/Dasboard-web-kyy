@@ -96,9 +96,6 @@
       flex-direction: column;
       gap: 6px;
       align-self: flex-start;
-      height: auto;
-      max-height: none;
-      overflow-y: visible;
     }
 
     .track-item-btn {
@@ -195,10 +192,13 @@
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: all 0.3s ease;
     }
     .kyy-overlay-kaca.show { opacity: 1; pointer-events: auto; backdrop-filter: blur(20px) saturate(180%); }
+
     .popup-glass-card { width: 85%; max-width: 290px; background: rgba(30, 44, 57, 0.8); border: 1px solid var(--glass-border); border-radius: 22px; padding: 22px 18px 14px 18px; text-align: center; }
     .popup-btn-container { margin-top: 20px; display: flex; gap: 10px; }
     .popup-btn { flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04); color: #ffffff; font-size: 14px; cursor: pointer; }
     .popup-btn-confirm { background: linear-gradient(135deg, #ff3b30, #d32f2f); border: none; }
+
+    .error-status { color: #ff3b30; font-size: 12px; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -237,10 +237,17 @@
 
   <script>
     const kyyAudioEngine = new Audio(); 
+    kyyAudioEngine.crossOrigin = "anonymous";
     let currentActiveCardId = null;
     let isUserDragging = false;
 
-    kyyAudioEngine.preload = "auto";
+    // PIPED API INSTANCES (fallback jika satu down)
+    const PIPED_INSTANCES = [
+      'https://piped-api.kavin.rocks',
+      'https://pipedapi.adminforge.de',
+      'https://piped-api.leptons.io'
+    ];
+    let currentPipedInstance = 0;
 
     function kyyGetNowTime() {
         const d = new Date(); let h = d.getHours(); let m = d.getMinutes();
@@ -329,7 +336,7 @@
                 
                 respon.data.forEach((trek) => {
                     htmlTombol += `
-                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${escape(trek.judul)}', '${trek.id}')">
+                        <button class="track-item-btn" onclick="kyyInitAudioPlayer('${trek.judul.replace(/'/g, "\\'")}', '${trek.id}')">
                             <i class="fas fa-play" style="color:var(--accent-spotify);"></i> 
                             <span>${trek.judul}</span>
                         </button>
@@ -349,15 +356,17 @@
         })
         .catch(err => {
             loadingBubble.remove();
-            console.error(err);
+            console.error('Error:', err);
+            const errorBubble = document.createElement('div');
+            errorBubble.className = 'bubble-base';
+            errorBubble.innerHTML = `❌ Koneksi error. Coba lagi.`;
+            scroller.appendChild(errorBubble);
         });
     }
 
-    function kyyInitAudioPlayer(judulEscaped, videoId) {
-        const judulAsli = unescape(judulEscaped);
+    // FUNGSI CORE: STREAM AUDIO DARI PIPED (RELIABLE)
+    async function kyyInitAudioPlayer(judulAsli, videoId) {
         const scroller = document.getElementById('kyy-music-scroller');
-        
-        const linkDownload = `https://www.y2mate.com/youtube/${videoId}`;
         const cardId = "card_" + new Date().getTime();
         
         currentActiveCardId = cardId;
@@ -396,55 +405,84 @@
                 <button class="control-play-pause-btn" id="btn_ctrl_${cardId}" onclick="kyyTogglePlayPause('${cardId}')">
                     <i class="fas fa-play-circle" style="color: #fff;"></i>
                 </button>
-                <a href="${linkDownload}" target="_blank" class="btn-download-kaca">
-                    <i class="fas fa-cloud-download" style="color: var(--accent-blue);"></i> Download MP3
+                <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(judulAsli)}" target="_blank" class="btn-download-kaca">
+                    <i class="fas fa-youtube" style="color: #ff0000;"></i> YouTube
                 </a>
             </div>
+            <div id="status_${cardId}"></div>
         `;
 
         scroller.appendChild(playerCard);
-
         setTimeout(() => {
             playerCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
 
+        // FETCH AUDIO DARI PIPED API
+        try {
+            const audioUrl = await kyyCariAudioStreamPiped(videoId, cardId);
+            
+            if (audioUrl) {
+                kyyAudioEngine.src = audioUrl;
+                kyyAudioEngine.load();
+                
+                kyyAudioEngine.onloadedmetadata = () => {
+                    const txtTotal = document.getElementById(`time_total_${cardId}`);
+                    const slider = document.getElementById(`slider_${cardId}`);
+                    if (txtTotal) txtTotal.innerText = formatDurasi(kyyAudioEngine.duration);
+                    if (slider) slider.max = Math.floor(kyyAudioEngine.duration);
+                };
+
+                kyyAudioEngine.ontimeupdate = () => {
+                    if (isUserDragging) return;
+                    const slider = document.getElementById(`slider_${cardId}`);
+                    const txtCur = document.getElementById(`time_current_${cardId}`);
+                    if (slider) slider.value = Math.floor(kyyAudioEngine.currentTime);
+                    if (txtCur) txtCur.innerText = formatDurasi(kyyAudioEngine.currentTime);
+                };
+
+                kyyAudioEngine.onerror = () => {
+                    const status = document.getElementById(`status_${cardId}`);
+                    if (status) status.innerHTML = `<div class="error-status">❌ Audio tidak bisa diputar</div>`;
+                };
+
+                kyyAudioEngine.onended = () => {
+                    kyyUbahVisualUI(cardId, false);
+                };
+
+                await kyyAudioEngine.play();
+                kyyUbahVisualUI(cardId, true);
+            }
+        } catch (error) {
+            console.error('Audio init error:', error);
+            const status = document.getElementById(`status_${cardId}`);
+            if (status) status.innerHTML = `<div class="error-status">❌ ${error.message}</div>`;
+        }
+
         localStorage.setItem('kyy_music_history_modular', scroller.innerHTML);
+    }
 
-        // CELAH UTAMA: TEMBAK DATA CDN MP3 DIRECT DARI REGION BEBAS BLOKIR JALUR PROXY UTARA
-        const urlStreamMentah = `https://tomp3.cc/api/server/convert?id=${videoId}`;
-
-        kyyAudioEngine.pause();
-        kyyAudioEngine.src = urlStreamMentah;
-        kyyAudioEngine.load();
-
-        kyyAudioEngine.onloadedmetadata = () => {
-            const txtTotal = document.getElementById(`time_total_${cardId}`);
-            const slider = document.getElementById(`slider_${cardId}`);
-            if (txtTotal) txtTotal.innerText = formatDurasi(kyyAudioEngine.duration);
-            if (slider) slider.max = Math.floor(kyyAudioEngine.duration);
-        };
-
-        kyyAudioEngine.ontimeupdate = () => {
-            if (isUserDragging) return;
-            const slider = document.getElementById(`slider_${cardId}`);
-            const txtCur = document.getElementById(`time_current_${cardId}`);
-            if (slider) slider.value = Math.floor(kyyAudioEngine.currentTime);
-            if (txtCur) txtCur.innerText = formatDurasi(kyyAudioEngine.currentTime);
-        };
-
-        kyyAudioEngine.onerror = () => {
-            // JIKA CDN STALL, AKTIFKAN LOGIKA SECONDARY BACKUP DIRECT STREAM DARI NODE GLOBAL
-            kyyAudioEngine.src = `https://y2mate.tools/download?id=${videoId}&type=mp3`;
-            kyyAudioEngine.load();
-        };
-
-        kyyAudioEngine.onended = () => {
-            kyyUbahVisualUI(cardId, false);
-        };
-
-        kyyAudioEngine.play()
-            .then(() => kyyUbahVisualUI(cardId, true))
-            .catch(() => kyyUbahVisualUI(cardId, false));
+    async function kyyCariAudioStreamPiped(videoId, cardId) {
+        for (let i = 0; i < PIPED_INSTANCES.length; i++) {
+            try {
+                const instance = PIPED_INSTANCES[currentPipedInstance % PIPED_INSTANCES.length];
+                const res = await fetch(`${instance}/streams/${videoId}`);
+                
+                if (!res.ok) throw new Error('API error');
+                const data = await res.json();
+                
+                // Cari audio stream dengan kualitas terbaik
+                const audioStreams = data.audioStreams?.filter(s => s.mimeType?.includes('audio'));
+                if (audioStreams && audioStreams.length > 0) {
+                    return audioStreams[0].url;
+                }
+                
+                currentPipedInstance++;
+            } catch (e) {
+                console.log(`Instance ${currentPipedInstance} failed, trying next...`);
+                currentPipedInstance++;
+            }
+        }
+        throw new Error('Tidak bisa mendapatkan stream audio');
     }
 
     function kyyTogglePlayPause(cardId) {

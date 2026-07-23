@@ -1204,6 +1204,34 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     .code-box-body .hl-comment { color: #6272a4; font-style: italic; } /* // komentar */
     .code-box-body .hl-type    { color: #8be9fd; } /* void, std::string, time_t */
 
+    /* ANIMASI SMOOTH UNTUK DESKRIPSI READ MORE */
+.desc-collapsible {
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease;
+}
+
+.desc-collapsible.short-active {
+    max-height: 100px;
+    opacity: 1;
+}
+
+.desc-collapsible.short-hidden {
+    max-height: 0px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.desc-collapsible.full-hidden {
+    max-height: 0px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.desc-collapsible.full-active {
+    max-height: 1000px; /* Nilai tampung tinggi maks deskripsi */
+    opacity: 1;
+}
+
   </style>
 </head>
 <body>
@@ -1663,34 +1691,137 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         renderAppList();
     }
 
-        function renderAppList() {
-        const container = document.getElementById('container-app-list');
-        if (!container) return;
-        if (dataAppLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Aplikasi kosong.</p>`; return; }
-        
-        container.innerHTML = '';
-        dataAppLokal.forEach(app => {
-            const namaAppStr = (app.nama_app || '').toLowerCase();
-            if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
-            
-            let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
-            
-            // ANTI-BUG: Kebal terhadap tanda kutip/simbol aneh dari Database
-            const namaAppSafe = (app.nama_app || '').replace(/'/g, "\\'");
-            const ukuranSafe = (app.ukuran || '').replace(/'/g, "\\'");
-            const linkDlSafe = (app.link_download || '').replace(/'/g, "\\'");
-
-            container.innerHTML += `
-                <div class="mod-box-item">
-                    <div class="mod-box-header">
-                        <div class="mod-box-title-group"><div class="mod-box-icon">${imgHtml}</div><div class="mod-box-name">${app.nama_app}</div></div>
-                        <div class="mod-box-size" style="background:none;"><span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; color:#fff;">${app.ukuran || 'N/A'}</span></div>
-                    </div>
-                    <div class="mod-box-desc">${app.deskripsi || 'No Description'}</div>
-                    <button class="mod-btn-download" onclick="triggerDownloadNotif('${namaAppSafe}', '${ukuranSafe}', '${linkDlSafe}')">Unduh File Mod</button>
-                </div>`;
-        });
+                function renderAppList() {
+    const container = document.getElementById('container-app-list');
+    if (!container) return;
+    if (dataAppLokal.length === 0) { 
+        container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Aplikasi kosong.</p>`; 
+        return; 
     }
+    
+    container.innerHTML = '';
+    dataAppLokal.forEach((app, index) => {
+        const namaAppStr = (app.nama_app || '').toLowerCase();
+        if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
+        
+        let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
+        
+        const namaAppSafe = (app.nama_app || '').replace(/'/g, "\\'");
+        const ukuranSafe = (app.ukuran || '').replace(/'/g, "\\'");
+        const linkDlSafe = (app.link_download || '').replace(/'/g, "\\'");
+
+        // Batas Karakter Deskripsi
+        let fullDesc = app.deskripsi || 'Tidak ada deskripsi.';
+        let isLong = fullDesc.length > 100;
+        let shortDesc = isLong ? fullDesc.substring(0, 100) + '...' : fullDesc;
+
+        // Data Modder Supabase dengan Fallback Aman
+        let devName = app.dev_name ? app.dev_name : '@rezky._kurniawan25';
+        let devLink = app.dev_link ? app.dev_link : 'https://t.me/rizky_kurniawan25';
+
+        container.innerHTML += `
+            <div class="mod-box-item" id="app-card-${app.id}">
+                <div class="mod-box-header">
+                    <div class="mod-box-title-group">
+                        <div class="mod-box-icon">${imgHtml}</div>
+                        <div class="mod-box-name">${app.nama_app}</div>
+                    </div>
+                    <div class="mod-box-size" style="background:none;">
+                        <span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; color:#fff;">${app.ukuran || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <!-- INFO PENGEMBANG MOD (SELALU DI ATAS DESKRIPSI) -->
+                <div style="margin-bottom: 6px; font-size: 12px;">
+                    <span style="color: var(--tg-text-muted);">Pengembang Mod: </span>
+                    <a href="${devLink}" target="_blank" style="color: var(--tg-accent); font-weight: bold; text-decoration: underline;">${devName}</a>
+                </div>
+
+                <!-- DESKRIPSI RINGKAS -->
+                <div class="mod-box-desc desc-collapsible short-active" id="short-desc-${index}">
+                    ${shortDesc}
+                    ${isLong ? `<span onclick="toggleReadMore(${index})" style="color:var(--tg-accent); font-weight:bold; cursor:pointer; margin-left:4px;">Read more</span>` : ''}
+                </div>
+
+                <!-- DESKRIPSI LENGKAP -->
+                <div class="mod-box-desc desc-collapsible full-hidden" id="full-desc-${index}">
+                    ${fullDesc}
+                    <div style="margin-top: 10px;">
+                        <span onclick="toggleReadMore(${index})" style="color:var(--tg-accent); font-weight:bold; cursor:pointer;">Read less</span>
+                    </div>
+                </div>
+
+                <!-- TOMBOL ACTION: UNDUH & SALIN LINK SHARE -->
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button class="mod-btn-download" style="flex: 1;" onclick="triggerDownloadNotif('${namaAppSafe}', '${ukuranSafe}', '${linkDlSafe}')">Unduh File Mod</button>
+                    <button onclick="salinLinkShareMod(${app.id}, '${namaAppSafe}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; width: 46px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;" title="Salin Link Share Mod">
+                        <i class="fas fa-share-alt" style="color: var(--tg-accent);"></i>
+                    </button>
+                </div>
+            </div>`;
+    });
+}
+
+              // FUNGSI UNTUK BUKA/TUTUP DESKRIPSI DENGAN ANIMASI SMOOTH
+    function toggleReadMore(index) {
+    const shortElem = document.getElementById(`short-desc-${index}`);
+    const fullElem = document.getElementById(`full-desc-${index}`);
+
+    if (shortElem && fullElem) {
+        if (fullElem.classList.contains('full-hidden')) {
+            // 1. Sembunyikan Ringkasan
+            shortElem.classList.remove('short-active');
+            shortElem.classList.add('short-hidden');
+
+            // 2. Hitung Tinggi Asli Konten & Buka Secara Presisi
+            fullElem.classList.remove('full-hidden');
+            fullElem.style.maxHeight = fullElem.scrollHeight + "px";
+            fullElem.style.opacity = "1";
+        } else {
+            // 1. Tutup Deskripsi Lengkap
+            fullElem.style.maxHeight = "0px";
+            fullElem.style.opacity = "0";
+            
+            setTimeout(() => {
+                fullElem.classList.add('full-hidden');
+            }, 300);
+
+            // 2. Tampilkan Kembali Ringkasan
+            shortElem.classList.remove('short-hidden');
+            shortElem.classList.add('short-active');
+        }
+    }
+}
+
+      // FUNGSI UNTUK MENYALIN LINK SHARE KHUSUS BANNER WA
+function salinLinkShareMod(appId, namaApp) {
+    const domainWeb = window.location.origin; // Mengambil domain vercel aktif
+    const shareUrl = `${domainWeb}/api/share?id=${appId}`;
+
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        const toast = document.getElementById('custom-toast');
+        const toastMsg = document.getElementById('toast-message');
+        if (toast && toastMsg) {
+            toastMsg.innerText = `Link Share ${namaApp} Berhasil Disalin!`;
+            toast.style.top = "20px";
+            setTimeout(() => { toast.style.top = "-100px"; }, 2500);
+        }
+    }).catch(err => {
+        console.error("Gagal menyalin link share: ", err);
+    });
+}
+
+// FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD DARI LINK WA
+function cekParamUrlShare() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const appIdTarget = urlParams.get('app_id');
+
+    if (appIdTarget) {
+        // Otomatis pindah ke Tab App Mod (Indeks Navigasi ke-1)
+        const navAppModBtn = document.querySelectorAll('.nav-item')[1];
+        switchNav('appmod', 1, navAppModBtn);
+    }
+}
 
     async function ambilDataStore() {
         const container = document.getElementById('container-store-list');
@@ -2578,8 +2709,14 @@ function batalMediaKyy() {
     // =====================================================================
         // Hapus window.onload, ganti jadi fungsi biasa ini:
         function bootSistem() {
-        ambilDataWeb(); ambilDataApp(); ambilDataStore();
-        muatSosmedDiPublik(); muatAnnouncementDiPublik(); muatNotifikasiInbox(); jalankanSystemMonitor();
+          ambilDataWeb(); 
+          ambilDataApp(); 
+          ambilDataStore();
+          muatSosmedDiPublik(); 
+          muatAnnouncementDiPublik(); 
+          muatNotifikasiInbox(); 
+          jalankanSystemMonitor();
+          cekParamUrlShare();
         
         const aiChatMessages = document.getElementById('ai-chat-messages');
         const layerChatAI = document.getElementById('layer-chat-ai');
@@ -2767,6 +2904,16 @@ function tutupViewProfileKyy() {
         const layerChatAI = document.getElementById('layer-chat-ai'); const aiChatMessages = document.getElementById('ai-chat-messages'); const aiDropdownMenu = document.getElementById('ai-dropdown-menu'); const customModal = document.getElementById('ai-custom-modal'); const aiInputTeks = document.getElementById('ai-input-teks'); const aiBtnSend = document.getElementById('ai-btn-send');
 
         document.getElementById('btn-tanya-cs')?.addEventListener('click', (e) => { e.preventDefault(); layerChatAI?.classList.replace('assistant-layer-hidden', 'assistant-layer-active'); if(aiChatMessages) aiChatMessages.scrollTop = aiChatMessages.scrollHeight; });
+
+              // =====================================================================
+        // FIX BUG: AMANKAN TOMBOL KEMBALI CHAT CS DARI CRASH / MACET
+        // =====================================================================
+        document.getElementById('ai-btn-kembali')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Menutup layer chat AI dan menyembunyikannya kembali ke bawah layar
+            layerChatAI?.classList.replace('assistant-layer-active', 'assistant-layer-hidden');
+        });
+
         
         document.getElementById('ai-btn-menu')?.addEventListener('click', (e) => { e.stopPropagation(); aiDropdownMenu?.classList.toggle('active'); });
         document.addEventListener('click', (e) => { if (aiDropdownMenu && !aiDropdownMenu.contains(e.target) && e.target.id !== 'ai-btn-menu') aiDropdownMenu.classList.remove('active'); });

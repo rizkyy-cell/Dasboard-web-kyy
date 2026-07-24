@@ -1,98 +1,37 @@
-// File: /api/share.js
-// Vercel Serverless Function - Dynamic Meta Tags & Static Banner Image
+// FUNGSI OTOMATIS BUKA TAB APP MOD DAN AUTO-SCROLL KE KARTU TARGET
+async function cekParamUrlShare() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const appIdTarget = urlParams.get('app_id');
 
-module.exports = async function handler(req, res) {
-  const { id } = req.query;
+    if (appIdTarget) {
+        // 1. Otomatis Pindah ke Tab App Mod (Indeks Navigasi ke-1)
+        const navAppModBtn = document.querySelectorAll('.nav-item')[1];
+        switchNav('appmod', 1, navAppModBtn);
 
-  const domainUtama = "https://jrxrezkyy-dashboard.vercel.app";
-  
-  // Gambar Banner Default dari folder public
-  const defaultBannerImage = `${domainUtama}/default-banner.jpg`;
+        // 2. Pastikan Data Aplikasi Supabase Selesai Ditarik & Di-render
+        await ambilDataApp();
 
-  // Teks default jika ID tidak diisi
-  let title = "Download Mod Aplikasi";
-  let desc = "Unduh Mod Premium Gratis di Dashboard Web Kyy!";
-  let targetUrl = `${domainUtama}/`;
-  let shareUrl = `${domainUtama}/api/share`;
+        // 3. Cari Elemen Kartu Aplikasi Berdasarkan ID Target
+        setTimeout(() => {
+            const targetCard = document.getElementById(`app-card-${appIdTarget}`);
+            if (targetCard) {
+                // Geser Layar Mulus Tepat ke Tengah Kartu Aplikasi Target
+                targetCard.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
 
-  if (id) {
-    targetUrl = `${domainUtama}/?app_id=${id}`;
-    shareUrl = `${domainUtama}/api/share?id=${id}`;
+                // Efek Glowing Sementara (Opsional: Memberikan Highlight Warna Aksen)
+                targetCard.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
+                targetCard.style.borderColor = 'var(--tg-accent)';
+                targetCard.style.boxShadow = '0 0 20px var(--tg-accent)';
 
-    try {
-      const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
-      const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
-
-      // Ambil data aplikasi berdasarkan ID dari Supabase
-      const apiUrl = `${SUPABASE_URL}/rest/v1/app_mods?id=eq.${id}&select=*`;
-      
-      const response = await fetch(apiUrl, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`
-        }
-      });
-
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        const app = data[0];
-
-        // 1. Ambil Nama Aplikasi dari Kolom 'nama_app'
-        if (app.nama_app) {
-          title = app.nama_app.replace(/<br\s*\/?>/gi, ' ').trim();
-        }
-
-        // 2. Ambil Deskripsi dari Kolom 'deskripsi'
-        if (app.deskripsi) {
-          let cleanDesc = app.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
-          desc = cleanDesc.length > 150 ? cleanDesc.substring(0, 150) + "..." : cleanDesc;
-        }
-      }
-    } catch (err) {
-      console.error("Gagal mengambil data dari Supabase:", err);
+                // Hilangkan Efek Glowing Setelah 2.5 Detik
+                setTimeout(() => {
+                    targetCard.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    targetCard.style.boxShadow = 'none';
+                }, 2500);
+            }
+        }, 350); // Jeda 350ms menunggu animasi slide tab selesai
     }
-  }
-
-  // Respon HTML khusus untuk WhatsApp Crawler
-  const htmlResponse = `<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title}</title>
-  
-  <!-- OPEN GRAPH META TAGS UNTUK WHATSAPP -->
-  <meta property="og:site_name" content="Dashboard Web Kyy" />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="${shareUrl}" />
-  <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${desc}" />
-  
-  <!-- GAMBAR BANNER STATIS -->
-  <meta property="og:image" content="${defaultBannerImage}" />
-  <meta property="og:image:secure_url" content="${defaultBannerImage}" />
-  <meta property="og:image:type" content="image/jpeg" />
-
-  <!-- TWITTER CARDS -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="${title}" />
-  <meta name="twitter:description" content="${desc}" />
-  <meta name="twitter:image" content="${defaultBannerImage}" />
-
-  <!-- AUTOMATIC REDIRECT KE DASHBOARD -->
-  <script>
-    setTimeout(function() {
-      window.location.href = "${targetUrl}";
-    }, 150);
-  </script>
-</head>
-<body style="background:#0e1621; color:#ffffff; font-family:sans-serif; text-align:center; padding-top:50px;">
-  <p>Membuka ${title}...</p>
-</body>
-</html>`;
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  return res.status(200).send(htmlResponse);
-};
+}

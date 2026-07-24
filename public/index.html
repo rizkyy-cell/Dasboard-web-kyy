@@ -1698,9 +1698,23 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Aplikasi kosong.</p>`; 
         return; 
     }
+
+    // 1. Ambil ID Target dari URL (?app_id=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    const appIdTarget = urlParams.get('app_id');
+
+    // 2. Jika ada app_id, lempar aplikasi target ke URUTAN PERTAMA (Paling Atas)
+    let appsToRender = [...dataAppLokal];
+    if (appIdTarget) {
+        const targetIndex = appsToRender.findIndex(app => String(app.id) === String(appIdTarget));
+        if (targetIndex > -1) {
+            const [targetApp] = appsToRender.splice(targetIndex, 1);
+            appsToRender.unshift(targetApp); // Otomatis naik ke posisi paling atas!
+        }
+    }
     
     container.innerHTML = '';
-    dataAppLokal.forEach((app, index) => {
+    appsToRender.forEach((app, index) => {
         const namaAppStr = (app.nama_app || '').toLowerCase();
         if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
         
@@ -1715,12 +1729,16 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         let isLong = fullDesc.length > 100;
         let shortDesc = isLong ? fullDesc.substring(0, 100) + '...' : fullDesc;
 
-        // Data Modder Supabase dengan Fallback Aman
+        // Data Modder Supabase
         let devName = app.dev_name ? app.dev_name : '@rezky._kurniawan25';
         let devLink = app.dev_link ? app.dev_link : 'https://t.me/rizky_kurniawan25';
 
+        // Efek Highlight/Glowing khusus jika aplikasi ini yang dibuka dari link share
+        const isTarget = String(app.id) === String(appIdTarget);
+        const styleHighlight = isTarget ? 'border: 2px solid var(--tg-accent); box-shadow: 0 0 18px var(--tg-accent);' : '';
+
         container.innerHTML += `
-            <div class="mod-box-item" id="app-card-${app.id}">
+            <div class="mod-box-item" id="app-card-${app.id}" style="${styleHighlight}">
                 <div class="mod-box-header">
                     <div class="mod-box-title-group">
                         <div class="mod-box-icon">${imgHtml}</div>
@@ -1731,7 +1749,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
                     </div>
                 </div>
 
-                <!-- INFO PENGEMBANG MOD (SELALU DI ATAS DESKRIPSI) -->
+                <!-- INFO PENGEMBANG MOD -->
                 <div style="margin-bottom: 6px; font-size: 12px;">
                     <span style="color: var(--tg-text-muted);">Pengembang Mod: </span>
                     <a href="${devLink}" target="_blank" style="color: var(--tg-accent); font-weight: bold; text-decoration: underline;">${devName}</a>
@@ -1751,7 +1769,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
                     </div>
                 </div>
 
-                <!-- TOMBOL ACTION: UNDUH & SALIN LINK SHARE -->
+                <!-- TOMBOL ACTION -->
                 <div style="display: flex; gap: 8px; margin-top: 10px;">
                     <button class="mod-btn-download" style="flex: 1;" onclick="triggerDownloadNotif('${namaAppSafe}', '${ukuranSafe}', '${linkDlSafe}')">Unduh File Mod</button>
                     <button onclick="salinLinkShareMod(${app.id}, '${namaAppSafe}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; width: 46px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;" title="Salin Link Share Mod">
@@ -1811,17 +1829,33 @@ function salinLinkShareMod(appId, namaApp) {
     });
 }
 
-// FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD DARI LINK WA
-function cekParamUrlShare() {
+// FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD DARI LINK WA (VERSI ASYNC)
+async function cekParamUrlShare() {
     const urlParams = new URLSearchParams(window.location.search);
     const appIdTarget = urlParams.get('app_id');
 
     if (appIdTarget) {
-        // Otomatis pindah ke Tab App Mod (Indeks Navigasi ke-1)
+        // 1. Pindah ke Tab App Mod (Indeks Navigasi ke-1)
         const navAppModBtn = document.querySelectorAll('.nav-item')[1];
         switchNav('appmod', 1, navAppModBtn);
+
+        // 2. Tarik Data Aplikasi dulu jika belum dimuat
+        if (dataAppLokal.length === 0) {
+            await ambilDataApp();
+        } else {
+            renderAppList();
+        }
+
+        // 3. Reset Posisi Scroll Layar langsung ke Paling Atas (0)
+        setTimeout(() => {
+            const pageAppMod = document.getElementById('page-appmod');
+            if (pageAppMod) {
+                pageAppMod.scrollTop = 0;
+            }
+        }, 100);
     }
 }
+
 
     async function ambilDataStore() {
         const container = document.getElementById('container-store-list');

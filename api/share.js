@@ -1,5 +1,5 @@
 // File: /api/share.js
-// Menggunakan REST API Native Fetch (Tanpa butuh library Supabase, 100% Anti Crash)
+// REST API Native Fetch + Meta Tag WhatsApp & Twitter Card Optimised
 
 module.exports = async function handler(req, res) {
   const { id } = req.query;
@@ -7,14 +7,16 @@ module.exports = async function handler(req, res) {
   const domainUtama = "https://jrxrezkyy-dashboard.vercel.app";
   const defaultImage = `${domainUtama}/profile.jpg`;
 
-  // Fallback jika ID tidak ada
   if (!id) {
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(`
       <!DOCTYPE html>
-      <html>
+      <html lang="id">
       <head>
+        <meta charset="UTF-8" />
+        <title>Dashboard Web Kyy</title>
         <meta property="og:title" content="Dashboard Web Kyy" />
+        <meta property="og:description" content="Kumpulan Tools dan Mod Aplikasi Premium." />
         <meta property="og:image" content="${defaultImage}" />
         <script>window.location.href = "${domainUtama}/";</script>
       </head>
@@ -24,10 +26,10 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Memanggil REST API Supabase langsung via fetch
     const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
     const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
 
+    // Ambil data langsung lewat REST API Supabase
     const apiUrl = `${SUPABASE_URL}/rest/v1/app_mods?id=eq.${id}&select=*`;
     
     const response = await fetch(apiUrl, {
@@ -40,7 +42,6 @@ module.exports = async function handler(req, res) {
     const data = await response.json();
     const app = (data && data.length > 0) ? data[0] : null;
 
-    // Nilai Default
     let title = "Download Mod Aplikasi";
     let desc = "Unduh Mod Premium Gratis di Dashboard Web Kyy!";
     let imageUrl = defaultImage;
@@ -48,7 +49,8 @@ module.exports = async function handler(req, res) {
     let shareUrl = `${domainUtama}/api/share?id=${id}`;
 
     if (app) {
-      title = app.nama_app ? app.nama_app.replace(/<br\s*\/?>/gi, ' ') : title;
+      // Clean Teks & HTML Br
+      title = app.nama_app ? app.nama_app.replace(/<br\s*\/?>/gi, ' ').trim() : title;
       
       if (app.deskripsi) {
         let cleanDesc = app.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
@@ -58,7 +60,7 @@ module.exports = async function handler(req, res) {
       if (app.img_url) {
         let rawUrl = app.img_url.replace(/<br\s*\/?>/gi, '').trim();
         
-        // Perbaikan otomatis domain ImgBB
+        // Konversi domain ImgBB ke CDN murni
         if (rawUrl.includes("ibb.co.com")) {
           rawUrl = rawUrl.replace("ibb.co.com", "ibb.co");
         }
@@ -67,6 +69,7 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // HTML Khusus dibaca oleh Crawler WhatsApp & Social Media
     const htmlResponse = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -74,7 +77,7 @@ module.exports = async function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title}</title>
   
-  <!-- OPEN GRAPH META TAGS DIBACA WHATSAPP -->
+  <!-- OPEN GRAPH META TAGS (WHATSAPP / TELEGRAM / FACEBOOK) -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${shareUrl}" />
   <meta property="og:title" content="${title}" />
@@ -85,9 +88,17 @@ module.exports = async function handler(req, res) {
   <meta property="og:image:width" content="300" />
   <meta property="og:image:height" content="300" />
 
-  <!-- AUTOMATIC REDIRECT KE DASHBOARD UTAMA -->
+  <!-- TWITTER CARDS (UNTUK PREVIEW WA & DOKUMEN TINGKAT DUA) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${desc}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+
+  <!-- REDIRECT PENGGUNA MANUSIA KE DASHBOARD -->
   <script>
-    window.location.href = "${targetUrl}";
+    setTimeout(function() {
+      window.location.href = "${targetUrl}";
+    }, 100);
   </script>
 </head>
 <body style="background:#0e1621; color:#ffffff; font-family:sans-serif; text-align:center; padding-top:50px;">
@@ -95,16 +106,16 @@ module.exports = async function handler(req, res) {
 </body>
 </html>`;
 
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(htmlResponse);
 
   } catch (err) {
-    // Jika ada error jaringan, tetap berikan respon aman agar tidak 500
-    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(`
       <!DOCTYPE html>
-      <html>
+      <html lang="id">
       <head>
+        <meta charset="UTF-8" />
         <meta property="og:title" content="Dashboard Web Kyy" />
         <meta property="og:image" content="${defaultImage}" />
         <script>window.location.href = "${domainUtama}/";</script>

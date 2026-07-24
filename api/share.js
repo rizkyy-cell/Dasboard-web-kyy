@@ -1,13 +1,11 @@
 // File: /api/share.js
-// Menggunakan REST API Native Fetch (Tanpa Pustaka Eksternal)
-
 module.exports = async function handler(req, res) {
   const { id } = req.query;
 
   const domainUtama = "https://jrxrezkyy-dashboard.vercel.app";
   
-  // 1. GAMBAR BANNER STATIS (Selalu pakai profile.jpg di Vercel agar 100% muncul)
-  const defaultBannerImage = `${domainUtama}/profile.jpg`;
+  // Menggunakan file default-banner.jpg dari folder public
+  const defaultBannerImage = `${domainUtama}/default-banner.jpg`;
 
   if (!id) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -31,7 +29,7 @@ module.exports = async function handler(req, res) {
     const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
     const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
 
-    // 2. AMBIL JUDUL DAN DESKRIPSI DARI DATABASE SUPABASE
+    // Ambil data dinamis dari Supabase
     const apiUrl = `${SUPABASE_URL}/rest/v1/app_mods?id=eq.${id}&select=*`;
     
     const response = await fetch(apiUrl, {
@@ -50,19 +48,15 @@ module.exports = async function handler(req, res) {
     let shareUrl = `${domainUtama}/api/share?id=${id}`;
 
     if (app) {
-      // Ambil Nama Aplikasi Dinamis
       if (app.nama_app) {
         title = app.nama_app.replace(/<br\s*\/?>/gi, ' ').trim();
       }
-      
-      // Ambil Deskripsi Aplikasi Dinamis
       if (app.deskripsi) {
         let cleanDesc = app.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
         desc = cleanDesc.length > 120 ? cleanDesc.substring(0, 120) + "..." : cleanDesc;
       }
     }
 
-    // 3. RENDER HTML OPEN GRAPH KHUSUS WHATSAPP
     const htmlResponse = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -70,19 +64,19 @@ module.exports = async function handler(req, res) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title}</title>
   
-  <!-- META TAG DINAMIS (JUDUL & DESKRIPSI) DAN STATIS (GAMBAR BANNER) -->
+  <!-- META TAG OPEN GRAPH METADATA -->
   <meta property="og:site_name" content="Dashboard Web Kyy" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="${shareUrl}" />
   <meta property="og:title" content="${title}" />
   <meta property="og:description" content="${desc}" />
   
-  <!-- GAMBAR BANNER UTAMA DARI REPO VERCEL -->
+  <!-- GAMBAR BANNER DEFAULT -->
   <meta property="og:image" content="${defaultBannerImage}" />
   <meta property="og:image:secure_url" content="${defaultBannerImage}" />
   <meta property="og:image:type" content="image/jpeg" />
 
-  <!-- TWITTER CARDS FOR LARGE DISPLAY -->
+  <!-- TWITTER CARDS -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title}" />
   <meta name="twitter:description" content="${desc}" />
@@ -100,7 +94,9 @@ module.exports = async function handler(req, res) {
 </body>
 </html>`;
 
+    // Mencegah cache agresif dari crawler
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     return res.status(200).send(htmlResponse);
 
   } catch (err) {

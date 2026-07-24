@@ -1,80 +1,63 @@
-// File: /api/share.js
-module.exports = async function handler(req, res) {
-  const { id } = req.query;
-  const domainUtama = "https://jrxrezkyy-dashboard.vercel.app";
-  const defaultImage = `${domainUtama}/profile.jpg`;
-
-  if (!id) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send(`<script>window.location.href="${domainUtama}/";</script>`);
-  }
-
-  try {
-    const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
-
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/app_mods?id=eq.${id}&select=*`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-    });
-
-    const data = await response.json();
-    const app = (data && data.length > 0) ? data[0] : null;
-
-    let title = "Download Mod Aplikasi";
-    let desc = "Unduh Mod Premium Gratis di Dashboard Web Kyy!";
-    let imageUrl = defaultImage;
-
-    if (app) {
-      title = app.nama_app ? app.nama_app.replace(/<br\s*\/?>/gi, ' ').trim() : title;
-      if (app.deskripsi) {
-        let cleanDesc = app.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
-        desc = cleanDesc.length > 120 ? cleanDesc.substring(0, 120) + "..." : cleanDesc;
-      }
-      if (app.img_url) {
-        let rawUrl = app.img_url.replace(/<br\s*\/?>/gi, '').trim();
-        
-        // PASTIIN LINK IMGBB DIBUAT JADI LINK GAMBAR MURNI
-        if (rawUrl.includes("ibb.co.com")) {
-          rawUrl = rawUrl.replace("ibb.co.com", "i.ibb.co");
-        } else if (rawUrl.includes("ibb.co") && !rawUrl.includes("i.ibb.co")) {
-          rawUrl = rawUrl.replace("ibb.co", "i.ibb.co");
-        }
-        imageUrl = rawUrl;
-      }
-    }
-
-    // HTML DENGAN META TAG OPEN GRAPH LENGKAP
-    const htmlResponse = `<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <title>${title}</title>
-  <meta property="og:site_name" content="Dashboard Web Kyy" />
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="${title}" />
-  <meta property="og:description" content="${desc}" />
-  <meta property="og:image" content="${imageUrl}" />
-  <meta property="og:image:secure_url" content="${imageUrl}" />
-  <meta property="og:image:width" content="300" />
-  <meta property="og:image:height" content="300" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:image" content="${imageUrl}" />
-  <script>
-    setTimeout(function() {
-      window.location.href = "${domainUtama}/?app_id=${id}";
-    }, 200);
-  </script>
-</head>
-<body style="background:#0e1621; color:#fff; text-align:center; padding-top:50px;">
-  <p>Membuka Dashboard Web Kyy...</p>
-</body>
-</html>`;
-
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send(htmlResponse);
-
-  } catch (err) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    return res.status(200).send(`<script>window.location.href="${domainUtama}/";</script>`);
+// Database sederhana / Map data App Mod berdasarkan ID
+const appsData = {
+  "7": {
+    title: "CAPCUT PRO",
+    description: "CapCut mod memberikan pengalaman yang lebih baik kepada pengguna dengan membuka fitur pro yang biasanya memerlukan pembayaran.",
+    downloadUrl: "https://jrxrezkyy-dashboard.vercel.app/download/capcut" // URL tujuan setelah user klik
+  },
+  "8": {
+    title: "LIGHTROOM PREMIUM",
+    description: "Unduh Lightroom Mod Premium Gratis dengan semua preset dan fitur unlocked.",
+    downloadUrl: "https://jrxrezkyy-dashboard.vercel.app/download/lightroom"
   }
 };
+
+export default function handler(req, res) {
+  const { id } = req.query;
+
+  // Ambil data berdasarkan ID, atau gunakan fallback jika ID tidak ditemukan
+  const app = appsData[id] || {
+    title: "Download Mod Aplikasi",
+    description: "Unduh Mod Premium Gratis di Dashboard Web Kyy!",
+    downloadUrl: "https://jrxrezkyy-dashboard.vercel.app"
+  };
+
+  // URL Gambar Banner Statis dari domain kamu (Wajib HTTPS & Absolute URL)
+  const defaultBannerUrl = "https://jrxrezkyy-dashboard.vercel.app/default-banner.jpg";
+
+  // Template HTML Open Graph untuk WhatsApp / Media Sosial
+  const html = `
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <!-- Open Graph Meta Tags -->
+      <meta property="og:title" content="${app.title}" />
+      <meta property="og:description" content="${app.description}" />
+      <meta property="og:image" content="${defaultBannerUrl}" />
+      <meta property="og:image:type" content="image/jpeg" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://jrxrezkyy-dashboard.vercel.app/api/share?id=${id}" />
+
+      <!-- Automatic Redirect ke halaman aplikasi asli saat dibuka di browser -->
+      <meta http-equiv="refresh" content="0;url=${app.downloadUrl}" />
+
+      <title>${app.title}</title>
+    </head>
+    <body>
+      <p>Mengalihkan ke ${app.title}...</p>
+      <script>
+        window.location.href = "${app.downloadUrl}";
+      </script>
+    </body>
+    </html>
+  `;
+
+  // Kirim respon berupa HTML
+  res.setHeader('Content-Type', 'text/html');
+  res.status(200).send(html);
+}

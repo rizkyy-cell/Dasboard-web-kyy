@@ -1473,18 +1473,11 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
           </p>
         </div>
 
-        <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none;">
-          <div style="display:flex; gap:8px; justify-content:center; margin-bottom:14px;">
-            <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
-            <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
-          </div>
-          <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
-          <div style="text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; display:flex; flex-direction:column; gap:10px;">
-            <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="infoUsername">-</b></div>
-            <div><span style="color:var(--tg-text-muted); font-size:11px;">Nama Display</span><br><b id="infoDisplayName">-</b></div>
-            <div><span style="color:var(--tg-text-muted); font-size:11px;">ID Permanen</span><br><b id="infoPermanentId">-</b></div>
-            <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="infoDevice">-</b></div>
-          </div>
+        <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none; text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; flex-direction:column; gap:10px;">
+          <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="infoUsername">-</b></div>
+          <div><span style="color:var(--tg-text-muted); font-size:11px;">Nama Display</span><br><b id="infoDisplayName">-</b></div>
+          <div><span style="color:var(--tg-text-muted); font-size:11px;">ID Permanen</span><br><b id="infoPermanentId">-</b></div>
+          <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="infoDevice">-</b></div>
         </div>
       </div>
     </div>
@@ -1558,6 +1551,39 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
         </div>
     </div>
+</div>
+
+      <div id="settingsPopupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); z-index:100010; display:none; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease;" onclick="tutupSettingsPopup()">
+  <div style="background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.15); border-top:1px solid rgba(255,255,255,0.3); border-left:1px solid rgba(255,255,255,0.2); padding:22px; border-radius:28px; width:85%; max-width:320px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5); transform:scale(0.85); transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275); max-height:80vh; overflow-y:auto;" onclick="event.stopPropagation()" id="settingsPopupBox">
+
+    <div style="width:90px; height:90px; border-radius:22px; overflow:hidden; margin:5px auto 15px auto; border:3px solid var(--tg-accent); box-shadow:0 8px 25px rgba(0,0,0,0.4);">
+      <img id="settingsPopupAvatar" src="" style="width:100%; height:100%; object-fit:cover;">
+    </div>
+
+    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
+      <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
+      <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
+    </div>
+    <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
+
+    <div id="editNameSection" style="text-align:left; margin-bottom:14px;">
+      <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Nama Display</span>
+      <div style="display:flex; gap:6px; margin-top:6px;">
+        <input type="text" id="inputNamaBaru" placeholder="Nama baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
+        <button onclick="simpanNamaBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+      </div>
+    </div>
+
+    <div id="editUsernameSection" style="text-align:left; margin-bottom:16px;">
+      <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Username (1x pakai)</span>
+      <div style="display:flex; gap:6px; margin-top:6px;">
+        <input type="text" id="inputUsernameBaru" placeholder="@username_baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
+        <button onclick="simpanUsernameBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+      </div>
+    </div>
+
+    <button onclick="tutupSettingsPopup()" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
+  </div>
 </div>
 
 <div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
@@ -1701,6 +1727,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       if (navAvatar) navAvatar.src = photo;
       loginArea.style.display = 'none';
       settingsBtn.style.display = 'flex';
+      infoArea.style.display = 'flex';
 
       document.getElementById('infoUsername').textContent = profile.username;
       document.getElementById('infoDisplayName').textContent = profile.display_name;
@@ -1708,9 +1735,50 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       document.getElementById('infoDevice').textContent = profile.device_login;
     }
 
-    function toggleProfileInfo() {
-      const info = document.getElementById('profileInfoArea');
-      info.style.display = (info.style.display === 'none') ? 'block' : 'none';
+    async function toggleProfileInfo() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+      const profile = await getOrCreateProfile(session.user);
+
+      document.getElementById('settingsPopupAvatar').src = document.getElementById('profileCardAvatar').src;
+
+      const userSection = document.getElementById('editUsernameSection');
+      userSection.style.display = profile.username_changed ? 'none' : 'block';
+
+      const modal = document.getElementById('settingsPopupModal');
+      modal.style.display = 'flex';
+      requestAnimationFrame(() => {
+        modal.style.opacity = '1';
+        document.getElementById('settingsPopupBox').style.transform = 'scale(1)';
+      });
+    }
+
+    function tutupSettingsPopup() {
+      const modal = document.getElementById('settingsPopupModal');
+      modal.style.opacity = '0';
+      document.getElementById('settingsPopupBox').style.transform = 'scale(0.85)';
+      setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    async function simpanNamaBaru() {
+      const val = document.getElementById('inputNamaBaru').value.trim();
+      if (!val) { alert('Nama gak boleh kosong'); return; }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+      await supabaseClient.from('user_profiles').update({ display_name: val }).eq('id', session.user.id);
+      renderProfileState(session);
+      document.getElementById('inputNamaBaru').value = '';
+    }
+
+    async function simpanUsernameBaru() {
+      let val = document.getElementById('inputUsernameBaru').value.trim();
+      if (!val) { alert('Username gak boleh kosong'); return; }
+      if (!val.startsWith('@')) val = '@' + val;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) return;
+      await supabaseClient.from('user_profiles').update({ username: val, username_changed: true }).eq('id', session.user.id);
+      renderProfileState(session);
+      document.getElementById('editUsernameSection').style.display = 'none';
     }
 
     async function loginWithGoogle() {

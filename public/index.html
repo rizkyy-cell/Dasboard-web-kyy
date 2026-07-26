@@ -260,7 +260,7 @@
     }
 
     /* PENYESUAIAN TEMA TERANG AGAR KACA TETAP MENGKILAP */
-        body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
+        .body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
     body.light-theme .nav-item { color: #64748b !important; }
     body.light-theme .nav-item.active { color: #1e293b !important; }
 
@@ -1451,26 +1451,45 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 
   <!-- PAGE 5: PROFIL ASLI LU -->
   <div class="page-content" id="page-profil">
-    <div class="vip-card" id="profileAuthCard" onclick="handleProfileCardClick()">
+    <div class="vip-card" id="profileAuthCard" style="position:relative;">
       <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity:0.25;"><source src="banner-profile-user.mp4" type="video/mp4"></video>
       <div style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; width:100%;">
+
+        <button id="profileSettingsBtn" onclick="toggleProfileInfo()" style="display:none; position:absolute; top:0; right:0; z-index:5; width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:15px; cursor:pointer; align-items:center; justify-content:center;">
+          <i class="fas fa-gear"></i>
+        </button>
+
         <div style="width:90px; height:90px; border-radius:22px; overflow:hidden; border:3px solid #00deff; margin-bottom:12px; box-shadow:0 5px 15px rgba(0,0,0,0.5);">
           <img id="profileCardAvatar" src="https://ui-avatars.com/api/?name=Guest&background=3390ec&color=fff" style="width:100%; height:100%; object-fit:cover;">
         </div>
         <div class="rgb-text" id="profileCardName" style="font-size:18px;">Guest</div>
 
         <div id="profileLoginArea" style="margin-top:10px; width:100%;">
-          <button onclick="event.stopPropagation(); loginWithGoogle()" style="width:100%; padding:12px; background:linear-gradient(135deg,#4285F4,#34A853); border:none; color:#fff; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <button onclick="loginWithGoogle()" style="width:100%; padding:12px; background:linear-gradient(135deg,#4285F4,#34A853); border:none; color:#fff; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
             <i class="fab fa-google"></i> Login dengan Google
           </button>
           <p style="font-size:11px; color:var(--tg-text-muted); line-height:1.5; margin-top:12px; padding:0 6px;">
             Login untuk membuka fitur <b>Chat dengan KYY Dev</b> <i>(coming soon)</i> dan menyimpan histori chat kamu tanpa disimpan lagi di local storage <i>(fitur ini menyusul)</i>.
           </p>
         </div>
+
+        <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none;">
+          <div style="display:flex; gap:8px; justify-content:center; margin-bottom:14px;">
+            <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
+            <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
+          </div>
+          <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
+          <div style="text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; display:flex; flex-direction:column; gap:10px;">
+            <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="infoUsername">-</b></div>
+            <div><span style="color:var(--tg-text-muted); font-size:11px;">Nama Display</span><br><b id="infoDisplayName">-</b></div>
+            <div><span style="color:var(--tg-text-muted); font-size:11px;">ID Permanen</span><br><b id="infoPermanentId">-</b></div>
+            <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="infoDevice">-</b></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  
+    
   <div class="bottom-nav-wrapper">
 
     <div class="nav-sliding-indicator" id="indicator"></div>
@@ -1539,30 +1558,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
         </div>
     </div>
-</div>
-
-<div id="accountInfoModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); z-index:100010; display:none; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease;" onclick="tutupAccountInfo()">
-  <div style="background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.15); border-top:1px solid rgba(255,255,255,0.3); border-left:1px solid rgba(255,255,255,0.2); padding:22px; border-radius:28px; width:85%; max-width:320px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5); transform:scale(0.85); transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275);" onclick="event.stopPropagation()" id="accountInfoBox">
-
-    <div style="width:100px; height:100px; border-radius:24px; overflow:hidden; margin:5px auto 15px auto; border:3px solid var(--tg-accent); box-shadow:0 8px 25px rgba(0,0,0,0.4);">
-      <img id="accountModalAvatar" src="" style="width:100%; height:100%; object-fit:cover;">
-    </div>
-
-    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:16px;">
-      <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
-      <button onclick="removeProfilePhoto()" style="flex:1; padding:8px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
-    </div>
-    <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
-
-    <div style="text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; display:flex; flex-direction:column; gap:10px;">
-      <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="accUsername">@guest</b></div>
-      <div><span style="color:var(--tg-text-muted); font-size:11px;">Nama Display</span><br><b id="accDisplayName">-</b></div>
-      <div><span style="color:var(--tg-text-muted); font-size:11px;">ID Permanen</span><br><b id="accPermanentId">-</b></div>
-      <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="accDevice">-</b></div>
-    </div>
-
-    <button onclick="tutupAccountInfo()" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer; margin-top:16px;">Tutup</button>
-  </div>
 </div>
 
 <div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
@@ -1683,6 +1678,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       const nameEl = document.getElementById('profileCardName');
       const avatarEl = document.getElementById('profileCardAvatar');
       const loginArea = document.getElementById('profileLoginArea');
+      const infoArea = document.getElementById('profileInfoArea');
+      const settingsBtn = document.getElementById('profileSettingsBtn');
       const navAvatar = document.getElementById('navProfilePic');
 
       if (!session) {
@@ -1690,6 +1687,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         avatarEl.src = 'https://ui-avatars.com/api/?name=Guest&background=3390ec&color=fff';
         if (navAvatar) navAvatar.src = 'profile.jpg';
         loginArea.style.display = 'block';
+        infoArea.style.display = 'none';
+        settingsBtn.style.display = 'none';
         return;
       }
 
@@ -1701,6 +1700,17 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       avatarEl.src = photo;
       if (navAvatar) navAvatar.src = photo;
       loginArea.style.display = 'none';
+      settingsBtn.style.display = 'flex';
+
+      document.getElementById('infoUsername').textContent = profile.username;
+      document.getElementById('infoDisplayName').textContent = profile.display_name;
+      document.getElementById('infoPermanentId').textContent = profile.permanent_id;
+      document.getElementById('infoDevice').textContent = profile.device_login;
+    }
+
+    function toggleProfileInfo() {
+      const info = document.getElementById('profileInfoArea');
+      info.style.display = (info.style.display === 'none') ? 'block' : 'none';
     }
 
     async function loginWithGoogle() {
@@ -1716,8 +1726,13 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 
     function detectDevice() {
       const ua = navigator.userAgent;
-      const m = ua.match(/\(([^)]+)\)/);
-      return m ? m[1].split(';')[0].trim() : ua.split(' ')[0];
+      const android = ua.match(/Android[^;]*;\s*([^)]+)\)/);
+      if (android) {
+        return android[1].split(';').pop().split('Build/')[0].trim();
+      }
+      const ios = ua.match(/\((iPhone|iPad)[^)]*OS\s([\d_]+)/);
+      if (ios) return ios[1] + ' (iOS ' + ios[2].replace(/_/g, '.') + ')';
+      return navigator.platform || 'Unknown Device';
     }
 
     async function getOrCreateProfile(user) {
@@ -1737,36 +1752,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       return profile;
     }
 
-    async function handleProfileCardClick() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) return; // guest: tombol login yang jalan, bukan klik card
-      await bukaAccountInfo(session);
-    }
-
-    async function bukaAccountInfo(session) {
-      const user = session.user;
-      const profile = await getOrCreateProfile(user);
-      document.getElementById('accountModalAvatar').src = profile.photo_url || user.user_metadata?.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.display_name));
-      document.getElementById('accUsername').textContent = profile.username;
-      document.getElementById('accDisplayName').textContent = profile.display_name;
-      document.getElementById('accPermanentId').textContent = profile.permanent_id;
-      document.getElementById('accDevice').textContent = profile.device_login;
-
-      const modal = document.getElementById('accountInfoModal');
-      modal.style.display = 'flex';
-      requestAnimationFrame(() => {
-        modal.style.opacity = '1';
-        document.getElementById('accountInfoBox').style.transform = 'scale(1)';
-      });
-    }
-
-    function tutupAccountInfo() {
-      const modal = document.getElementById('accountInfoModal');
-      modal.style.opacity = '0';
-      document.getElementById('accountInfoBox').style.transform = 'scale(0.85)';
-      setTimeout(() => modal.style.display = 'none', 300);
-    }
-
     async function uploadProfilePhoto(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1781,7 +1766,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       const { data: urlData } = supabaseClient.storage.from('profile-photos').getPublicUrl(filePath);
       await supabaseClient.from('user_profiles').update({ photo_url: urlData.publicUrl }).eq('id', user.id);
 
-      await bukaAccountInfo(session);
       renderProfileState(session);
     }
 
@@ -1789,12 +1773,10 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) return;
       await supabaseClient.from('user_profiles').update({ photo_url: null }).eq('id', session.user.id);
-      await bukaAccountInfo(session);
       renderProfileState(session);
     }
 
     initProfileAuth();
-
     let dataWebLokal = [];
     let dataAppLokal = [];
     let dataStoreLokal = [];

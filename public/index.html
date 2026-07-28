@@ -1535,73 +1535,80 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         </video>
     </div>
 
+        <!-- ========================================== -->
+    <!-- 1. POP-UP SETTINGS & PROFIL (DILUAR LAYER CHAT) -->
+    <!-- ========================================== -->
+    <div id="settingsPopupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); z-index:100010; display:none; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease;" onclick="tutupSettingsPopup()">
+      <div style="background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.15); border-top:1px solid rgba(255,255,255,0.3); border-left:1px solid rgba(255,255,255,0.2); padding:22px; border-radius:28px; width:85%; max-width:320px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5); transform:scale(0.85); transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275); max-height:80vh; overflow-y:auto;" onclick="event.stopPropagation()" id="settingsPopupBox">
+
+        <div style="width:90px; height:90px; border-radius:22px; overflow:hidden; margin:5px auto 15px auto; border:3px solid var(--tg-accent); box-shadow:0 8px 25px rgba(0,0,0,0.4);">
+          <img id="settingsPopupAvatar" src="" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
+          <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
+          <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
+        </div>
+        <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
+
+        <div id="editNameSection" style="text-align:left; margin-bottom:14px;">
+          <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Nama Display</span>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <input type="text" id="inputNamaBaru" placeholder="Nama baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
+            <button onclick="simpanNamaBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+          </div>
+        </div>
+
+        <div id="editUsernameSection" style="text-align:left; margin-bottom:16px;">
+          <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Username (1x pakai)</span>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <input type="text" id="inputUsernameBaru" placeholder="@username_baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
+            <button onclick="simpanUsernameBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+          </div>
+        </div>
+
+        <button onclick="tutupSettingsPopup()" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
+      </div>
+    </div>
+
+    <div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
+        <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255,255,255,0.15); border-top: 1px solid rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 28px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onclick="event.stopPropagation()">
+            
+            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 10px auto 20px auto; border: 4px solid var(--tg-accent); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
+                <img id="kyyBigAvatar" src="profile-cs.jpg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
+            </div>
+            
+            <h3 style="color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px;">KYY CS</h3>
+            <p style="color: var(--tg-accent); font-size: 12px; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px;">OFFICIAL ASSISTANT</p>
+            <p style="color: var(--tg-text-muted); font-size: 13px; line-height: 1.5; padding: 0 10px; margin-bottom: 20px;">Sistem kecerdasan buatan otomatis yang siap melayani kebutuhan informasi seputar aplikasi mod dan coding.</p>
+            
+            <button onclick="tutupViewProfileKyy()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s;">Tutup</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. LAYER CHAT AI -->
+    <!-- ========================================== -->
     <div id="layer-chat-ai" class="assistant-layer-hidden">
 
-  
-     <!-- MODAL KONFIRMASI HAPUS CHAT (LIQUID GLASS STYLE) -->
-<div class="ai-modal-overlay" id="ai-custom-modal">
-    <div class="ai-modal-box">
-        <div class="ai-modal-icon">
-            <i class="fas fa-trash-alt"></i>
-        </div>
-        <h3 style="margin-bottom: 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">Hapus Riwayat?</h3>
-        <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">Semua obrolan dengan KYY CS akan dihapus permanen dari room chat ini.</p>
-        <div class="ai-modal-buttons">
-            <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
-            <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
-        </div>
-    </div>
-</div>
-
-      <div id="settingsPopupModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px); z-index:100010; display:none; align-items:center; justify-content:center; opacity:0; transition:opacity .3s ease;" onclick="tutupSettingsPopup()">
-  <div style="background:linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.15); border-top:1px solid rgba(255,255,255,0.3); border-left:1px solid rgba(255,255,255,0.2); padding:22px; border-radius:28px; width:85%; max-width:320px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.5); transform:scale(0.85); transition:transform .3s cubic-bezier(0.175,0.885,0.32,1.275); max-height:80vh; overflow-y:auto;" onclick="event.stopPropagation()" id="settingsPopupBox">
-
-    <div style="width:90px; height:90px; border-radius:22px; overflow:hidden; margin:5px auto 15px auto; border:3px solid var(--tg-accent); box-shadow:0 8px 25px rgba(0,0,0,0.4);">
-      <img id="settingsPopupAvatar" src="" style="width:100%; height:100%; object-fit:cover;">
-    </div>
-
-    <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
-      <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
-      <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
-    </div>
-    <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
-
-    <div id="editNameSection" style="text-align:left; margin-bottom:14px;">
-      <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Nama Display</span>
-      <div style="display:flex; gap:6px; margin-top:6px;">
-        <input type="text" id="inputNamaBaru" placeholder="Nama baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
-        <button onclick="simpanNamaBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
-      </div>
-    </div>
-
-    <div id="editUsernameSection" style="text-align:left; margin-bottom:16px;">
-      <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Username (1x pakai)</span>
-      <div style="display:flex; gap:6px; margin-top:6px;">
-        <input type="text" id="inputUsernameBaru" placeholder="@username_baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
-        <button onclick="simpanUsernameBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
-      </div>
-    </div>
-
-    <button onclick="tutupSettingsPopup()" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
-  </div>
-</div>
-
-<div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
-    <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255,255,255,0.15); border-top: 1px solid rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 28px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onclick="event.stopPropagation()">
-        
-        <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 10px auto 20px auto; border: 4px solid var(--tg-accent); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
-            <img id="kyyBigAvatar" src="profile-cs.jpg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-        </div>
-        
-        <h3 style="color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px;">KYY CS</h3>
-        <p style="color: var(--tg-accent); font-size: 12px; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px;">OFFICIAL ASSISTANT</p>
-        <p style="color: var(--tg-text-muted); font-size: 13px; line-height: 1.5; padding: 0 10px; margin-bottom: 20px;">Sistem kecerdasan buatan otomatis yang siap melayani kebutuhan informasi seputar aplikasi mod dan coding.</p>
-        
-        <button onclick="tutupViewProfileKyy()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s;">Tutup</button>
+        <!-- MODAL KONFIRMASI HAPUS CHAT -->
+        <div class="ai-modal-overlay" id="ai-custom-modal">
+            <div class="ai-modal-box">
+                <div class="ai-modal-icon">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h3 style="margin-bottom: 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">Hapus Riwayat?</h3>
+                <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">Semua obrolan dengan KYY CS akan dihapus permanen dari room chat ini.</p>
+                <div class="ai-modal-buttons">
+                    <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
+                    <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
+                </div>
             </div>
-          </div>
+        </div>
 
-    <header class="ai-header-glass">
+        <header class="ai-header-glass">
+          <!-- ... Sisa kode header dan room chat ... -->
+
       <div class="ai-header-left">
         <div class="ai-back-container" id="ai-btn-kembali">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
@@ -1678,6 +1685,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     <input type="hidden" id="currentAiModeTracker" value="biasa">
 </div>
 
+      
     <script>
     // =====================================================================
     // 0. PELINDUNG ANTI-CRASH (Melacak jika ada error tersembunyi)
@@ -1731,27 +1739,49 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 
       document.getElementById('infoUsername').textContent = profile.username;
       document.getElementById('infoDisplayName').textContent = profile.display_name;
-      document.getElementById('infoPermanentId').textContent = profile.permanent_id;
+            document.getElementById('infoPermanentId').textContent = profile.permanent_id;
       document.getElementById('infoDevice').textContent = profile.device_login;
     }
 
-    async function toggleProfileInfo() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) return;
-      const profile = await getOrCreateProfile(session.user);
+    // ▼▼▼ PASTE KODE BARU DI SINI ▼▼▼
+        async function toggleProfileInfo() {
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session) {
+          alert("Silakan login dengan Google terlebih dahulu untuk mengubah pengaturan profil!");
+          return;
+        }
 
-      document.getElementById('settingsPopupAvatar').src = document.getElementById('profileCardAvatar').src;
+        const profile = await getOrCreateProfile(session.user);
 
-      const userSection = document.getElementById('editUsernameSection');
-      userSection.style.display = profile.username_changed ? 'none' : 'block';
+        const avatarSetting = document.getElementById('settingsPopupAvatar');
+        const avatarCard = document.getElementById('profileCardAvatar');
+        if (avatarSetting && avatarCard) {
+          avatarSetting.src = avatarCard.src;
+        }
 
-      const modal = document.getElementById('settingsPopupModal');
-      modal.style.display = 'flex';
-      requestAnimationFrame(() => {
-        modal.style.opacity = '1';
-        document.getElementById('settingsPopupBox').style.transform = 'scale(1)';
-      });
+        const userSection = document.getElementById('editUsernameSection');
+        if (userSection) {
+          userSection.style.display = profile.username_changed ? 'none' : 'block';
+        }
+
+        const modal = document.getElementById('settingsPopupModal');
+        const modalBox = document.getElementById('settingsPopupBox');
+        
+        if (modal && modalBox) {
+          modal.style.display = 'flex';
+          requestAnimationFrame(() => {
+            modal.style.opacity = '1';
+            modalBox.style.transform = 'scale(1)';
+          });
+        }
+      } catch (error) {
+        console.error("Gagal menampilkan popup pengaturan profil:", error);
+      }
     }
+
+    // ▲▲▲ SELESAI PASTE ▲▲▲
 
     function tutupSettingsPopup() {
       const modal = document.getElementById('settingsPopupModal');
@@ -1834,7 +1864,11 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
       const { data: urlData } = supabaseClient.storage.from('profile-photos').getPublicUrl(filePath);
       await supabaseClient.from('user_profiles').update({ photo_url: urlData.publicUrl }).eq('id', user.id);
 
+      const popupAvatar = document.getElementById('settingsPopupAvatar');
+      if (popupAvatar) popupAvatar.src = urlData.publicUrl;
+
       renderProfileState(session);
+      alert('Foto berhasil diganti!');
     }
 
     async function removeProfilePhoto() {

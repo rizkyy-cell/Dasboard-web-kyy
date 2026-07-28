@@ -176,6 +176,31 @@
     .glass-popup-overlay.hidden { display: none !important; opacity: 0; }
     .glass-popup-card { background: rgba(17, 24, 39, 0.9); border: 1px solid rgba(255, 255, 255, 0.2); padding: 25px; border-radius: 24px; text-align: center; max-width: 320px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.8); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* ==== SKELETON LOADING (iOS-style shimmer) ==== */
+    .skeleton-card { display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:10px; border-radius:16px; background:rgba(255,255,255,0.04); }
+    .skeleton-avatar { width:44px; height:44px; border-radius:12px; flex-shrink:0; }
+    .skeleton-lines { flex:1; display:flex; flex-direction:column; gap:8px; }
+    .skeleton-line { height:11px; border-radius:6px; }
+    .skeleton-line.short { width:40%; }
+    .skeleton-avatar, .skeleton-line {
+        background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 37%, rgba(255,255,255,0.06) 63%);
+        background-size: 400% 100%;
+        animation: skeletonShimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+    /* ==== ERROR / RETRY STATE ==== */
+    .fetch-error-box { text-align:center; padding:30px 20px; color:var(--tg-text-muted); animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275); }
+    .fetch-error-box i { font-size:28px; margin-bottom:10px; display:block; opacity:0.6; }
+    .btn-retry-fetch { margin-top:14px; padding:10px 22px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#fff; border-radius:14px; font-weight:700; font-size:13px; cursor:pointer; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease; }
+    .btn-retry-fetch:active { transform: scale(0.94); background:rgba(255,255,255,0.12); }
+
+    /* ==== TOMBOL PROFILE/SETTINGS: FEEDBACK TAP IOS ==== */
+    .ios-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), filter 0.15s ease, opacity 0.15s ease; }
+    .ios-btn:active { transform: scale(0.93); filter: brightness(0.9); }
+
+
     .popup-title { font-size: 20px; font-weight: 800; color: white; margin-bottom: 10px; }
     .popup-desc { font-size: 14px; color: #D1D5DB; margin-bottom: 22px; line-height: 1.5; }
     .popup-actions { display: flex; gap: 12px; justify-content: center; }
@@ -1449,13 +1474,13 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     </div>
   </div>
 
-  <!-- PAGE 5: PROFIL ASLI LU -->
+  <!-- PAGE 5: PROFILe ASLI LU -->
   <div class="page-content" id="page-profil">
     <div class="vip-card" id="profileAuthCard" style="position:relative;">
       <video autoplay loop muted playsinline webkit-playsinline class="header-video" style="opacity:0.25;"><source src="banner-profile-user.mp4" type="video/mp4"></video>
       <div style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; width:100%;">
 
-        <button id="profileSettingsBtn" onclick="toggleProfileInfo()" style="display:none; position:absolute; top:0; right:0; z-index:5; width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:15px; cursor:pointer; align-items:center; justify-content:center;">
+        <button id="profileSettingsBtn" class="ios-btn" onclick="toggleProfileInfo()" style="display:none; position:absolute; top:0; right:0; z-index:5; width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:15px; cursor:pointer; align-items:center; justify-content:center;">
           <i class="fas fa-gear"></i>
         </button>
 
@@ -1465,7 +1490,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         <div class="rgb-text" id="profileCardName" style="font-size:18px;">Guest</div>
 
         <div id="profileLoginArea" style="margin-top:10px; width:100%;">
-          <button onclick="loginWithGoogle()" style="width:100%; padding:12px; background:linear-gradient(135deg,#4285F4,#34A853); border:none; color:#fff; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <button onclick="loginWithGoogle()" class="ios-btn" style="width:100%; padding:12px; background:linear-gradient(135deg,#4285F4,#34A853); border:none; color:#fff; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
             <i class="fab fa-google"></i> Login dengan Google
           </button>
           <p style="font-size:11px; color:var(--tg-text-muted); line-height:1.5; margin-top:12px; padding:0 6px;">
@@ -1494,7 +1519,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     
     </div>
     <div class="nav-item" onclick="switchNav('settings', 3, this)"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0 0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span class="nav-label">Setting</span></div>
-    <div class="nav-item" onclick="switchNav('profil', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img id="navProfilePic" src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profil</span></div>
+    <div class="nav-item" onclick="switchNav('profile', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img id="navProfilePic" src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profile</span></div>
   </div>
 
   <!-- POP-UP GLASSMORPHISM DOWNLOAD & BELI -->
@@ -1546,8 +1571,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         </div>
 
         <div style="display:flex; gap:8px; justify-content:center; margin-bottom:18px;">
-          <button onclick="document.getElementById('photoUploadInput').click()" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
-          <button onclick="removeProfilePhoto()" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
+          <button onclick="document.getElementById('photoUploadInput').click()" class="ios-btn" style="flex:1; padding:9px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-camera"></i> Ganti Foto</button>
+          <button onclick="removeProfilePhoto()" class="ios-btn" style="flex:1; padding:9px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:10px; font-size:11px; font-weight:700; cursor:pointer;"><i class="fas fa-trash"></i> Hapus Foto</button>
         </div>
         <input type="file" id="photoUploadInput" accept="image/*" style="display:none;" onchange="uploadProfilePhoto(event)">
 
@@ -1555,7 +1580,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
           <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Nama Display</span>
           <div style="display:flex; gap:6px; margin-top:6px;">
             <input type="text" id="inputNamaBaru" placeholder="Nama baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
-            <button onclick="simpanNamaBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+            <button onclick="simpanNamaBaru()" class="ios-btn" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
           </div>
         </div>
 
@@ -1563,11 +1588,11 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
           <span style="color:var(--tg-text-muted); font-size:11px;">Ubah Username (1x pakai)</span>
           <div style="display:flex; gap:6px; margin-top:6px;">
             <input type="text" id="inputUsernameBaru" placeholder="@username_baru" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.15); background:rgba(0,0,0,0.25); color:#fff; font-size:13px;">
-            <button onclick="simpanUsernameBaru()" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
+            <button onclick="simpanUsernameBaru()" class="ios-btn" style="padding:8px 14px; background:var(--tg-accent); border:none; border-radius:10px; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">Simpan</button>
           </div>
         </div>
 
-        <button onclick="tutupSettingsPopup()" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
+        <button onclick="tutupSettingsPopup()" class="ios-btn" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
       </div>
     </div>
 
@@ -1889,12 +1914,24 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     // =====================================================================
     // 2. SISTEM TARIK DATA PINTAR (ANTI-LAG & CACHING)
     // =====================================================================
+    function tampilkanSkeleton(container, jumlah = 4) {
+        let html = '';
+        for (let i = 0; i < jumlah; i++) {
+            html += `<div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line short"></div></div></div>`;
+        }
+        container.innerHTML = html;
+    }
+
     async function ambilDataWeb() {
         const container = document.getElementById('container-web-list');
         if (!container) return;
         if (dataWebLokal.length === 0) {
+            tampilkanSkeleton(container);
             const { data, error } = await supabaseClient.from('web_saya').select('*').order('id', { ascending: false });
-            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted);">Gagal memuat data web.</p>`; return; }
+            if (error || !data) {
+                container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat data web.<br><button class="btn-retry-fetch" onclick="ambilDataWeb()">Coba Lagi</button></div>`;
+                return;
+            }
             dataWebLokal = data; 
         }
         renderHomeList();
@@ -1938,9 +1975,12 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         const container = document.getElementById('container-app-list');
         if (!container) return;
         if (dataAppLokal.length === 0) {
+            tampilkanSkeleton(container);
             const { data, error } = await supabaseClient.from('app_mods').select('*').order('id', { ascending: false });
-            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat aplikasi.
-            <br> Cek koneksi internet anda.</p>`; return; }
+            if (error || !data) {
+                container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat aplikasi.<br>Cek koneksi internet anda.<br><button class="btn-retry-fetch" onclick="ambilDataApp()">Coba Lagi</button></div>`;
+                return;
+            }
             dataAppLokal = data; 
         }
         renderAppList();
@@ -2116,8 +2156,12 @@ async function cekParamUrlShare() {
         const container = document.getElementById('container-store-list');
         if (!container) return;
         if (dataStoreLokal.length === 0) {
+            tampilkanSkeleton(container);
             const { data, error } = await supabaseClient.from('store_products').select('*').order('id', { ascending: false });
-            if (error || !data) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Gagal memuat etalase. <br>Cek koneksi internet anda</b></p>`; return; }
+            if (error || !data) {
+                container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat etalase.<br>Cek koneksi internet anda.<br><button class="btn-retry-fetch" onclick="ambilDataStore()">Coba Lagi</button></div>`;
+                return;
+            }
             dataStoreLokal = data;
         }
         renderStoreList();
@@ -2211,6 +2255,16 @@ async function cekParamUrlShare() {
         if (page === 'home') ambilDataWeb();
         if (page === 'appmod') ambilDataApp();
         if (page === 'store') ambilDataStore();
+
+        // Hemat performa: video cuma main di tab yang lagi aktif
+        document.querySelectorAll('.header-video').forEach(vid => {
+            const parentPage = vid.closest('.page-content');
+            if (parentPage && parentPage.id === 'page-' + page) {
+                vid.play().catch(() => {});
+            } else {
+                vid.pause();
+            }
+        });
     }
 
     function searchKarya(val) { 
@@ -3006,6 +3060,12 @@ function batalMediaKyy() {
           muatNotifikasiInbox(); 
           jalankanSystemMonitor();
           cekParamUrlShare();
+
+          // Hemat performa: video di tab non-aktif (Settings/Profil) dipause dari awal
+          document.querySelectorAll('.header-video').forEach(vid => {
+              const parentPage = vid.closest('.page-content');
+              if (!parentPage || !parentPage.classList.contains('active')) vid.pause();
+          });
         
         const aiChatMessages = document.getElementById('ai-chat-messages');
         const layerChatAI = document.getElementById('layer-chat-ai');
@@ -3132,7 +3192,7 @@ function tutupViewProfileKyy() {
             }); 
         });
        
-        let swipeStartX = 0; let swipeStartY = 0; const arrayHalaman = ['home', 'appmod', 'store', 'settings', 'profil'];
+        let swipeStartX = 0; let swipeStartY = 0; const arrayHalaman = ['home', 'appmod', 'store', 'settings', 'profile'];
         document.addEventListener('touchstart', (e) => {
             if (e.target.closest('.bottom-nav-wrapper') || e.target.closest('#layer-chat-ai') || e.target.closest('input') || e.target.closest('button') || e.target.closest('.theme-switch') || e.target.closest('.music-player-widget')) return;
             swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY;

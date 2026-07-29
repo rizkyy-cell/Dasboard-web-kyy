@@ -17,13 +17,12 @@
   <meta name="twitter:title" 
     content="Dashboard Web Kyy">
   <meta name="twitter:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & Ios.">
-  <meta name="twitter:image" content="https://dasboard-web-kyy.vercel.app/profile.jpg">
+  <meta name="twitter:image" content="https://jrxrezkyy-dashboard.vercel.app/profile.jpg">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 
   <style>
     /* VARIABEL TEMA WARNA AKSEN */
@@ -1491,7 +1490,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 
         <div id="profileLoginArea" style="margin-top:10px; width:100%;">
           <button onclick="loginWithGoogle()" class="ios-btn" style="width:100%; padding:12px; background:linear-gradient(135deg,#4285F4,#34A853); border:none; color:#fff; border-radius:14px; font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <i class="fab fa-google"></i> Login dengan Google
+            <i class="fab fa-google"></i> Login With Google
           </button>
           <p style="font-size:11px; color:var(--tg-text-muted); line-height:1.5; margin-top:12px; padding:0 6px;">
             Login untuk membuka fitur <b>Chat dengan KYY Dev</b> <i>(coming soon)</i> dan menyimpan histori chat kamu tanpa disimpan lagi di local storage <i>(fitur ini menyusul)</i>.
@@ -1500,8 +1499,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
 
         <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none; text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; flex-direction:column; gap:10px;">
           <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="infoUsername">-</b></div>
-          <div><span style="color:var(--tg-text-muted); font-size:11px;">Nama Display</span><br><b id="infoDisplayName">-</b></div>
-          <div><span style="color:var(--tg-text-muted); font-size:11px;">ID Permanen</span><br><b id="infoPermanentId">-</b></div>
+          <div><span style="color:var(--tg-text-muted); font-size:11px;">Name Display</span><br><b id="infoDisplayName">-</b></div>
+          <div><span style="color:var(--tg-text-muted); font-size:11px;"> Your ID</span><br><b id="infoPermanentId">-</b></div>
           <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="infoDevice">-</b></div>
         </div>
       </div>
@@ -1937,11 +1936,13 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         renderHomeList();
     }
 
-    function renderHomeList() {
+        function renderHomeList() {
         const container = document.getElementById('container-web-list');
         if (!container) return;
 
-        let toolsCount = dataWebLokal.filter(i => (i.nama_web || '').toLowerCase().includes('generator') || (i.nama_web || '').toLowerCase().includes('tool')).length;
+        // Hitung jumlah item secara dinamis berdasarkan kolom kategori dari database
+        let toolsCount = dataWebLokal.filter(i => (i.kategori || '').toLowerCase() === 'tools').length;
+        let lainnyaCount = dataWebLokal.filter(i => (i.kategori || '').toLowerCase() === 'lainnya' || !i.kategori).length;
         
         const badgeAll = document.getElementById('badge-all');
         const badgeTools = document.getElementById('badge-tools');
@@ -1949,15 +1950,17 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         
         if (badgeAll) badgeAll.innerText = dataWebLokal.length;
         if (badgeTools) badgeTools.innerText = toolsCount;
-        if (badgeLainnya) badgeLainnya.innerText = dataWebLokal.length - toolsCount;
+        if (badgeLainnya) badgeLainnya.innerText = lainnyaCount;
         
         container.innerHTML = '';
         dataWebLokal.forEach(web => {
+            const kategoriWeb = (web.kategori || 'lainnya').toLowerCase();
             const namaWebStr = (web.nama_web || '').toLowerCase();
-            let isTool = namaWebStr.includes('generator') || namaWebStr.includes('tool');
             
-            if (currentCategory === 'tools' && !isTool) return;
-            if (currentCategory === 'lainnya' && isTool) return;
+            // Filter berdasarkan kategori yang dipilih
+            if (currentCategory !== 'all' && kategoriWeb !== currentCategory) return;
+            
+            // Filter berdasarkan kolom pencarian (search input)
             if (searchQueryStr && !namaWebStr.includes(searchQueryStr)) return;
 
             container.innerHTML += `
@@ -1970,6 +1973,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
                 </div>`;
         });
     }
+
 
     async function ambilDataApp() {
         const container = document.getElementById('container-app-list');
@@ -2255,16 +2259,6 @@ async function cekParamUrlShare() {
         if (page === 'home') ambilDataWeb();
         if (page === 'appmod') ambilDataApp();
         if (page === 'store') ambilDataStore();
-
-        // Hemat performa: video cuma main di tab yang lagi aktif
-        document.querySelectorAll('.header-video').forEach(vid => {
-            const parentPage = vid.closest('.page-content');
-            if (parentPage && parentPage.id === 'page-' + page) {
-                vid.play().catch(() => {});
-            } else {
-                vid.pause();
-            }
-        });
     }
 
     function searchKarya(val) { 
@@ -2471,7 +2465,7 @@ async function cekParamUrlShare() {
             })
             .catch(() => { elPing.textContent = "Offline"; elPing.className = 'sys-val ping-bad'; });
         };
-        cekPing(); if (pingIntervalId) clearInterval(pingIntervalId); pingIntervalId = setInterval(cekPing, 2000); 
+        cekPing(); if (pingIntervalId) clearInterval(pingIntervalId); pingIntervalId = setInterval(cekPing, 4000); 
     }
 
     // =====================================================================
@@ -3060,12 +3054,6 @@ function batalMediaKyy() {
           muatNotifikasiInbox(); 
           jalankanSystemMonitor();
           cekParamUrlShare();
-
-          // Hemat performa: video di tab non-aktif (Settings/Profil) dipause dari awal
-          document.querySelectorAll('.header-video').forEach(vid => {
-              const parentPage = vid.closest('.page-content');
-              if (!parentPage || !parentPage.classList.contains('active')) vid.pause();
-          });
         
         const aiChatMessages = document.getElementById('ai-chat-messages');
         const layerChatAI = document.getElementById('layer-chat-ai');
@@ -3524,7 +3512,6 @@ function kyySalinPesanTeks(idPesanKyy, tombolIkon) {
         console.error("Gagal menyalin teks pesan: ", err);
     });
 }
-
   </script>
 </body>
 </html>

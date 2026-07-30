@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  /* ================= TEMA — default GELAP, disinkronkan dgn dashboard (localStorage.themeWebKyy) ================= */
+  /* ================= TEMA — DEFAULT GELAP ================= */
   :root{
     --bg-sidebar:#17212b;
     --bg-main:#0e1621;
@@ -37,17 +37,20 @@
     --code-bg:#282C34;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
+  
+  /* FIX DVH AGAR INPUT BOX TIDAK TERPOTONG DI HP */
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     background:var(--bg-main);
     color:var(--text-main);
     height:100vh;
+    height:100dvh;
     display:flex;
     overflow:hidden;
     transition:background .2s ease,color .2s ease;
   }
 
-  /* SIDEBAR */
+  /* SIDEBAR (RIWAYAT CHAT) */
   .sidebar{
     width:260px;
     background:var(--bg-sidebar);
@@ -56,6 +59,7 @@
     flex-direction:column;
     flex-shrink:0;
     transition:margin-left .2s ease,background .2s ease,border-color .2s ease;
+    z-index:100;
   }
   .sidebar.collapsed{margin-left:-260px;}
   .sidebar-header{
@@ -117,8 +121,7 @@
     gap:6px;
   }
   .chat-item span.chat-item-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-  .chat-item:hover{background:var(--sidebar-hover);}
-  .chat-item.active{background:var(--sidebar-hover);}
+  .chat-item:hover, .chat-item.active{background:var(--sidebar-hover);}
   .chat-item .del-btn{
     opacity:0;
     flex-shrink:0;
@@ -157,29 +160,34 @@
     flex-shrink:0;
     overflow:hidden;
   }
-  .avatar img{width:100%;height:100%;object-fit:cover;}
-  .logo img,.empty-logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
+  .avatar img, .logo img, .empty-logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
   #footerLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-  /* MAIN */
+  /* MAIN AREA */
   .main{
     flex:1;
     display:flex;
     flex-direction:column;
     min-width:0;
     position:relative;
+    height:100%;
   }
+  
+  /* TOPBAR */
   .topbar{
     display:flex;
     align-items:center;
     gap:8px;
-    padding:14px 20px;
-    border-bottom:1px solid transparent;
+    padding:12px 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--bg-main);
+    z-index:10;
+    position:relative;
   }
   .icon-btn{
-    width:32px;height:32px;
+    width:34px;height:34px;
     display:flex;align-items:center;justify-content:center;
-    border-radius:6px;
+    border-radius:8px;
     cursor:pointer;
     border:none;
     background:transparent;
@@ -187,6 +195,55 @@
     flex-shrink:0;
   }
   .icon-btn:hover{background:var(--sidebar-hover);}
+  
+  /* DROPDOWN GLASSMORPHISM DI DEKAT IKON PROFILE */
+  .profile-dropdown-wrap{
+    position:relative;
+  }
+  .profile-dropdown{
+    display:none;
+    position:absolute;
+    top:110%;
+    left:0;
+    width:200px;
+    background:rgba(28, 39, 51, 0.85);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:6px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    z-index:150;
+  }
+  .profile-dropdown.show{
+    display:block;
+  }
+  .profile-dropdown-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    background:transparent;
+    border:none;
+    color:var(--text-main);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    text-decoration:none;
+    transition:background .15s;
+  }
+  .profile-dropdown-btn:hover{
+    background:var(--sidebar-hover);
+  }
+  .profile-dropdown-btn.door{
+    color:#fff;
+    background:var(--accent);
+    margin-top:4px;
+    justify-content:center;
+  }
+
   .model-selector{
     display:flex;
     align-items:center;
@@ -194,25 +251,26 @@
     padding:6px 10px;
     border-radius:8px;
     font-size:14px;
-    font-weight:500;
+    font-weight:600;
     color:var(--text-main);
     cursor:pointer;
     position:relative;
   }
   .model-selector:hover{background:var(--sidebar-hover);}
+  
+  /* DROPDOWN MODE ASISTEN */
   .mode-dropdown{
     position:absolute;top:110%;left:0;
     background:var(--bg-input);
     border:1px solid var(--border);
     border-radius:12px;
-    box-shadow:0 10px 28px rgba(0,0,0,.25);
+    box-shadow:0 10px 28px rgba(0,0,0,.35);
     padding:6px;
     width:230px;
     z-index:60;
   }
   .mode-option{padding:10px 12px;border-radius:9px;cursor:pointer;}
-  .mode-option:hover{background:var(--sidebar-hover);}
-  .mode-option.active{background:var(--sidebar-hover);}
+  .mode-option:hover, .mode-option.active{background:var(--sidebar-hover);}
   .mode-option-title{font-size:13.5px;font-weight:600;color:var(--text-main);}
   .mode-option-desc{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
 
@@ -222,14 +280,15 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    width:100%;
   }
   .chat-inner{
     width:100%;
     max-width:760px;
-    padding:24px 20px 140px;
+    padding:20px 16px 140px;
   }
 
-  /* Empty state */
+  /* EMPTY STATE */
   .empty-state{
     flex:1;
     display:flex;
@@ -240,129 +299,58 @@
     padding:20px;
   }
   .empty-logo{
-    width:48px;height:48px;
+    width:54px;height:54px;
     background:var(--accent);
-    border-radius:12px;
+    border-radius:14px;
     display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:700;font-size:24px;
-    margin-bottom:20px;
+    color:#fff;font-weight:700;font-size:26px;
+    margin-bottom:16px;
     overflow:hidden;
   }
   .empty-title{
-    font-size:28px;
-    font-weight:500;
+    font-size:24px;
+    font-weight:600;
     color:var(--text-main);
     margin-bottom:8px;
   }
   .empty-sub{
     font-size:14px;
     color:var(--text-soft);
-    margin-bottom:20px;
   }
 
-  /* Messages */
-  .msg-row{
-    display:flex;
-    margin-bottom:24px;
-  }
+  /* MESSAGES */
+  .msg-row{display:flex;margin-bottom:20px;}
   .msg-row.user{justify-content:flex-end;}
-  .msg-bubble{
-    max-width:min(85%,680px);
-    line-height:1.6;
-    font-size:15px;
-  }
+  .msg-bubble{max-width:min(88%,680px);line-height:1.6;font-size:14.5px;}
   .msg-row.user .msg-bubble{
     background:var(--bubble-user);
     padding:10px 16px;
-    border-radius:16px;
+    border-radius:16px 16px 4px 16px;
   }
-  .msg-row.assistant .msg-bubble{
-    width:100%;
-    max-width:100%;
-  }
-  .msg-bubble p{margin-bottom:12px;}
+  .msg-row.assistant .msg-bubble{width:100%;max-width:100%;}
+  .msg-bubble p{margin-bottom:10px;}
   .msg-bubble p:last-child{margin-bottom:0;}
-  .msg-bubble ul,.msg-bubble ol{margin:0 0 12px 22px;}
-  .msg-bubble li{margin-bottom:4px;}
-  .msg-bubble h1,.msg-bubble h2,.msg-bubble h3{margin:16px 0 8px;font-weight:600;}
-  .msg-bubble a{color:var(--accent);}
-  .msg-bubble code:not(pre code){
-    background:var(--bubble-user);
-    padding:2px 5px;
-    border-radius:4px;
-    font-size:.85em;
-    font-family:"SF Mono",Consolas,Monaco,monospace;
-  }
 
-  .code-block{
-    background:var(--code-bg);
-    border-radius:10px;
-    margin:12px 0;
-    overflow:hidden;
-    font-size:13.5px;
-  }
-  .code-block-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:8px 14px;
-    background:#21252B;
-    color:#ABB2BF;
-    font-family:"SF Mono",Consolas,Monaco,monospace;
-    font-size:12.5px;
-  }
-  .copy-btn{
-    background:none;
-    border:none;
-    color:#ABB2BF;
-    cursor:pointer;
-    font-size:12.5px;
-    display:flex;
-    align-items:center;
-    gap:5px;
-    padding:3px 6px;
-    border-radius:5px;
-  }
-  .copy-btn:hover{background:rgba(255,255,255,.08);}
-  .code-block pre{
-    margin:0;
-    padding:14px;
-    overflow-x:auto;
-  }
-  .code-block pre code{
-    font-family:"SF Mono",Consolas,Monaco,monospace;
-    background:transparent !important;
-  }
-
-  .typing-dots{display:flex;gap:4px;padding:6px 0;}
-  .typing-dots span{
-    width:7px;height:7px;border-radius:50%;
-    background:var(--text-soft);
-    animation:blink 1.2s infinite ease-in-out;
-  }
-  .typing-dots span:nth-child(2){animation-delay:.2s;}
-  .typing-dots span:nth-child(3){animation-delay:.4s;}
-  @keyframes blink{0%,80%,100%{opacity:.3;}40%{opacity:1;}}
-
-  /* Input area */
+  /* FIX INPUT BOX TERPOTONG DI HP */
   .input-wrap{
     position:absolute;
     bottom:0;left:260px;right:0;
     display:flex;
     justify-content:center;
-    padding:16px 20px 20px;
-    background:linear-gradient(to top,var(--bg-main) 60%,transparent);
+    padding:12px 16px max(16px, env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--bg-main) 70%, transparent);
     transition:left .2s ease;
+    z-index:20;
   }
   .sidebar.collapsed ~ .main .input-wrap{left:0;}
+  .input-box-container{width:100%;max-width:760px;}
   .input-box{
     width:100%;
-    max-width:760px;
     background:var(--bg-input);
     border:1px solid var(--border);
-    border-radius:22px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-    padding:10px 10px 10px 18px;
+    border-radius:20px;
+    box-shadow:0 4px 15px rgba(0,0,0,.15);
+    padding:8px 8px 8px 16px;
     display:flex;
     align-items:flex-end;
     gap:8px;
@@ -374,13 +362,13 @@
     resize:none;
     font-size:15px;
     font-family:inherit;
-    max-height:200px;
+    max-height:160px;
     padding:8px 0;
     background:transparent;
     color:var(--text-main);
   }
   .send-btn{
-    width:34px;height:34px;
+    width:36px;height:36px;
     border-radius:50%;
     background:var(--accent);
     border:none;
@@ -393,139 +381,72 @@
   .send-btn:disabled{background:var(--border);cursor:not-allowed;}
   .disclaimer{
     text-align:center;
-    font-size:11.5px;
+    font-size:11px;
     color:var(--text-soft);
-    padding-top:8px;
+    padding-top:6px;
   }
 
-  ::-webkit-scrollbar{width:8px;}
-  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
-
-  .backdrop{
-    display:none;
-    position:fixed;inset:0;
-    background:rgba(0,0,0,.35);
-    z-index:40;
-  }
-  .backdrop.show{display:block;}
-
-  /* ================= POPUP GLASSMORPHISM (Menu & Pengaturan) ================= */
+  /* POPUP PENGATURAN (MODAL SIDEBAR FOOTER) */
   .glass-popup-overlay{
     display:none;
     position:fixed;inset:0;
     background:rgba(0,0,0,.55);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
     z-index:200;
     align-items:center;
     justify-content:center;
     opacity:0;
-    transition:opacity .25s ease;
+    transition:opacity .2s ease;
   }
   .glass-popup-overlay.show{display:flex;}
   .glass-popup-overlay.visible{opacity:1;}
   .glass-popup-card{
-    background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+    background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
     border:1px solid rgba(255,255,255,.18);
-    border-radius:24px;
-    padding:20px;
+    border-radius:20px;
+    padding:18px;
     width:88%;
-    max-width:320px;
+    max-width:300px;
     color:#fff;
-    box-shadow:0 20px 50px rgba(0,0,0,.5);
-    backdrop-filter:blur(24px) saturate(160%);
-    -webkit-backdrop-filter:blur(24px) saturate(160%);
-    transform:scale(.9);
-    transition:transform .25s cubic-bezier(.175,.885,.32,1.275);
+    box-shadow:0 20px 40px rgba(0,0,0,.5);
+    backdrop-filter:blur(20px);
+    transform:scale(.92);
+    transition:transform .2s ease;
   }
   .glass-popup-overlay.visible .glass-popup-card{transform:scale(1);}
-  body.light-theme .glass-popup-card{
-    background:linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.55));
-    border:1px solid rgba(0,0,0,.08);
-    color:var(--text-main);
-    box-shadow:0 20px 50px rgba(0,0,0,.15);
-  }
-  .glass-popup-title{font-size:15px;font-weight:700;margin-bottom:14px;text-align:center;letter-spacing:.2px;}
-  .glass-menu-btn{
-    display:flex;align-items:center;gap:12px;
-    width:100%;
-    padding:12px 14px;
-    border-radius:14px;
-    background:rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.08);
-    color:inherit;
-    font-size:14.5px;
-    font-weight:500;
-    cursor:pointer;
-    margin-bottom:8px;
-    text-decoration:none;
-    transition:background .15s;
-  }
-  .glass-menu-btn:hover{background:rgba(255,255,255,.14);}
-  body.light-theme .glass-menu-btn{background:rgba(0,0,0,.045);border-color:rgba(0,0,0,.06);}
-  body.light-theme .glass-menu-btn:hover{background:rgba(0,0,0,.09);}
-  .glass-menu-btn.door{
-    background:var(--accent);
-    border-color:transparent;
-    color:#fff;
-    font-weight:600;
-    margin-top:10px;
-    justify-content:center;
-  }
-  .glass-menu-btn.door:hover{background:var(--accent-hover);}
-  .glass-menu-btn svg{flex-shrink:0;}
+  .glass-popup-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;}
 
-  .settings-profile-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
-  .settings-avatar{width:46px;height:46px;border-radius:14px;overflow:hidden;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;flex-shrink:0;}
-  .settings-avatar img{width:100%;height:100%;object-fit:cover;}
-  .settings-name{font-weight:700;font-size:14.5px;}
-  .settings-sub{font-size:12px;opacity:.65;}
-  .settings-row{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:12px 14px;border-radius:14px;
-    background:rgba(255,255,255,.07);
-    cursor:pointer;font-size:14px;font-weight:500;
-    margin-bottom:8px;
-  }
-  body.light-theme .settings-row{background:rgba(0,0,0,.045);}
-  .theme-pill{
-    display:flex;align-items:center;gap:6px;
-    font-size:12.5px;font-weight:600;
-    padding:4px 10px;border-radius:20px;
-    background:rgba(255,255,255,.12);
-  }
-  body.light-theme .theme-pill{background:rgba(0,0,0,.08);}
-
-  /* MOBILE */
+  /* MOBILE RESPONSIVE */
   @media (max-width:768px){
     .sidebar{
       position:fixed;
       top:0;left:0;bottom:0;
-      z-index:50;
+      z-index:100;
       margin-left:-260px;
-      box-shadow:2px 0 12px rgba(0,0,0,.15);
     }
     .sidebar.open{margin-left:0;}
-    .main{width:100%;}
-    .topbar{padding:12px 12px;}
-    .model-selector{font-size:13px;padding:5px 8px;}
-    .chat-inner{padding:16px 14px 150px;}
-    .empty-title{font-size:22px;}
-    .msg-bubble{font-size:14.5px;}
     .input-wrap{
       left:0 !important;
       right:0;
-      padding:10px 10px 14px;
+      padding:10px 12px max(12px, env(safe-area-inset-bottom));
     }
-    .input-box{border-radius:20px;padding:8px 8px 8px 14px;}
-    .input-box textarea{font-size:16px;}
-    .disclaimer{font-size:10.5px;padding-top:6px;}
-    .code-block pre{font-size:12.5px;}
+    .chat-inner{padding:16px 12px 140px;}
   }
+  .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;}
+  .backdrop.show{display:block;}
+
+    /* Posisi Icon Pintu Keluar di Paling Kanan Topbar */
+  .exit-btn {
+    margin-left: auto;
+    text-decoration: none;
+  }
+
 </style>
 </head>
 <body>
 
+<!-- SIDEBAR RIWAYAT CHAT (DIBUKA OLEH GARIS3 PERTAMA) -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="logo" id="mainLogo">J</div>
@@ -545,18 +466,25 @@
 
 <div class="backdrop" id="backdrop" onclick="closeMobileSidebar()"></div>
 
+<!-- MAIN CONTENT -->
 <div class="main">
+    <!-- TOPBAR (RAPI & SIMPEL) -->
   <div class="topbar">
-    <button class="icon-btn" onclick="openMenuPopup()" title="Menu">
+    <!-- 1. Icon Garis 3 (Buka Sidebar Riwayat Chat) -->
+    <button class="icon-btn" onclick="toggleSidebar()" title="Riwayat Chat">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
-    <button class="icon-btn" onclick="toggleSidebar()" title="Riwayat chat">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h.01M3 6h.01M3 18h.01M8 6h13M8 12h13M8 18h13"/></svg>
-    </button>
+
+    <!-- 2. Dropdown Ganti Mode Asisten (Tetap Utuh) -->
     <div class="model-selector" id="modelSelectorBtn" onclick="toggleModeDropdown()">
       <span id="modelSelectorLabel">jrxrezkyy Assistant</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
     </div>
+
+    <!-- 3. Icon Pintu Keluar ke Dashboard (Langsung Link) -->
+    <a href="https://jrxrezkyy-dashboard.vercel.app" class="icon-btn exit-btn" title="Kembali ke Dashboard">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </a>
   </div>
 
   <div class="chat-area" id="chatArea">
@@ -568,8 +496,9 @@
     <div class="chat-inner" id="chatInner" style="display:none;"></div>
   </div>
 
+  <!-- INPUT AREA (RESPONSIVE BEBAS TERPOTONG DI HP) -->
   <div class="input-wrap">
-    <div>
+    <div class="input-box-container">
       <div class="input-box">
         <textarea id="userInput" placeholder="Tanyakan apa saja pada jrxrezkyy..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
@@ -581,80 +510,40 @@
   </div>
 </div>
 
-<!-- ===== POPUP MENU (hasil klik garis tiga) ===== -->
-<div class="glass-popup-overlay" id="menuPopup" onclick="closeMenuPopup(event)">
-  <div class="glass-popup-card" onclick="event.stopPropagation()">
-    <div class="glass-popup-title">Menu Dashboard</div>
-
-    <a class="glass-menu-btn" href="index.html?tab=home">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
-      Home
-    </a>
-    <a class="glass-menu-btn" href="index.html?tab=appmod">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
-      App Mod
-    </a>
-    <a class="glass-menu-btn" href="index.html?tab=store">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18l-2 9H5L3 3z"/><circle cx="8" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>
-      Store
-    </a>
-    <a class="glass-menu-btn" href="index.html?tab=profil">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-      Profil
-    </a>
-
-    <a class="glass-menu-btn door" href="index.html">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h3a2 2 0 012 2v14a2 2 0 01-2 2h-3"/><path d="M9 21V3l6 2v14z"/><path d="M11 12h.01"/></svg>
-      Kembali ke Dashboard
-    </a>
-  </div>
-</div>
-
-<!-- ===== POPUP PENGATURAN (hasil klik footer sidebar) ===== -->
+<!-- POPUP PENGATURAN (AKSES DARI SIDEBAR FOOTER) -->
 <div class="glass-popup-overlay" id="settingsPopup" onclick="closeSettingsPopup(event)">
   <div class="glass-popup-card" onclick="event.stopPropagation()">
     <div class="glass-popup-title">Pengaturan</div>
-
-    <div class="settings-profile-row">
-      <div class="settings-avatar" id="settingsAvatar">?</div>
-      <div>
-        <div class="settings-name" id="settingsName">Guest</div>
-        <div class="settings-sub" id="settingsSub">Mode lokal (belum login)</div>
-      </div>
-    </div>
-
-    <div class="settings-row" onclick="toggleTheme()">
-      <span>🌗 Tema Tampilan</span>
-      <span class="theme-pill" id="themePill">Gelap</span>
-    </div>
-
-    <button class="glass-menu-btn door" style="margin-top:6px;" onclick="closeSettingsPopup()">Tutup</button>
+    <div style="font-size:13px; color:var(--text-soft); text-align:center; margin-bottom:12px;">Pengaturan tema & akun.</div>
+    <button class="profile-dropdown-btn door" style="width:100%;" onclick="closeSettingsPopup()">Tutup</button>
   </div>
 </div>
 
 <script>
 marked.setOptions({ breaks:true, gfm:true });
 
-/* ================= SUPABASE (project sama dgn dashboard) ================= */
+/* ================= SUPABASE ================= */
 const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
 const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let currentUser = null;     // objek auth user Supabase, null = guest
-let currentProfile = null;  // row dari tabel user_profiles
+let currentUser = null;
+let currentProfile = null;
 let currentSessionId = null;
 let messages = [];
 let sending = false;
-let guestSessions = [];     // dipakai kalau belum login (localStorage)
+let guestSessions = [];
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
-/* ================= MODE ASISTEN (Biasa / Dev Kyy - Coding) ================= */
+/* ================= MODE ASISTEN ================= */
 let currentMode = localStorage.getItem('jrx_chat_mode') || 'biasa';
 
 function updateModelLabel(){
-  document.getElementById('modelSelectorLabel').textContent =
-    currentMode === 'dev' ? 'KYY Dev Assistant' : 'jrxrezkyy Assistant';
+  const label = document.getElementById('modelSelectorLabel');
+  if(label){
+    label.textContent = currentMode === 'dev' ? 'KYY Dev Assistant' : 'jrxrezkyy Assistant';
+  }
 }
 
 function toggleModeDropdown(){
@@ -687,264 +576,33 @@ function toggleModeDropdown(){
   setTimeout(()=>{ document.addEventListener('click', function h(e){ if(!e.target.closest('#modelSelectorBtn')){ dd.remove(); document.removeEventListener('click', h); } }); }, 0);
 }
 
-/* ================= TEMA (sinkron dgn dashboard: localStorage.themeWebKyy) ================= */
-function applyTheme(){
-  const t = localStorage.getItem('themeWebKyy') || 'dark';
-  document.body.classList.toggle('light-theme', t === 'light');
-  const pubColor = localStorage.getItem('publicThemeColor');
-  if(pubColor){
-    document.documentElement.style.setProperty('--accent', pubColor);
-  }
-  const pill = document.getElementById('themePill');
-  if(pill) pill.textContent = t === 'light' ? 'Terang' : 'Gelap';
-}
-function toggleTheme(){
-  const isLight = document.body.classList.toggle('light-theme');
-  localStorage.setItem('themeWebKyy', isLight ? 'light' : 'dark');
-  const pill = document.getElementById('themePill');
-  if(pill) pill.textContent = isLight ? 'Terang' : 'Gelap';
-}
-// kalau tema diubah dari tab dashboard yang lain, ikut update di sini juga
-window.addEventListener('storage', (e)=>{
-  if(e.key === 'themeWebKyy' || e.key === 'publicThemeColor') applyTheme();
-});
-applyTheme();
-
-/* ================= POPUP: MENU & PENGATURAN ================= */
-function openMenuPopup(){
-  const el = document.getElementById('menuPopup');
-  el.classList.add('show');
-  requestAnimationFrame(()=>el.classList.add('visible'));
-}
-function closeMenuPopup(e){
-  if(e && e.target !== e.currentTarget) return;
-  const el = document.getElementById('menuPopup');
-  el.classList.remove('visible');
-  setTimeout(()=>el.classList.remove('show'), 200);
-}
-function openSettingsPopup(){
-  const el = document.getElementById('settingsPopup');
-  el.classList.add('show');
-  requestAnimationFrame(()=>el.classList.add('visible'));
-}
-function closeSettingsPopup(e){
-  if(e && e.target !== e.currentTarget) return;
-  const el = document.getElementById('settingsPopup');
-  el.classList.remove('visible');
-  setTimeout(()=>el.classList.remove('show'), 200);
-}
-
-/* ================= AUTH & PROFIL ================= */
-function initials(name){
-  if(!name) return '?';
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0]||'') + (parts[1]?.[0]||'')).toUpperCase() || name[0].toUpperCase();
-}
-
-async function getOrCreateProfile(user){
-  let { data: profile } = await supabaseClient.from('user_profiles').select('*').eq('id', user.id).single();
-  if(!profile){
-    const newProfile = {
-      id: user.id,
-      permanent_id: 'KYY-' + Math.random().toString(36).substring(2,10).toUpperCase(),
-      username: '@' + (user.email ? user.email.split('@')[0] : 'user' + Math.floor(Math.random()*9999)),
-      display_name: user.user_metadata?.full_name || 'User Baru',
-      device_login: navigator.platform || 'Unknown',
-      photo_url: null
-    };
-    const { data } = await supabaseClient.from('user_profiles').insert(newProfile).select().single();
-    profile = data;
-  }
-  return profile;
-}
-
-function renderIdentity(){
-  const footerAvatar = document.getElementById('footerAvatar');
-  const footerLabel = document.getElementById('footerLabel');
-  const settingsAvatar = document.getElementById('settingsAvatar');
-  const settingsName = document.getElementById('settingsName');
-  const settingsSub = document.getElementById('settingsSub');
-  const mainLogo = document.getElementById('mainLogo');
-  const emptyLogo = document.getElementById('emptyLogo');
-
-  if(!currentUser){
-    footerAvatar.innerHTML = '?';
-    footerLabel.textContent = 'Pengaturan';
-    settingsAvatar.innerHTML = '?';
-    settingsName.textContent = 'Guest';
-    settingsSub.textContent = 'Mode lokal (belum login)';
-    mainLogo.innerHTML = 'J';
-    emptyLogo.innerHTML = 'J';
-    return;
-  }
-
-  const name = currentProfile?.display_name || 'User';
-  const photo = currentProfile?.photo_url || currentUser.user_metadata?.avatar_url || null;
-  const avatarHTML = photo ? `<img src="${photo}" alt="avatar">` : initials(name);
-
-  footerAvatar.innerHTML = avatarHTML;
-  footerLabel.textContent = name;
-  settingsAvatar.innerHTML = avatarHTML;
-  settingsName.textContent = name;
-  settingsSub.textContent = currentProfile?.username || currentUser.email || '';
-  mainLogo.innerHTML = avatarHTML;
-  emptyLogo.innerHTML = avatarHTML;
-}
-
-async function initAuth(){
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  await handleSessionChange(session);
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    await handleSessionChange(session);
-  });
-}
-
-async function handleSessionChange(session){
-  currentUser = session ? session.user : null;
-  currentProfile = currentUser ? await getOrCreateProfile(currentUser) : null;
-  renderIdentity();
-  currentSessionId = null;
-  messages = [];
-  showEmptyState();
-  await renderSidebarSessions();
-}
-
-/* ================= GUEST STORAGE ================= */
-function loadGuestSessions(){
-  try{ guestSessions = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]'); }
-  catch(e){ guestSessions = []; }
-}
-function saveGuestSessions(){
-  localStorage.setItem(GUEST_KEY, JSON.stringify(guestSessions));
-}
-
-/* ================= SIDEBAR / RIWAYAT ================= */
-async function renderSidebarSessions(){
-  const wrap = document.getElementById('chatHistory');
-  wrap.innerHTML = '';
-
-  let list = [];
-  if(currentUser){
-    const { data } = await supabaseClient
-      .from('chat_sessions')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .order('updated_at', { ascending:false });
-    list = data || [];
-  } else {
-    loadGuestSessions();
-    list = guestSessions;
-  }
-
-  if(list.length === 0){
-    wrap.innerHTML = `<div class="empty-history-hint">Belum ada percakapan. Mulai chat baru untuk mulai menyimpan riwayat${currentUser ? '' : ' (tersimpan lokal di HP ini)'}.</div>`;
-    return;
-  }
-
-  list.forEach(sess=>{
-    const item = document.createElement('div');
-    item.className = 'chat-item' + (sess.id === currentSessionId ? ' active' : '');
-    item.onclick = () => openSession(sess.id);
-    item.innerHTML = `
-      <span class="chat-item-title">${escapeHtml(sess.title || 'Obrolan baru')}</span>
-      <button class="del-btn" onclick="deleteSession(event,'${sess.id}')" title="Hapus">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
-      </button>`;
-    wrap.appendChild(item);
-  });
-}
-
-async function openSession(id){
-  currentSessionId = id;
-  if(currentUser){
-    const { data } = await supabaseClient
-      .from('chat_history')
-      .select('*')
-      .eq('session_id', id)
-      .order('created_at', { ascending:true });
-    messages = (data || []).map(r => ({ role:r.role, content:r.content }));
-  } else {
-    loadGuestSessions();
-    const sess = guestSessions.find(s => s.id === id);
-    messages = sess ? [...sess.messages] : [];
-  }
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('chatInner').style.display = 'block';
-  renderMessages();
-  scrollDown();
-  await renderSidebarSessions();
-  if(isMobile()) closeMobileSidebar();
-}
-
-async function deleteSession(e, id){
+/* ================= TOGGLE DROPDOWN PROFILE DEKAT IKON ================= */
+function toggleProfileDropdown(e){
   e.stopPropagation();
-  if(!confirm('Hapus percakapan ini?')) return;
-  if(currentUser){
-    await supabaseClient.from('chat_sessions').delete().eq('id', id);
+  const dd = document.getElementById('profileDropdown');
+  const isShow = dd.classList.contains('show');
+  
+  // Tutup dropdown mode jika terbuka
+  const modeDd = document.getElementById('modeDropdown');
+  if(modeDd) modeDd.remove();
+
+  if(isShow){
+    dd.classList.remove('show');
   } else {
-    loadGuestSessions();
-    guestSessions = guestSessions.filter(s => s.id !== id);
-    saveGuestSessions();
-  }
-  if(currentSessionId === id) newChat();
-  await renderSidebarSessions();
-}
-
-async function ensureSession(firstMsgText){
-  if(currentSessionId) return currentSessionId;
-  const title = firstMsgText.length > 40 ? firstMsgText.slice(0,40) + '…' : firstMsgText;
-
-  if(currentUser){
-    const { data, error } = await supabaseClient
-      .from('chat_sessions')
-      .insert({ user_id: currentUser.id, title })
-      .select().single();
-    if(!error) currentSessionId = data.id;
-  } else {
-    currentSessionId = 'g_' + Date.now();
-    loadGuestSessions();
-    guestSessions.unshift({ id: currentSessionId, title, messages: [] });
-    saveGuestSessions();
-  }
-  await renderSidebarSessions();
-  return currentSessionId;
-}
-
-async function persistMessage(role, content){
-  if(currentUser && currentSessionId){
-    await supabaseClient.from('chat_history').insert({
-      session_id: currentSessionId, user_id: currentUser.id, role, content
-    });
-    await supabaseClient.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', currentSessionId);
-  } else if(currentSessionId){
-    loadGuestSessions();
-    const sess = guestSessions.find(s => s.id === currentSessionId);
-    if(sess){
-      sess.messages.push({ role, content });
-      guestSessions = guestSessions.filter(s => s.id !== currentSessionId);
-      guestSessions.unshift(sess);
-      saveGuestSessions();
-    }
+    dd.classList.add('show');
+    // Klik di luar otomatis menutup dropdown
+    setTimeout(()=>{
+      document.addEventListener('click', function closeDd(evt){
+        if(!evt.target.closest('.profile-dropdown-wrap')){
+          dd.classList.remove('show');
+          document.removeEventListener('click', closeDd);
+        }
+      });
+    }, 0);
   }
 }
 
-function showEmptyState(){
-  document.getElementById('chatInner').innerHTML = '';
-  document.getElementById('chatInner').style.display = 'none';
-  document.getElementById('emptyState').style.display = 'flex';
-}
-
-function newChat(){
-  currentSessionId = null;
-  messages = [];
-  showEmptyState();
-  renderSidebarSessions();
-  if(isMobile()) closeMobileSidebar();
-}
-
-/* ================= UI UMUM ================= */
-function isMobile(){ return window.innerWidth <= 768; }
-
+/* ================= SIDEBAR & PENGATURAN HANDLERS ================= */
 function toggleSidebar(){
   const sb = document.getElementById('sidebar');
   const bd = document.getElementById('backdrop');
@@ -955,72 +613,40 @@ function toggleSidebar(){
     sb.classList.toggle('collapsed');
   }
 }
+
 function closeMobileSidebar(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('backdrop').classList.remove('show');
 }
 
+function openSettingsPopup(){
+  const el = document.getElementById('settingsPopup');
+  el.classList.add('show');
+  requestAnimationFrame(()=>el.classList.add('visible'));
+}
+
+function closeSettingsPopup(e){
+  if(e && e.target !== e.currentTarget) return;
+  const el = document.getElementById('settingsPopup');
+  el.classList.remove('visible');
+  setTimeout(()=>el.classList.remove('show'), 200);
+}
+
 function autoGrow(el){
   el.style.height='auto';
-  el.style.height=Math.min(el.scrollHeight,200)+'px';
+  el.style.height=Math.min(el.scrollHeight,160)+'px';
 }
+
 function handleKey(e){
   if(e.key==='Enter' && !e.shiftKey){
     e.preventDefault();
     sendMessage();
   }
 }
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
 
-const renderer = new marked.Renderer();
-renderer.code = function(code, lang){
-  const langLabel = lang || 'text';
-  const highlighted = (lang && hljs.getLanguage(lang))
-    ? hljs.highlight(code, {language:lang}).value
-    : hljs.highlightAuto(code).value;
-  const escapedForCopy = escapeHtml(code).replace(/"/g,'&quot;');
-  return `<div class="code-block">
-    <div class="code-block-header">
-      <span>${langLabel}</span>
-      <button class="copy-btn" onclick="copyCode(this)" data-code="${escapedForCopy}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-        Salin kode
-      </button>
-    </div>
-    <pre><code class="hljs language-${langLabel}">${highlighted}</code></pre>
-  </div>`;
-};
-marked.use({ renderer });
+function isMobile(){ return window.innerWidth <= 768; }
 
-function copyCode(btn){
-  const code = btn.getAttribute('data-code')
-    .replace(/&quot;/g,'"').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-  navigator.clipboard.writeText(code);
-  const original = btn.innerHTML;
-  btn.innerHTML = 'Tersalin!';
-  setTimeout(()=>btn.innerHTML=original, 1500);
-}
-
-function renderMessages(){
-  const inner = document.getElementById('chatInner');
-  inner.innerHTML = '';
-  messages.forEach(m=>{
-    const row = document.createElement('div');
-    row.className = 'msg-row ' + m.role;
-    const bubble = document.createElement('div');
-    bubble.className = 'msg-bubble';
-    if(m.role==='user'){
-      bubble.textContent = m.content;
-    } else {
-      bubble.innerHTML = marked.parse(m.content);
-    }
-    row.appendChild(bubble);
-    inner.appendChild(row);
-  });
-}
-
+/* ================= CHAT LOGIC (INGATAN & DYNAMIC BACKEND) ================= */
 async function sendMessage(){
   const input = document.getElementById('userInput');
   const text = input.value.trim();
@@ -1030,8 +656,6 @@ async function sendMessage(){
   document.getElementById('chatInner').style.display = 'block';
 
   const isFirstMsg = messages.length === 0;
-  
-  // Catat pesan user ke memori lokal
   messages.push({ role: 'user', content: text });
   input.value = '';
   autoGrow(input);
@@ -1054,24 +678,15 @@ async function sendMessage(){
 
   let replyText = '';
   try{
-    // =========================================================================
-    // 1. KONEKSI DYNAMIK ENDPOINT
-    // Jika mode = 'dev', panggil /api/chat_2. Jika mode = 'biasa', panggil /api/chat
-    // =========================================================================
+    // RUTE SERVERLESS BACKEND SESUAI MODE YANG DIPILIH
     const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
 
-    // =========================================================================
-    // 2. KIRIM MEMORI RIWAYAT (MESSAGES) KELUAR
-    // Mengirimkan seluruh array 'messages' agar AI mengingat riwayat percakapan
-    // =========================================================================
     const res = await fetch(targetEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         pesan: text, 
         riwayat: messages, 
-        gambarData: null, 
-        gambarType: null, 
         mode: currentMode 
       })
     });
@@ -1079,17 +694,12 @@ async function sendMessage(){
     const data = await res.json();
     document.getElementById('typingRow')?.remove();
 
-    if(data.error){
-      replyText = '**Error:** ' + data.error;
-    } else {
-      replyText = data.balasan || '(tidak ada respons)';
-    }
+    replyText = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons)');
   } catch(err){
     document.getElementById('typingRow')?.remove();
     replyText = '**Error koneksi:** ' + err.message;
   }
 
-  // Simpan balasan AI ke memori lokal & database/localStorage
   messages.push({ role: 'assistant', content: replyText });
   await persistMessage('assistant', replyText);
 
@@ -1099,16 +709,27 @@ async function sendMessage(){
   scrollDown();
 }
 
+function renderMessages(){
+  const inner = document.getElementById('chatInner');
+  inner.innerHTML = '';
+  messages.forEach(m=>{
+    const row = document.createElement('div');
+    row.className = 'msg-row ' + m.role;
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+    bubble.innerHTML = m.role === 'user' ? m.content : marked.parse(m.content);
+    row.appendChild(bubble);
+    inner.appendChild(row);
+  });
+}
+
 function scrollDown(){
   const area = document.getElementById('chatArea');
   area.scrollTop = area.scrollHeight;
 }
 
 /* ================= INIT ================= */
-loadGuestSessions();
 updateModelLabel();
-initAuth();
-renderSidebarSessions();
 </script>
 </body>
 </html>

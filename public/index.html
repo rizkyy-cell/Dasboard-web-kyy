@@ -89,8 +89,9 @@
     .search-input { width: 100%; padding: 12px 16px; border-radius: 12px; background-color: var(--tg-panel); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; font-size: 14px; outline: none; transition: border-color 0.3s; }
     .search-input:focus { border-color: var(--tg-accent); }
     .tg-tabs-container { background-color: var(--tg-bg); padding: 5px 15px 12px 15px; flex-shrink: 0; }
-    .tg-tabs { display: flex; background-color: var(--tg-panel); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
-    .tg-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; font-weight: 600; color: var(--tg-text-muted); display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s ease; }
+    .tg-tabs { display: flex; background-color: var(--tg-panel); border-radius: 12px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); scrollbar-width: none; -ms-overflow-style: none; }
+    .tg-tabs::-webkit-scrollbar { display: none; }
+    .tg-tab { flex: 1 0 auto; min-width: 72px; white-space: nowrap; text-align: center; padding: 10px 14px; font-size: 14px; font-weight: 600; color: var(--tg-text-muted); display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: all 0.3s ease; }
     .tg-tab.active { background-color: rgba(255, 255, 255, 0.08); color: #ffffff; }
     .tab-badge { background-color: #0e1621; color: var(--tg-text-muted); font-size: 11px; padding: 2px 7px; border-radius: 10px; transition: all 0.3s ease; }
     .tg-tab.active .tab-badge { background-color: var(--tg-accent); color: white; }
@@ -1338,10 +1339,8 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
   </div>
 
   <div class="tg-tabs-container" id="karya-tabs-header">
-    <div class="tg-tabs">
+    <div class="tg-tabs" id="tg-tabs-list">
       <div class="tg-tab active" onclick="filterCategory('all', this)">All <span class="tab-badge" id="badge-all">0</span></div>
-      <div class="tg-tab" onclick="filterCategory('tools', this)">Tools <span class="tab-badge" id="badge-tools">0</span></div>
-      <div class="tg-tab" onclick="filterCategory('lainnya', this)">Lainnya <span class="tab-badge" id="badge-lainnya">0</span></div>
     </div>
   </div>
 
@@ -1909,6 +1908,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     let currentCategory = 'all';
     let searchQueryStr = '';
     let activeDownloadUrl = '';
+    let daftarKategoriPublik = [];
 
     // =====================================================================
     // 2. SISTEM TARIK DATA PINTAR (ANTI-LAG & CACHING)
@@ -1919,6 +1919,28 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             html += `<div class="skeleton-card"><div class="skeleton-avatar"></div><div class="skeleton-lines"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line short"></div></div></div>`;
         }
         container.innerHTML = html;
+    }
+
+    async function muatDaftarKategoriPublik() {
+        const { data, error } = await supabaseClient.from('web_kategori').select('*').order('nama', { ascending: true });
+        if (error || !data || data.length === 0) {
+            daftarKategoriPublik = [{ nama: 'tools' }, { nama: 'lainnya' }];
+        } else {
+            daftarKategoriPublik = data;
+        }
+        renderKategoriTabs();
+    }
+
+    function renderKategoriTabs() {
+        const list = document.getElementById('tg-tabs-list');
+        if (!list) return;
+        let html = `<div class="tg-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all', this)">All <span class="tab-badge" id="badge-all">0</span></div>`;
+        daftarKategoriPublik.forEach(k => {
+            const namaLower = k.nama.toLowerCase();
+            const namaLabel = k.nama.charAt(0).toUpperCase() + k.nama.slice(1);
+            html += `<div class="tg-tab ${currentCategory === namaLower ? 'active' : ''}" onclick="filterCategory('${namaLower}', this)">${namaLabel} <span class="tab-badge" id="badge-${namaLower}">0</span></div>`;
+        });
+        list.innerHTML = html;
     }
 
     async function ambilDataWeb() {
@@ -1941,16 +1963,15 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         if (!container) return;
 
         // Hitung jumlah item secara dinamis berdasarkan kolom kategori dari database
-        let toolsCount = dataWebLokal.filter(i => (i.kategori || '').toLowerCase() === 'tools').length;
-        let lainnyaCount = dataWebLokal.filter(i => (i.kategori || '').toLowerCase() === 'lainnya' || !i.kategori).length;
-        
         const badgeAll = document.getElementById('badge-all');
-        const badgeTools = document.getElementById('badge-tools');
-        const badgeLainnya = document.getElementById('badge-lainnya');
-        
         if (badgeAll) badgeAll.innerText = dataWebLokal.length;
-        if (badgeTools) badgeTools.innerText = toolsCount;
-        if (badgeLainnya) badgeLainnya.innerText = lainnyaCount;
+
+        daftarKategoriPublik.forEach(k => {
+            const namaLower = k.nama.toLowerCase();
+            const jumlah = dataWebLokal.filter(i => (i.kategori || 'lainnya').toLowerCase() === namaLower).length;
+            const badgeEl = document.getElementById('badge-' + namaLower);
+            if (badgeEl) badgeEl.innerText = jumlah;
+        });
         
         container.innerHTML = '';
         dataWebLokal.forEach(web => {
@@ -3046,7 +3067,7 @@ function batalMediaKyy() {
     // =====================================================================
         // Hapus window.onload, ganti jadi fungsi biasa ini:
         function bootSistem() {
-          ambilDataWeb(); 
+          muatDaftarKategoriPublik().then(() => ambilDataWeb());
           ambilDataApp(); 
           ambilDataStore();
           muatSosmedDiPublik(); 

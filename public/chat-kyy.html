@@ -158,6 +158,7 @@
     overflow:hidden;
   }
   .avatar img{width:100%;height:100%;object-fit:cover;}
+  .logo img,.empty-logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;}
   #footerLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* MAIN */
@@ -195,7 +196,25 @@
     font-size:14px;
     font-weight:500;
     color:var(--text-main);
+    cursor:pointer;
+    position:relative;
   }
+  .model-selector:hover{background:var(--sidebar-hover);}
+  .mode-dropdown{
+    position:absolute;top:110%;left:0;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:0 10px 28px rgba(0,0,0,.25);
+    padding:6px;
+    width:230px;
+    z-index:60;
+  }
+  .mode-option{padding:10px 12px;border-radius:9px;cursor:pointer;}
+  .mode-option:hover{background:var(--sidebar-hover);}
+  .mode-option.active{background:var(--sidebar-hover);}
+  .mode-option-title{font-size:13.5px;font-weight:600;color:var(--text-main);}
+  .mode-option-desc{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
 
   .chat-area{
     flex:1;
@@ -509,7 +528,7 @@
 
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <div class="logo">J</div>
+    <div class="logo" id="mainLogo">J</div>
     <div class="logo-text">jrxrezkyy</div>
   </div>
   <button class="new-chat-btn" onclick="newChat()">
@@ -534,12 +553,15 @@
     <button class="icon-btn" onclick="toggleSidebar()" title="Riwayat chat">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h.01M3 6h.01M3 18h.01M8 6h13M8 12h13M8 18h13"/></svg>
     </button>
-    <div class="model-selector">jrxrezkyy Assistant</div>
+    <div class="model-selector" id="modelSelectorBtn" onclick="toggleModeDropdown()">
+      <span id="modelSelectorLabel">jrxrezkyy Assistant</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
   </div>
 
   <div class="chat-area" id="chatArea">
     <div class="empty-state" id="emptyState">
-      <div class="empty-logo">J</div>
+      <div class="empty-logo" id="emptyLogo">J</div>
       <div class="empty-title">Ada yang bisa saya bantu?</div>
       <div class="empty-sub" id="emptySub">Tanya apa saja soal Dashboard Web Kyy.</div>
     </div>
@@ -627,6 +649,44 @@ let guestSessions = [];     // dipakai kalau belum login (localStorage)
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
+/* ================= MODE ASISTEN (Biasa / Dev Kyy - Coding) ================= */
+let currentMode = localStorage.getItem('jrx_chat_mode') || 'biasa';
+
+function updateModelLabel(){
+  document.getElementById('modelSelectorLabel').textContent =
+    currentMode === 'dev' ? 'KYY Dev Assistant' : 'jrxrezkyy Assistant';
+}
+
+function toggleModeDropdown(){
+  let dd = document.getElementById('modeDropdown');
+  if(dd){ dd.remove(); return; }
+
+  dd = document.createElement('div');
+  dd.id = 'modeDropdown';
+  dd.className = 'mode-dropdown';
+  dd.innerHTML = `
+    <div class="mode-option ${currentMode==='biasa'?'active':''}" data-mode="biasa">
+      <div class="mode-option-title">jrxrezkyy Assistant</div>
+      <div class="mode-option-desc">Mandu dashboard & obrolan santai</div>
+    </div>
+    <div class="mode-option ${currentMode==='dev'?'active':''}" data-mode="dev">
+      <div class="mode-option-title">KYY Dev Assistant</div>
+      <div class="mode-option-desc">Fokus bantu coding & debug</div>
+    </div>
+  `;
+  dd.querySelectorAll('.mode-option').forEach(opt=>{
+    opt.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      currentMode = opt.dataset.mode;
+      localStorage.setItem('jrx_chat_mode', currentMode);
+      updateModelLabel();
+      dd.remove();
+    });
+  });
+  document.getElementById('modelSelectorBtn').appendChild(dd);
+  setTimeout(()=>{ document.addEventListener('click', function h(e){ if(!e.target.closest('#modelSelectorBtn')){ dd.remove(); document.removeEventListener('click', h); } }); }, 0);
+}
+
 /* ================= TEMA (sinkron dgn dashboard: localStorage.themeWebKyy) ================= */
 function applyTheme(){
   const t = localStorage.getItem('themeWebKyy') || 'dark';
@@ -704,6 +764,8 @@ function renderIdentity(){
   const settingsAvatar = document.getElementById('settingsAvatar');
   const settingsName = document.getElementById('settingsName');
   const settingsSub = document.getElementById('settingsSub');
+  const mainLogo = document.getElementById('mainLogo');
+  const emptyLogo = document.getElementById('emptyLogo');
 
   if(!currentUser){
     footerAvatar.innerHTML = '?';
@@ -711,6 +773,8 @@ function renderIdentity(){
     settingsAvatar.innerHTML = '?';
     settingsName.textContent = 'Guest';
     settingsSub.textContent = 'Mode lokal (belum login)';
+    mainLogo.innerHTML = 'J';
+    emptyLogo.innerHTML = 'J';
     return;
   }
 
@@ -723,6 +787,8 @@ function renderIdentity(){
   settingsAvatar.innerHTML = avatarHTML;
   settingsName.textContent = name;
   settingsSub.textContent = currentProfile?.username || currentUser.email || '';
+  mainLogo.innerHTML = avatarHTML;
+  emptyLogo.innerHTML = avatarHTML;
 }
 
 async function initAuth(){
@@ -965,14 +1031,13 @@ async function sendMessage(){
 
   const isFirstMsg = messages.length === 0;
   
-  // Catat pesan user ke memori lokal array
+  // Catat pesan user ke memori lokal
   messages.push({ role: 'user', content: text });
   input.value = '';
   autoGrow(input);
   renderMessages();
   scrollDown();
 
-  // Pastikan Session ID ada (localStorage untuk Guest / Supabase untuk User)
   if(isFirstMsg) await ensureSession(text);
   await persistMessage('user', text);
 
@@ -989,22 +1054,28 @@ async function sendMessage(){
 
   let replyText = '';
   try{
-    // 1. DYNAMIC ENDPOINT: Pilih /api/chat atau /api/chat_2 berdasarkan currentMode
-    const endpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
+    // =========================================================================
+    // 1. KONEKSI DYNAMIK ENDPOINT
+    // Jika mode = 'dev', panggil /api/chat_2. Jika mode = 'biasa', panggil /api/chat
+    // =========================================================================
+    const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
 
-    // 2. Kirim seluruh riwayat 'messages' agar AI mempunyai ingatan konteks
-    const res = await fetch(endpoint, {
+    // =========================================================================
+    // 2. KIRIM MEMORI RIWAYAT (MESSAGES) KELUAR
+    // Mengirimkan seluruh array 'messages' agar AI mengingat riwayat percakapan
+    // =========================================================================
+    const res = await fetch(targetEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         pesan: text, 
-        riwayat: messages, // Mengirim seluruh array pesan (memory)
+        riwayat: messages, 
         gambarData: null, 
         gambarType: null, 
         mode: currentMode 
       })
     });
-    
+
     const data = await res.json();
     document.getElementById('typingRow')?.remove();
 
@@ -1018,7 +1089,7 @@ async function sendMessage(){
     replyText = '**Error koneksi:** ' + err.message;
   }
 
-  // Simpan balasan AI ke array lokal & simpan permanen
+  // Simpan balasan AI ke memori lokal & database/localStorage
   messages.push({ role: 'assistant', content: replyText });
   await persistMessage('assistant', replyText);
 
@@ -1035,6 +1106,7 @@ function scrollDown(){
 
 /* ================= INIT ================= */
 loadGuestSessions();
+updateModelLabel();
 initAuth();
 renderSidebarSessions();
 </script>

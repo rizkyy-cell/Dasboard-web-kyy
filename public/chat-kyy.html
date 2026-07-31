@@ -36,9 +36,26 @@
     --sidebar-hover:#EAE6DB;
     --code-bg:#282C34;
   }
-  *{box-sizing:border-box;margin:0;padding:0;}
+
+  /* 1. HILANGKAN WARNA BIRU & HIGHLIGHT SAAT DIKLIK/DITAP */
+  *{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; /* Mencegah seleksi teks kaku saat diklik cepat */
+  }
   
-  /* FIX DVH AGAR INPUT BOX TIDAK TERPOTONG DI HP */
+  /* Biarkan textarea dan bubble pesan tetap bisa diseleksi teksnya */
+  textarea, .msg-bubble, .chat-item-title {
+    user-select: text;
+  }
+  
+  /* TRANSISI SMOOTH UNTUK TEMA */
+  body, .sidebar, .main, .topbar, .input-box, .msg-bubble, .glass-popup-card {
+    transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+  }
+
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     background:var(--bg-main);
@@ -47,7 +64,6 @@
     height:100dvh;
     display:flex;
     overflow:hidden;
-    transition:background .2s ease,color .2s ease;
   }
 
   /* SIDEBAR (RIWAYAT CHAT) */
@@ -58,7 +74,7 @@
     display:flex;
     flex-direction:column;
     flex-shrink:0;
-    transition:margin-left .2s ease,background .2s ease,border-color .2s ease;
+    transition:margin-left .2s ease, background-color 0.4s ease, border-color 0.4s ease;
     z-index:100;
   }
   .sidebar.collapsed{margin-left:-260px;}
@@ -196,9 +212,15 @@
   }
   .icon-btn:hover{background:var(--sidebar-hover);}
   
-  /* Posisi Icon Pintu Keluar di Paling Kanan Topbar */
-  .exit-btn {
+  /* GROUP KANAN TOPBAR (SHORTCUT NEW CHAT + EXIT) */
+  .topbar-right-group {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .exit-btn {
     text-decoration: none;
   }
 
@@ -216,7 +238,7 @@
   }
   .model-selector:hover{background:var(--sidebar-hover);}
   
-  /* DROPDOWN MODE ASISTEN */
+  /* DROPDOWN MODE ASISTEN DENGAN ANIMASI SMOOTH */
   .mode-dropdown{
     position:absolute;top:110%;left:0;
     background:var(--bg-input);
@@ -226,8 +248,22 @@
     padding:6px;
     width:230px;
     z-index:60;
+    animation: dropdownFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top left;
   }
-  .mode-option{padding:10px 12px;border-radius:9px;cursor:pointer;}
+
+  @keyframes dropdownFade {
+    0% {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.96);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .mode-option{padding:10px 12px;border-radius:9px;cursor:pointer; transition: background 0.15s ease;}
   .mode-option:hover, .mode-option.active{background:var(--sidebar-hover);}
   .mode-option-title{font-size:13.5px;font-weight:600;color:var(--text-main);}
   .mode-option-desc{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
@@ -289,7 +325,7 @@
   .msg-bubble p{margin-bottom:10px;}
   .msg-bubble p:last-child{margin-bottom:0;}
 
-  /* FIX INPUT BOX TERPOTONG DI HP */
+  /* INPUT BOX */
   .input-wrap{
     position:absolute;
     bottom:0;left:260px;right:0;
@@ -312,7 +348,15 @@
     display:flex;
     align-items:flex-end;
     gap:8px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
+  
+  /* DRAG & DROP OVERLAY STYLE */
+  .input-box.drag-over {
+    border: 2px dashed var(--accent);
+    box-shadow: 0 0 15px rgba(51,144,236,0.3);
+  }
+
   .input-box textarea{
     flex:1;
     border:none;
@@ -344,7 +388,7 @@
     padding-top:6px;
   }
 
-  /* POPUP PENGATURAN (MODAL SIDEBAR FOOTER) */
+  /* POPUP PENGATURAN MODERN */
   .glass-popup-overlay{
     display:none;
     position:fixed;inset:0;
@@ -360,20 +404,57 @@
   .glass-popup-overlay.show{display:flex;}
   .glass-popup-overlay.visible{opacity:1;}
   .glass-popup-card{
-    background:linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.18);
+    background:var(--bg-sidebar);
+    border:1px solid var(--border);
     border-radius:20px;
-    padding:18px;
+    padding:20px;
     width:88%;
-    max-width:300px;
-    color:#fff;
+    max-width:320px;
+    color:var(--text-main);
     box-shadow:0 20px 40px rgba(0,0,0,.5);
     backdrop-filter:blur(20px);
     transform:scale(.92);
-    transition:transform .2s ease;
+    transition:transform .2s ease, background-color 0.4s ease;
   }
   .glass-popup-overlay.visible .glass-popup-card{transform:scale(1);}
-  .glass-popup-title{font-size:15px;font-weight:700;margin-bottom:12px;text-align:center;}
+  .glass-popup-title{font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;}
+
+  /* SETTING ROW (TOGGLE TEMA) */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .setting-label { font-size: 14px; font-weight: 500; }
+
+  /* TOGGLE SWITCH STYLING */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--border);
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute; content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  input:checked + .slider { background-color: var(--accent); }
+  input:checked + .slider:before { transform: translateX(20px); }
 
   /* MOBILE RESPONSIVE */
   @media (max-width:768px){
@@ -395,61 +476,32 @@
   .backdrop.show{display:block;}
 
   /* ================= ANIMASI TYPING GAYA CLAUDE (BENTUK K) ================= */
-
-.typing-dots {
-  display: flex;
-  align-items: center;
-  /* Memberikan sedikit ruang minimal agar bubble tidak terlalu ciut */
-  min-height: 20px; 
-}
-
-/* Pseudo-element untuk membuat dan menganimasikan huruf "K" */
-.typing-dots::after {
-  /* Konten berupa huruf K */
-  content: "K"; 
-  
-  /* Styling Huruf */
-  font-family: var(--font-main); /* Menggunakan font yang sama dengan aplikasi */
-  font-weight: bold;
-  font-size: 16px; /* Sesuaikan ukuran sesuai selera */
-  color: var(--text-soft); /* Menggunakan warna teks yang lembut */
-  
-  /* Menerapkan Animasi */
-  /* Nama animasi: claudeKTyping */
-  /* Durasi: 1.5 detik */
-  /* Timing: ease-in-out (lambat di awal/akhir, cepat di tengah) */
-  /* Iteration: infinite (berulang terus) */
-  animation: claudeKTyping 1.5s ease-in-out infinite;
-  
-  /* Memastikan elemen memiliki opasitas awal 0 (tidak terlihat) */
-  opacity: 0;
-}
-
-/* Keyframes Animasi: Meniru efek fade-in & slide-up halus gaya Claude */
-@keyframes claudeKTyping {
-  0% {
+  .typing-dots {
+    display: flex;
+    align-items: center;
+    min-height: 20px; 
+  }
+  .typing-dots::after {
+    content: "K"; 
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 16px;
+    color: var(--text-soft);
+    animation: claudeKTyping 1.5s ease-in-out infinite;
     opacity: 0;
-    /* Mulai sedikit di bawah posisi asli (slide up effect) */
-    transform: translateY(3px); 
   }
-  /* Titik di mana K muncul penuh dan berada di posisi asli */
-  30%, 60% {
-    opacity: 1;
-    transform: translateY(0);
+
+  @keyframes claudeKTyping {
+    0% { opacity: 0; transform: translateY(3px); }
+    30%, 60% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(3px); }
   }
-  /* Titik di mana K mulai menghilang */
-  100% {
-    opacity: 0;
-    /* Kembali ke posisi sedikit di bawah */
-    transform: translateY(3px);
-  }
-}
 
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR RIWAYAT CHAT (DIBUKA OLEH GARIS3 PERTAMA) -->
+<!-- SIDEBAR RIWAYAT CHAT -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div class="logo" id="mainLogo">J</div>
@@ -471,23 +523,35 @@
 
 <!-- MAIN CONTENT -->
 <div class="main">
-  <!-- TOPBAR (RAPI & SIMPEL) -->
+  <!-- TOPBAR -->
   <div class="topbar">
-    <!-- 1. Icon Garis 3 (Buka Sidebar Riwayat Chat) -->
+    <!-- 1. Icon Garis 3 -->
     <button class="icon-btn" onclick="toggleSidebar()" title="Riwayat Chat">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
     </button>
 
-    <!-- 2. Dropdown Ganti Mode Asisten (Tetap Utuh) -->
+    <!-- 2. Dropdown Ganti Mode Asisten -->
     <div class="model-selector" id="modelSelectorBtn" onclick="toggleModeDropdown()">
       <span id="modelSelectorLabel">jrxrezkyy Assistant</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
     </div>
 
-    <!-- 3. Icon Pintu Keluar ke Dashboard (Langsung Link) -->
-    <a href="https://jrxrezkyy-dashboard.vercel.app" class="icon-btn exit-btn" title="Kembali ke Dashboard">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </a>
+    <!-- 3. Group Icon Kanan (Shortcut Chat Baru + Exit) -->
+    <div class="topbar-right-group">
+      <!-- Shortcut Obrolan Baru -->
+      <button class="icon-btn" onclick="newChat()" title="Obrolan Baru">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          <line x1="12" y1="8" x2="12" y2="14"></line>
+          <line x1="9" y1="11" x2="15" y2="11"></line>
+        </svg>
+      </button>
+
+      <!-- Icon Pintu Keluar -->
+      <a href="https://jrxrezkyy-dashboard.vercel.app" class="icon-btn exit-btn" title="Kembali ke Dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </a>
+    </div>
   </div>
 
   <div class="chat-area" id="chatArea">
@@ -499,11 +563,11 @@
     <div class="chat-inner" id="chatInner" style="display:none;"></div>
   </div>
 
-  <!-- INPUT AREA (RESPONSIVE BEBAS TERPOTONG DI HP) -->
+  <!-- INPUT AREA (DENGAN DUKUNGAN DRAG & DROP) -->
   <div class="input-wrap">
     <div class="input-box-container">
-      <div class="input-box">
-        <textarea id="userInput" placeholder="Tanyakan apa saja pada jrxrezkyy..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+      <div class="input-box" id="dropArea">
+        <textarea id="userInput" placeholder="Tanyakan apa saja atau seret file/media ke sini..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -513,12 +577,21 @@
   </div>
 </div>
 
-<!-- POPUP PENGATURAN (AKSES DARI SIDEBAR FOOTER) -->
+<!-- POPUP PENGATURAN MODERN -->
 <div class="glass-popup-overlay" id="settingsPopup" onclick="closeSettingsPopup(event)">
   <div class="glass-popup-card" onclick="event.stopPropagation()">
     <div class="glass-popup-title">Pengaturan</div>
-    <div style="font-size:13px; color:var(--text-soft); text-align:center; margin-bottom:12px;">Pengaturan tema & akun.</div>
-    <button class="icon-btn" style="width:100%; background:var(--accent); color:#fff; border-radius:10px; height:36px;" onclick="closeSettingsPopup()">Tutup</button>
+    
+    <!-- TOGGLE TEMA GELAP/TERANG -->
+    <div class="setting-row">
+      <span class="setting-label">Tema Terang</span>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <button class="icon-btn" style="width:100%; background:var(--accent); color:#fff; border-radius:10px; height:36px; margin-top:8px;" onclick="closeSettingsPopup()">Tutup</button>
   </div>
 </div>
 
@@ -539,7 +612,31 @@ let guestSessions = [];
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
-/* ================= AUTH & AVATAR (SUPABASE AUTH GOOGLE/EMAIL) ================= */
+/* ================= PERGANTIAN TEMA (LIGHT/DARK) SMOOTH ================= */
+function initTheme(){
+  const savedTheme = localStorage.getItem('jrx_theme') || 'dark';
+  const toggle = document.getElementById('themeToggle');
+  if(savedTheme === 'light'){
+    document.body.classList.add('light-theme');
+    if(toggle) toggle.checked = true;
+  } else {
+    document.body.classList.remove('light-theme');
+    if(toggle) toggle.checked = false;
+  }
+}
+
+function toggleTheme(){
+  const toggle = document.getElementById('themeToggle');
+  if(toggle.checked){
+    document.body.classList.add('light-theme');
+    localStorage.setItem('jrx_theme', 'light');
+  } else {
+    document.body.classList.remove('light-theme');
+    localStorage.setItem('jrx_theme', 'dark');
+  }
+}
+
+/* ================= AUTH & AVATAR DYNAMIC USER LOGIN ================= */
 function escapeHtml(str){
   const d = document.createElement('div');
   d.textContent = str;
@@ -547,20 +644,26 @@ function escapeHtml(str){
 }
 
 function applyProfileUI(){
+  const mainLogo = document.getElementById('mainLogo');
+  const emptyLogo = document.getElementById('emptyLogo');
   const footerAvatar = document.getElementById('footerAvatar');
   const footerLabel = document.getElementById('footerLabel');
-  const emptyLogo = document.getElementById('emptyLogo');
 
   if(currentUser && currentProfile){
     const avatarUrl = currentProfile.avatar_url || '';
     const name = currentProfile.full_name || currentUser.email || 'User';
-    if(footerAvatar){
-      footerAvatar.innerHTML = avatarUrl
-        ? `<img src="${avatarUrl}" alt="${escapeHtml(name)}">`
-        : escapeHtml(name.charAt(0).toUpperCase());
-    }
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" alt="${escapeHtml(name)}">`
+      : escapeHtml(name.charAt(0).toUpperCase());
+
+    // Update Avatar Profil User yang Login di Logo & Sidebar
+    if(mainLogo) mainLogo.innerHTML = avatarHtml;
+    if(emptyLogo) emptyLogo.innerHTML = avatarHtml;
+    if(footerAvatar) footerAvatar.innerHTML = avatarHtml;
     if(footerLabel) footerLabel.textContent = name;
   } else {
+    if(mainLogo) mainLogo.innerHTML = 'J';
+    if(emptyLogo) emptyLogo.innerHTML = 'J';
     if(footerAvatar) footerAvatar.innerHTML = '?';
     if(footerLabel) footerLabel.textContent = 'Pengaturan (Tamu)';
   }
@@ -583,7 +686,6 @@ async function initAuth(){
 function handleAuthSession(session){
   if(session && session.user){
     currentUser = session.user;
-    // Data akun Google (nama & foto) otomatis ada di user_metadata via Supabase Auth
     const meta = currentUser.user_metadata || {};
     currentProfile = {
       full_name: meta.full_name || meta.name || '',
@@ -596,7 +698,63 @@ function handleAuthSession(session){
   applyProfileUI();
 }
 
-/* ================= SESI & RIWAYAT (TAMU = localStorage, LOGIN = Supabase) ================= */
+/* ================= DRAG & DROP FILE / TEXT / MEDIA ================= */
+function initDragAndDrop(){
+  const dropArea = document.getElementById('dropArea');
+  const input = document.getElementById('userInput');
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    window.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    window.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    window.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false);
+  });
+
+  window.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+
+    if (files.length > 0) {
+      handleFiles(files);
+    } else {
+      const text = dt.getData('text');
+      if (text) {
+        input.value += (input.value ? '\n' : '') + text;
+        autoGrow(input);
+      }
+    }
+  });
+
+  function handleFiles(files) {
+    Array.from(files).forEach(file => {
+      // Jika file berupa teks, baca isinya
+      if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          input.value += (input.value ? '\n' : '') + `[Isi File ${file.name}]:\n` + e.target.result;
+          autoGrow(input);
+        };
+        reader.readAsText(file);
+      } else {
+        // Untuk File Media (MP3, MP4, Gambar, PDF, dll)
+        input.value += (input.value ? '\n' : '') + `[Melampirkan file: ${file.name} (${file.type || 'Media'})]`;
+        autoGrow(input);
+      }
+    });
+  }
+}
+
+/* ================= SESI & RIWAYAT CHAT ================= */
 function loadGuestSessions(){
   try{
     guestSessions = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
@@ -660,7 +818,6 @@ async function ensureSession(firstText){
 
   if(currentUser){
     try{
-      // id uuid digenerate otomatis oleh database (default gen_random_uuid())
       const { data, error } = await supabaseClient
         .from('chat_sessions')
         .insert({ user_id: currentUser.id, title, mode: currentMode })
@@ -772,7 +929,7 @@ function newChat(){
   closeMobileSidebar();
 }
 
-/* ================= MODE ASISTEN ================= */
+/* ================= MODE ASISTEN DENGAN ANIMASI SMOOTH ================= */
 let currentMode = localStorage.getItem('jrx_chat_mode') || 'biasa';
 
 function updateModelLabel(){
@@ -856,8 +1013,7 @@ function handleKey(e){
 
 function isMobile(){ return window.innerWidth <= 768; }
 
-/* ================= CHAT LOGIC (INGATAN & DYNAMIC BACKEND) ================= */
-/* ================= MEMORI LINTAS OBROLAN & MODE ================= */
+/* ================= CHAT LOGIC ================= */
 async function getCrossSessionContext(limit = 40){
   if(currentUser){
     try{
@@ -908,13 +1064,11 @@ async function sendMessage(){
   sending = true;
   document.getElementById('sendBtn').disabled = true;
 
-  // --- MEMBUAT ELEMEN TYPING ROW ---
   const inner = document.getElementById('chatInner');
   const typingRow = document.createElement('div');
   typingRow.className = 'msg-row assistant';
   typingRow.id = 'typingRow';
 
-  // Menggunakan bentuk HTML yang sudah disesuaikan untuk animasi K gaya Claude
   typingRow.innerHTML = `
     <div class="msg-bubble">
       <div class="typing-dots"></div>
@@ -926,10 +1080,7 @@ async function sendMessage(){
 
   let replyText = '';
   try{
-    // RUTE SERVERLESS BACKEND SESUAI MODE YANG DIPILIH
     const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
-
-    // Gabung memori dari SEMUA obrolan/mode sebelumnya + obrolan yang sedang berjalan
     const crossContext = await getCrossSessionContext();
     const riwayatKirim = [...crossContext, ...messages];
 
@@ -970,12 +1121,10 @@ function renderMessages(){
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
     
-    // Keamanan: Escape HTML untuk pesan user agar aman dari XSS
     if (m.role === 'user') {
       bubble.innerHTML = escapeHtml(m.content);
     } else {
       bubble.innerHTML = marked.parse(m.content);
-      // Jalankan highlight.js pada blok kode yang di-generate markdown
       bubble.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
       });
@@ -991,7 +1140,9 @@ function scrollDown(){
   area.scrollTop = area.scrollHeight;
 }
 
-/* ================= INIT ================= */
+/* ================= INISIALISASI APLIKASI ================= */
+initTheme();
+initDragAndDrop();
 updateModelLabel();
 applyProfileUI();
 initAuth().then(loadHistoryForCurrentUser);

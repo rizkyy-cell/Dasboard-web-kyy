@@ -374,6 +374,19 @@
   }
   .artifact-preview-overlay:hover span{opacity:1;}
 
+  .artifact-count-badge{
+    display:inline-flex;align-items:center;
+    font-size:11.5px;font-weight:600;
+    color:var(--text-soft);
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:4px 12px;
+    margin-bottom:8px;
+    cursor:pointer;
+  }
+  .artifact-count-badge:hover{color:var(--text-main);border-color:var(--accent);}
+
   /* ================= KARTU LAMPIRAN DI BUBBLE PESAN ================= */
   .msg-attachments{
     display:flex;flex-wrap:wrap;gap:8px;
@@ -404,38 +417,80 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
 
-  /* ================= MODAL PREVIEW ARTIFACT/LAMPIRAN ================= */
+  /* ================= PANEL ARTIFACT (slide-in dari kanan, gaya Claude.ai) ================= */
   .artifact-modal-overlay{
     position:fixed;inset:0;
-    background:rgba(0,0,0,.65);
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
+    background:rgba(0,0,0,.5);
     z-index:300;
-    display:flex;align-items:center;justify-content:center;
-    padding:20px;
+    display:flex;
+    justify-content:flex-end;
     opacity:0;visibility:hidden;pointer-events:none;
-    transition:opacity .2s ease, visibility .2s ease;
+    transition:opacity .25s ease, visibility .25s ease;
   }
   .artifact-modal-overlay.show{opacity:1;visibility:visible;pointer-events:auto;}
   .artifact-modal-card{
-    width:100%;max-width:640px;max-height:82vh;
+    width:100vw;max-width:100%;
+    height:100%;height:100dvh;
     background:var(--bg-sidebar);
-    border:1px solid var(--border);
-    border-radius:18px;
+    border-left:1px solid var(--border);
     display:flex;flex-direction:column;
     overflow:hidden;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    box-shadow:-10px 0 30px rgba(0,0,0,.5);
+    transform:translateX(100%);
+    transition:transform .3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .artifact-modal-overlay.show .artifact-modal-card{transform:translateX(0);}
+  @media (min-width: 720px){
+    .artifact-modal-card{width:560px;max-width:560px;}
   }
   .artifact-modal-header{
     display:flex;align-items:center;justify-content:space-between;
-    padding:12px 16px;
+    padding:14px 16px;
     border-bottom:1px solid var(--border);
+    flex-shrink:0;
   }
-  .artifact-modal-header .artifact-actions button{color:var(--text-soft);}
-  .artifact-modal-body{overflow:auto;background:var(--code-bg);}
+  .artifact-modal-header .artifact-lang{font-size:14px;}
+  .artifact-modal-header .artifact-actions button{color:var(--text-soft);width:32px;height:32px;font-size:15px;}
+
+  .artifact-group-tabs{
+    display:none;gap:6px;overflow-x:auto;
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .artifact-tab{
+    display:flex;align-items:center;gap:6px;
+    white-space:nowrap;flex-shrink:0;
+    font-size:12.5px;font-weight:600;
+    color:var(--text-soft);
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .artifact-tab.active{color:var(--text-main);border-color:var(--accent);background:var(--bubble-user);}
+
+  .artifact-view-toggle{
+    display:none;gap:4px;
+    padding:10px 16px 0;
+    flex-shrink:0;
+  }
+  .artifact-view-btn{
+    font-size:12.5px;font-weight:600;
+    color:var(--text-soft);
+    background:transparent;
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:6px 14px;
+    cursor:pointer;
+  }
+  .artifact-view-btn.active{color:#fff;background:var(--accent);border-color:var(--accent);}
+
+  .artifact-modal-body{flex:1;overflow:auto;background:var(--code-bg);}
   .artifact-modal-body pre{margin:0;padding:16px;}
   .artifact-modal-body pre code.hljs{background:transparent !important;font-size:13.5px;}
-  .artifact-modal-body iframe{width:100%;height:60vh;border:0;background:#fff;}
+  .artifact-modal-body iframe{width:100%;height:100%;min-height:100%;border:0;background:#fff;}
   .artifact-modal-body img{width:100%;height:auto;display:block;}
 
   /* INPUT BOX */
@@ -937,7 +992,7 @@
         <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>
         </button>
-        <textarea id="userInput" placeholder="Reply JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+        <textarea id="userInput" placeholder="Reply to JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -957,6 +1012,8 @@
         <button type="button" onclick="closeArtifactModal()" title="Tutup">✕</button>
       </div>
     </div>
+    <div class="artifact-group-tabs" id="artifactGroupTabs"></div>
+    <div class="artifact-view-toggle" id="artifactViewToggle"></div>
     <div class="artifact-modal-body" id="artifactModalBody"></div>
   </div>
 </div>
@@ -1060,23 +1117,114 @@ function kyyLangMeta(raw){
   return { key, label, color:'#9aa5ce', previewable:false };
 }
 
-let kyyArtifactSeq = 0;
-const kyyArtifactStore = {}; // id -> { code, lang }
+/* Deteksi kode React yang ditulis dengan fence "javascript/typescript" biasa
+   (bukan cuma "jsx"/"tsx") supaya tetap kebaca sebagai artifact yang bisa di-preview */
+function kyyLooksLikeReact(code){
+  const hasJSXTag = /<[A-Za-z][\s\S]*?>/.test(code);
+  const hasReactSignal = /(return\s*\(|=>\s*\(|export\s+default|useState|React\.)/.test(code);
+  return hasJSXTag && hasReactSignal;
+}
 
-/* Ubah setiap <pre><code> hasil marked+hljs jadi kartu artifact bergaya Claude */
-function enhanceCodeBlocks(bubble){
-  bubble.querySelectorAll('pre').forEach(pre => {
+function kyyIsPreviewable(meta, code){
+  if(meta.key === 'html') return true;
+  if(meta.key === 'jsx' || meta.key === 'tsx') return true;
+  if((meta.key === 'javascript' || meta.key === 'typescript') && kyyLooksLikeReact(code)) return true;
+  return false;
+}
+
+/* Buka dokumen HTML lengkap untuk preview React (transpile JSX pakai Babel via CDN) */
+function kyyStripImports(code){
+  return code.split('\n')
+    .filter(line => !/^\s*import\s.*['"].*['"]\s*;?\s*$/.test(line))
+    .join('\n');
+}
+function kyyBuildReactDoc(rawCode){
+  let code = kyyStripImports(rawCode);
+  let componentName = null;
+
+  let m = code.match(/export\s+default\s+function\s+([A-Za-z0-9_]+)/);
+  if(m){
+    componentName = m[1];
+    code = code.replace(/export\s+default\s+/, '');
+  } else if((m = code.match(/export\s+default\s+class\s+([A-Za-z0-9_]+)/))){
+    componentName = m[1];
+    code = code.replace(/export\s+default\s+/, '');
+  } else if((m = code.match(/export\s+default\s+([A-Za-z0-9_]+)\s*;?\s*$/m))){
+    componentName = m[1];
+    code = code.replace(/export\s+default\s+[A-Za-z0-9_]+\s*;?\s*$/m, '');
+  } else if(/export\s+default\s+/.test(code)){
+    code = code.replace(/export\s+default\s+/, 'const __KyyApp = ');
+    componentName = '__KyyApp';
+  }
+
+  const renderCall = componentName
+    ? `try{ ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(${componentName})); }catch(e){ document.getElementById('root').innerHTML = '<pre style="color:#f87171;font-family:monospace;padding:16px;white-space:pre-wrap">'+e.message+'</pre>'; }`
+    : `document.getElementById('root').innerHTML = '<div style="padding:16px;font-family:sans-serif;color:#888">Tidak menemukan komponen "export default" untuk dirender.</div>';`;
+
+  return [
+    '<!DOCTYPE html><html><head><meta charset="utf-8">',
+    '<script src="https://unpkg.com/react@18/umd/react.development.js"><\/script>',
+    '<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>',
+    '<script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>',
+    '<style>body{margin:0;font-family:-apple-system,BlinkMacSystemFont,sans-serif;} #root{min-height:100vh;}</style>',
+    '</head><body>',
+    '<div id="root"></div>',
+    '<script type="text/babel" data-presets="react">',
+    'window.onerror = function(msg){ var r=document.getElementById("root"); if(r) r.innerHTML = "<pre style=\\"color:#f87171;font-family:monospace;padding:16px;white-space:pre-wrap\\">"+msg+"</pre>"; };',
+    code,
+    renderCall,
+    '<\/script>',
+    '</body></html>'
+  ].join('\n');
+}
+function kyyBuildPreviewDoc(meta, code){
+  if(meta.key === 'html') return code;
+  return kyyBuildReactDoc(code);
+}
+
+let kyyArtifactSeq = 0;
+let kyyGroupSeq = 0;
+const kyyArtifactStore = {};   // id -> { code, lang, label, groupId }
+const kyyArtifactGroups = {};  // groupId -> [id, id, ...]
+
+/* Buat iframe preview secara aman lewat property .srcdoc (bukan atribut string) */
+function kyyMakeIframe(docString, extraClass){
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox', 'allow-scripts');
+  if(extraClass) iframe.className = extraClass;
+  iframe.srcdoc = docString;
+  return iframe;
+}
+
+/* Ubah setiap <pre><code> hasil marked+hljs jadi kartu artifact bergaya Claude,
+   dikelompokkan per pesan supaya bisa dinavigasi kalau lebih dari satu */
+function enhanceCodeBlocks(bubble, groupId){
+  const blocks = [...bubble.querySelectorAll('pre')];
+  if(blocks.length === 0) return;
+
+  kyyArtifactGroups[groupId] = [];
+
+  if(blocks.length > 1){
+    const badge = document.createElement('div');
+    badge.className = 'artifact-count-badge';
+    badge.textContent = blocks.length + ' Artifacts';
+    badge.onclick = () => expandArtifact(kyyArtifactGroups[groupId][0]);
+    bubble.insertBefore(badge, blocks[0]);
+  }
+
+  blocks.forEach(pre => {
     const codeEl = pre.querySelector('code');
     if(!codeEl) return;
 
-    // deteksi bahasa dari class "language-xxx" yang ditambahkan hljs/marked
     const langClass = [...codeEl.classList].find(c => c.startsWith('language-'));
-    const rawLang = langClass ? langClass.replace('language-','') : (codeEl.result?.language || '');
-    const meta = kyyLangMeta(rawLang || codeEl.dataset.lang || '');
+    const rawLang = langClass ? langClass.replace('language-','') : '';
+    const meta = kyyLangMeta(rawLang);
     const rawCode = codeEl.innerText;
+    const previewable = kyyIsPreviewable(meta, rawCode);
 
     const id = 'art_' + (++kyyArtifactSeq);
-    kyyArtifactStore[id] = { code: rawCode, lang: meta.key, label: meta.label };
+    kyyArtifactStore[id] = { code: rawCode, lang: meta.key, label: meta.label, color: meta.color, previewable, groupId };
+    kyyArtifactGroups[groupId].push(id);
 
     const card = document.createElement('div');
     card.className = 'artifact-card';
@@ -1095,15 +1243,15 @@ function enhanceCodeBlocks(bubble){
     `;
     card.appendChild(header);
 
-    if(meta.previewable){
+    if(previewable){
       const wrap = document.createElement('div');
       wrap.className = 'artifact-preview-wrap';
-      wrap.innerHTML = `
-        <iframe sandbox="allow-scripts" srcdoc="${escapeHtml(rawCode)}"></iframe>
-        <div class="artifact-preview-overlay" onclick="expandArtifact('${id}')">
-          <span>▶ Lihat preview</span>
-        </div>
-      `;
+      wrap.appendChild(kyyMakeIframe(kyyBuildPreviewDoc(meta, rawCode)));
+      const overlay = document.createElement('div');
+      overlay.className = 'artifact-preview-overlay';
+      overlay.innerHTML = '<span>▶ Lihat preview</span>';
+      overlay.onclick = () => expandArtifact(id);
+      wrap.appendChild(overlay);
       card.appendChild(wrap);
     } else {
       pre.remove();
@@ -1112,7 +1260,6 @@ function enhanceCodeBlocks(bubble){
       card.appendChild(body);
     }
 
-    // sisipkan kartu menggantikan <pre> asli di posisi semula
     if(pre.isConnected){
       pre.replaceWith(card);
     } else {
@@ -1133,37 +1280,87 @@ function copyArtifactCode(id, btn){
   }).catch(()=>{});
 }
 
+/* ================= PANEL ARTIFACT (slide-in, gaya Claude.ai) ================= */
+let kyyPanelActiveId = null;
+let kyyPanelViewMode = 'preview'; // 'preview' | 'code'
+
 function expandArtifact(id){
   const item = kyyArtifactStore[id];
   if(!item) return;
-  const modal = document.getElementById('artifactModal');
+  kyyPanelActiveId = id;
+  kyyPanelViewMode = item.previewable ? 'preview' : 'code';
+
+  renderArtifactTabs();
+  renderArtifactPanelBody();
+
+  document.getElementById('artifactModalCopyBtn').style.display = '';
+  document.getElementById('artifactModal').classList.add('show');
+}
+
+function renderArtifactTabs(){
+  const item = kyyArtifactStore[kyyPanelActiveId];
+  const group = kyyArtifactGroups[item.groupId] || [item ? kyyPanelActiveId : null];
+  const tabBar = document.getElementById('artifactGroupTabs');
+  const viewToggle = document.getElementById('artifactViewToggle');
+
+  // tab antar-artifact (cuma tampil kalau pesan itu punya >1 kode)
+  if(group.length > 1){
+    tabBar.style.display = 'flex';
+    tabBar.innerHTML = group.map(gid => {
+      const it = kyyArtifactStore[gid];
+      const active = gid === kyyPanelActiveId ? ' active' : '';
+      return `<button type="button" class="artifact-tab${active}" onclick="expandArtifact('${gid}')">
+        <span class="artifact-lang-dot" style="background:${it.color}"></span>${escapeHtml(it.label)}
+      </button>`;
+    }).join('');
+  } else {
+    tabBar.style.display = 'none';
+    tabBar.innerHTML = '';
+  }
+
+  // toggle Preview/Kode (cuma tampil kalau artifact ini bisa di-preview)
+  if(item.previewable){
+    viewToggle.style.display = 'flex';
+    viewToggle.innerHTML = `
+      <button type="button" class="artifact-view-btn${kyyPanelViewMode==='preview'?' active':''}" onclick="setArtifactViewMode('preview')">Preview</button>
+      <button type="button" class="artifact-view-btn${kyyPanelViewMode==='code'?' active':''}" onclick="setArtifactViewMode('code')">Kode</button>
+    `;
+  } else {
+    viewToggle.style.display = 'none';
+    viewToggle.innerHTML = '';
+  }
+}
+
+function setArtifactViewMode(mode){
+  kyyPanelViewMode = mode;
+  renderArtifactTabs();
+  renderArtifactPanelBody();
+}
+
+function renderArtifactPanelBody(){
+  const item = kyyArtifactStore[kyyPanelActiveId];
+  const meta = kyyLangMeta(item.lang);
   const title = document.getElementById('artifactModalTitle');
   const body = document.getElementById('artifactModalBody');
-  const meta = kyyLangMeta(item.lang);
 
-  title.innerHTML = `<span class="artifact-lang-dot" style="background:${meta.color}"></span><span>${escapeHtml(item.label)}</span>`;
-  document.getElementById('artifactModalCopyBtn').style.display = '';
+  title.innerHTML = `<span class="artifact-lang-dot" style="background:${item.color}"></span><span>${escapeHtml(item.label)}</span>`;
+  body.innerHTML = '';
 
-  if(meta.previewable){
-    body.innerHTML = `<iframe sandbox="allow-scripts" srcdoc="${escapeHtml(item.code)}"></iframe>`;
+  if(item.previewable && kyyPanelViewMode === 'preview'){
+    body.appendChild(kyyMakeIframe(kyyBuildPreviewDoc(meta, item.code)));
   } else {
     const pre = document.createElement('pre');
     const code = document.createElement('code');
     code.className = 'hljs language-' + meta.key;
     code.textContent = item.code;
     pre.appendChild(code);
-    body.innerHTML = '';
     body.appendChild(pre);
     hljs.highlightElement(code);
   }
-
-  modal.dataset.activeId = id;
-  modal.classList.add('show');
 }
 
 function copyArtifactModalCode(){
-  const modal = document.getElementById('artifactModal');
-  copyArtifactCode(modal.dataset.activeId, document.getElementById('artifactModalCopyBtn'));
+  copyArtifactCode(kyyPanelActiveId, document.getElementById('artifactModalCopyBtn'));
 }
 
 function closeArtifactModal(e){
@@ -1171,16 +1368,17 @@ function closeArtifactModal(e){
   document.getElementById('artifactModal').classList.remove('show');
 }
 
-/* Preview gambar/lampiran full-size lewat modal yang sama */
+/* Preview gambar/lampiran full-size lewat panel yang sama */
 function expandAttachmentImage(url, name){
-  const modal = document.getElementById('artifactModal');
+  kyyPanelActiveId = null;
+  document.getElementById('artifactGroupTabs').style.display = 'none';
+  document.getElementById('artifactViewToggle').style.display = 'none';
   const title = document.getElementById('artifactModalTitle');
   const body = document.getElementById('artifactModalBody');
   title.innerHTML = `<span>${escapeHtml(name || 'Lampiran')}</span>`;
   document.getElementById('artifactModalCopyBtn').style.display = 'none';
   body.innerHTML = `<img src="${url}" alt="${escapeHtml(name || '')}">`;
-  modal.dataset.activeId = '';
-  modal.classList.add('show');
+  document.getElementById('artifactModal').classList.add('show');
 }
 
 
@@ -1903,7 +2101,7 @@ async function sendMessage(){
 function renderMessages(){
   const inner = document.getElementById('chatInner');
   inner.innerHTML = '';
-  messages.forEach(m => {
+  messages.forEach((m, mIdx) => {
     const row = document.createElement('div');
     row.className = 'msg-row ' + m.role;
 
@@ -1947,7 +2145,7 @@ function renderMessages(){
       bubble.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
       });
-      enhanceCodeBlocks(bubble);
+      enhanceCodeBlocks(bubble, 'msg_' + mIdx);
       col.appendChild(bubble);
     }
 

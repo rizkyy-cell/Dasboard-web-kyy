@@ -1266,52 +1266,44 @@ async function sendMessage(){
   const text = input.value.trim();
   if((!text && pendingAttachments.length === 0) || sending) return;
 
-  // Lapis kedua: kalau masih ada file yang belum selesai dibaca/dikompres, jangan kirim dulu
   if(pendingAttachments.some(a => a.loading)){
     return;
   }
 
-  // Tag lampiran yang tampil di bubble chat, biar jelas file apa yang dikirim
-  const attachTags = pendingAttachments.map(att => `[Melampirkan file: ${att.name} (${att.mime})]`);
-  const finalText = [text, ...attachTags].filter(Boolean).join('\n');
+  // 1. KUMPULKAN RIWAYAT DAN MEMORI LINTAS SESSION
+  const crossContext = await getCrossSessionContext();
+  const riwayatKirim = [...crossContext, ...messages];
 
-  // ===== SUSUN PAYLOAD SESUAI KONTRAK YANG SUDAH TERBUKTI JALAN DI chat.js/chat_2.js =====
-  // Backend cuma kenal field: pesan, gambarData (base64 JPEG), gambarType. Bukan array "lampiran".
+  // 2. TAG DAN BACA FILE LAMPIRAN
   const imageAtt = pendingAttachments.find(a => a.category === 'image' && a.base64);
   const textAtts = pendingAttachments.filter(a => a.category === 'text');
   const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text');
 
   let pesanUntukAI = text;
   textAtts.forEach(att => {
-    pesanUntukAI += (pesanUntukAI ? '\n\n' : '') + `Isi File ${att.name}:\n${att.textContent || '(gagal dibaca)'}`;
+    pesanUntukAI += (pesanUntukAI ? '\n\n' : '') + `[Isi File ${att.name}]:\n${att.textContent || '(gagal dibaca)'}`;
   });
   otherAtts.forEach(att => {
-    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[User melampirkan file ${att.name} (${att.mime}), tapi AI belum bisa membaca isi file jenis ini.]`;
+    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Lampiran File ${att.name} (${att.mime})]`;
   });
-  if(imageAtt){
-    pesanUntukAI = pesanUntukAI
-      ? `User mengirimkan gambar dengan deskripsi: ${pesanUntukAI}`
-      : 'User mengirimkan gambar.';
-  }
-  // Kalau user lampirkan lebih dari 1 gambar, cuma yang pertama yang benar-benar "dilihat" AI (batasan backend saat ini)
-  if(pendingAttachments.filter(a => a.category === 'image').length > 1){
-    console.warn('Lebih dari 1 gambar dilampirkan — hanya gambar pertama yang dikirim ke AI.');
-  }
+
+  const attachTags = pendingAttachments.map(att => `[Melampirkan file: ${att.name}]`);
+  const finalTextUI = [text, ...attachTags].filter(Boolean).join('\n');
 
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('chatInner').style.display = 'block';
 
   const isFirstMsg = messages.length === 0;
-  messages.push({ role: 'user', content: finalText });
+  messages.push({ role: 'user', content: finalTextUI });
   input.value = '';
   autoGrow(input);
-  pendingAttachments = [];       // baru dikosongkan SETELAH benar-benar terkirim
+  pendingAttachments = [];       
   renderAttachmentPreview();
   renderMessages();
   scrollDown();
 
-  if(isFirstMsg) await ensureSession(finalText);
-  await persistMessage('user', finalText);
+  if(isFirstMsg) await ensureSession(finalTextUI);
+  await persistMessage('user', finalTextUI);
 
   sending = true;
   document.getElementById('sendBtn').disabled = true;
@@ -1333,14 +1325,14 @@ async function sendMessage(){
   let replyText = '';
   try{
     const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
-    const crossContext = await getCrossSessionContext();
-    const riwayatKirim = [...crossContext, ...messages];
 
+    // 3. SUSUN PAYLOAD LENGKAP TERMASUK RIWAYAT & GAMBAR
     const payloadKirim = {
       pesan: pesanUntukAI,
       riwayat: riwayatKirim,
       mode: currentMode
     };
+
     if(imageAtt){
       payloadKirim.gambarData = imageAtt.base64;
       payloadKirim.gambarType = imageAtt.mime;

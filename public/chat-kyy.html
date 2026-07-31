@@ -1270,9 +1270,19 @@ async function sendMessage(){
     return;
   }
 
-  // 1. KUMPULKAN RIWAYAT DAN MEMORI LINTAS SESSION
+    // 1. KUMPULKAN RIWAYAT & BERSIHKAN RACUN HALUSINASI MODE
   const crossContext = await getCrossSessionContext();
-  const riwayatKirim = [...crossContext, ...messages];
+  const rawHistory = [...crossContext, ...messages];
+  const riwayatKirim = rawHistory.map(item => {
+    let textClean = (item.content || item.text || '')
+      .replace(/\[\s*MODE DEV KYY - AKTIF\s*\]/gi, '')
+      .trim();
+    return {
+      role: item.role,
+      content: textClean
+    };
+  });
+
 
   // 2. TAG DAN BACA FILE LAMPIRAN
   const imageAtt = pendingAttachments.find(a => a.category === 'image' && a.base64);

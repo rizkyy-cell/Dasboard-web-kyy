@@ -309,6 +309,135 @@
   .msg-bubble p{margin-bottom:10px;}
   .msg-bubble p:last-child{margin-bottom:0;}
 
+  /* ================= ARTIFACT CARD (kode) ================= */
+  .artifact-card{
+    margin:10px 0;
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    background:var(--code-bg);
+  }
+  .artifact-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:9px 12px;
+    background:var(--bg-input);
+    border-bottom:1px solid var(--border);
+  }
+  .artifact-lang{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-soft);
+  }
+  .artifact-lang-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .artifact-actions{display:flex;align-items:center;gap:2px;}
+  .artifact-actions button{
+    width:28px;height:28px;
+    border:none;background:transparent;
+    color:var(--text-soft);
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:14px;
+  }
+  .artifact-actions button:hover{background:var(--sidebar-hover);color:var(--text-main);}
+  .artifact-card pre{
+    margin:0;
+    padding:12px 14px;
+    max-height:280px;
+    overflow:auto;
+    background:transparent !important;
+  }
+  .artifact-card pre code.hljs{background:transparent !important;padding:0 !important;font-size:13px;}
+
+  .artifact-preview-wrap{position:relative;height:150px;background:#fff;}
+  .artifact-preview-wrap iframe{width:100%;height:100%;border:0;pointer-events:none;}
+  .artifact-preview-overlay{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,0);
+    transition:background .15s ease;
+    cursor:pointer;
+  }
+  .artifact-preview-overlay:hover{background:rgba(0,0,0,.25);}
+  .artifact-preview-overlay span{
+    opacity:0;
+    display:flex;align-items:center;gap:6px;
+    background:rgba(0,0,0,.65);color:#fff;
+    font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:20px;
+    transition:opacity .15s ease;
+  }
+  .artifact-preview-overlay:hover span{opacity:1;}
+
+  /* ================= KARTU LAMPIRAN DI BUBBLE PESAN ================= */
+  .msg-attachments{
+    display:flex;flex-wrap:wrap;gap:8px;
+    margin-bottom:8px;
+  }
+  .msg-row.user .msg-attachments{justify-content:flex-end;}
+  .msg-attach-card{
+    width:132px;height:132px;
+    border-radius:16px;
+    overflow:hidden;
+    position:relative;
+    border:1px solid var(--border);
+    background:var(--bg-input);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .msg-attach-card img{width:100%;height:100%;object-fit:cover;display:block;}
+  .msg-attach-card .msg-attach-icon{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;font-size:26px;color:var(--text-soft);
+  }
+  .msg-attach-card .msg-attach-name{
+    position:absolute;bottom:0;left:0;right:0;
+    background:linear-gradient(to top, rgba(0,0,0,.75), transparent);
+    color:#fff;font-size:10.5px;
+    padding:14px 8px 6px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  /* ================= MODAL PREVIEW ARTIFACT/LAMPIRAN ================= */
+  .artifact-modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.65);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    z-index:300;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .2s ease, visibility .2s ease;
+  }
+  .artifact-modal-overlay.show{opacity:1;visibility:visible;pointer-events:auto;}
+  .artifact-modal-card{
+    width:100%;max-width:640px;max-height:82vh;
+    background:var(--bg-sidebar);
+    border:1px solid var(--border);
+    border-radius:18px;
+    display:flex;flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .artifact-modal-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--border);
+  }
+  .artifact-modal-header .artifact-actions button{color:var(--text-soft);}
+  .artifact-modal-body{overflow:auto;background:var(--code-bg);}
+  .artifact-modal-body pre{margin:0;padding:16px;}
+  .artifact-modal-body pre code.hljs{background:transparent !important;font-size:13.5px;}
+  .artifact-modal-body iframe{width:100%;height:60vh;border:0;background:#fff;}
+  .artifact-modal-body img{width:100%;height:auto;display:block;}
+
   /* INPUT BOX */
   .input-wrap{
     position:absolute;
@@ -819,6 +948,19 @@
 </div>
 
 <!-- SLIDE PANEL PENGATURAN LIQUID GLASS -->
+<div class="artifact-modal-overlay" id="artifactModal" onclick="closeArtifactModal(event)">
+  <div class="artifact-modal-card" onclick="event.stopPropagation()">
+    <div class="artifact-modal-header">
+      <div class="artifact-lang" id="artifactModalTitle"></div>
+      <div class="artifact-actions">
+        <button type="button" id="artifactModalCopyBtn" onclick="copyArtifactModalCode()" title="Salin">⧉</button>
+        <button type="button" onclick="closeArtifactModal()" title="Tutup">✕</button>
+      </div>
+    </div>
+    <div class="artifact-modal-body" id="artifactModalBody"></div>
+  </div>
+</div>
+
 <div class="glass-popup-overlay" id="settingsPopup" onclick="closeSettingsPopup(event)">
   <div class="glass-popup-card" onclick="event.stopPropagation()">
     
@@ -866,6 +1008,181 @@
 
 <script>
 marked.setOptions({ breaks:true, gfm:true });
+
+/* ================= ARTIFACT: LABEL BAHASA & PREVIEW ================= */
+const KYY_LANG_ALIASES = {
+  js:'javascript', javascript:'javascript', jsx:'jsx',
+  ts:'typescript', typescript:'typescript', tsx:'tsx',
+  html:'html', htm:'html',
+  css:'css', scss:'css',
+  py:'python', python:'python',
+  json:'json',
+  sh:'bash', bash:'bash', shell:'bash',
+  sql:'sql', java:'java', c:'c', cpp:'cpp', 'c++':'cpp',
+  cs:'csharp', csharp:'csharp', php:'php',
+  rb:'ruby', ruby:'ruby', go:'go', golang:'go',
+  rs:'rust', rust:'rust', swift:'swift',
+  kt:'kotlin', kotlin:'kotlin',
+  yaml:'yaml', yml:'yaml', md:'markdown', markdown:'markdown', dart:'dart',
+  xml:'xml', plaintext:'text'
+};
+const KYY_LANG_META = {
+  javascript:{label:'Js', color:'#f2c94c'},
+  jsx:{label:'Jsx', color:'#61dafb'},
+  typescript:{label:'Ts', color:'#3b82f6'},
+  tsx:{label:'Tsx', color:'#3b82f6'},
+  html:{label:'HTML', color:'#f97360', previewable:true},
+  css:{label:'CSS', color:'#7c6aef'},
+  python:{label:'Python', color:'#3ecf8e'},
+  json:{label:'JSON', color:'#e0af68'},
+  bash:{label:'Bash', color:'#9aa5ce'},
+  sql:{label:'SQL', color:'#e0af68'},
+  java:{label:'Java', color:'#e0af68'},
+  c:{label:'C', color:'#7dcfff'},
+  cpp:{label:'C++', color:'#7dcfff'},
+  csharp:{label:'C#', color:'#7dcfff'},
+  php:{label:'PHP', color:'#9d7cd8'},
+  ruby:{label:'Ruby', color:'#f7768e'},
+  go:{label:'Go', color:'#7dcfff'},
+  rust:{label:'Rust', color:'#e0af68'},
+  swift:{label:'Swift', color:'#f7768e'},
+  kotlin:{label:'Kotlin', color:'#9d7cd8'},
+  yaml:{label:'YAML', color:'#9aa5ce'},
+  markdown:{label:'Markdown', color:'#9aa5ce'},
+  dart:{label:'Dart', color:'#3ecf8e'},
+  xml:{label:'XML', color:'#9aa5ce'},
+  text:{label:'Text', color:'#9aa5ce'}
+};
+function kyyLangMeta(raw){
+  const key = KYY_LANG_ALIASES[(raw||'').trim().toLowerCase()] || (raw||'').trim().toLowerCase() || 'text';
+  if(KYY_LANG_META[key]) return { key, ...KYY_LANG_META[key] };
+  const label = key ? (key.charAt(0).toUpperCase() + key.slice(1)) : 'Text';
+  return { key, label, color:'#9aa5ce', previewable:false };
+}
+
+let kyyArtifactSeq = 0;
+const kyyArtifactStore = {}; // id -> { code, lang }
+
+/* Ubah setiap <pre><code> hasil marked+hljs jadi kartu artifact bergaya Claude */
+function enhanceCodeBlocks(bubble){
+  bubble.querySelectorAll('pre').forEach(pre => {
+    const codeEl = pre.querySelector('code');
+    if(!codeEl) return;
+
+    // deteksi bahasa dari class "language-xxx" yang ditambahkan hljs/marked
+    const langClass = [...codeEl.classList].find(c => c.startsWith('language-'));
+    const rawLang = langClass ? langClass.replace('language-','') : (codeEl.result?.language || '');
+    const meta = kyyLangMeta(rawLang || codeEl.dataset.lang || '');
+    const rawCode = codeEl.innerText;
+
+    const id = 'art_' + (++kyyArtifactSeq);
+    kyyArtifactStore[id] = { code: rawCode, lang: meta.key, label: meta.label };
+
+    const card = document.createElement('div');
+    card.className = 'artifact-card';
+
+    const header = document.createElement('div');
+    header.className = 'artifact-header';
+    header.innerHTML = `
+      <div class="artifact-lang">
+        <span class="artifact-lang-dot" style="background:${meta.color}"></span>
+        <span>${escapeHtml(meta.label)}</span>
+      </div>
+      <div class="artifact-actions">
+        <button type="button" onclick="copyArtifactCode('${id}', this)" title="Salin">⧉</button>
+        <button type="button" onclick="expandArtifact('${id}')" title="Perbesar">⤢</button>
+      </div>
+    `;
+    card.appendChild(header);
+
+    if(meta.previewable){
+      const wrap = document.createElement('div');
+      wrap.className = 'artifact-preview-wrap';
+      wrap.innerHTML = `
+        <iframe sandbox="allow-scripts" srcdoc="${escapeHtml(rawCode)}"></iframe>
+        <div class="artifact-preview-overlay" onclick="expandArtifact('${id}')">
+          <span>▶ Lihat preview</span>
+        </div>
+      `;
+      card.appendChild(wrap);
+    } else {
+      pre.remove();
+      const body = document.createElement('div');
+      body.appendChild(pre);
+      card.appendChild(body);
+    }
+
+    // sisipkan kartu menggantikan <pre> asli di posisi semula
+    if(pre.isConnected){
+      pre.replaceWith(card);
+    } else {
+      bubble.appendChild(card);
+    }
+  });
+}
+
+function copyArtifactCode(id, btn){
+  const item = kyyArtifactStore[id];
+  if(!item) return;
+  navigator.clipboard?.writeText(item.code).then(() => {
+    if(btn){
+      const original = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => { btn.textContent = original; }, 1200);
+    }
+  }).catch(()=>{});
+}
+
+function expandArtifact(id){
+  const item = kyyArtifactStore[id];
+  if(!item) return;
+  const modal = document.getElementById('artifactModal');
+  const title = document.getElementById('artifactModalTitle');
+  const body = document.getElementById('artifactModalBody');
+  const meta = kyyLangMeta(item.lang);
+
+  title.innerHTML = `<span class="artifact-lang-dot" style="background:${meta.color}"></span><span>${escapeHtml(item.label)}</span>`;
+  document.getElementById('artifactModalCopyBtn').style.display = '';
+
+  if(meta.previewable){
+    body.innerHTML = `<iframe sandbox="allow-scripts" srcdoc="${escapeHtml(item.code)}"></iframe>`;
+  } else {
+    const pre = document.createElement('pre');
+    const code = document.createElement('code');
+    code.className = 'hljs language-' + meta.key;
+    code.textContent = item.code;
+    pre.appendChild(code);
+    body.innerHTML = '';
+    body.appendChild(pre);
+    hljs.highlightElement(code);
+  }
+
+  modal.dataset.activeId = id;
+  modal.classList.add('show');
+}
+
+function copyArtifactModalCode(){
+  const modal = document.getElementById('artifactModal');
+  copyArtifactCode(modal.dataset.activeId, document.getElementById('artifactModalCopyBtn'));
+}
+
+function closeArtifactModal(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('artifactModal').classList.remove('show');
+}
+
+/* Preview gambar/lampiran full-size lewat modal yang sama */
+function expandAttachmentImage(url, name){
+  const modal = document.getElementById('artifactModal');
+  const title = document.getElementById('artifactModalTitle');
+  const body = document.getElementById('artifactModalBody');
+  title.innerHTML = `<span>${escapeHtml(name || 'Lampiran')}</span>`;
+  document.getElementById('artifactModalCopyBtn').style.display = 'none';
+  body.innerHTML = `<img src="${url}" alt="${escapeHtml(name || '')}">`;
+  modal.dataset.activeId = '';
+  modal.classList.add('show');
+}
+
 
 /* ================= SUPABASE ================= */
 const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
@@ -1504,7 +1821,12 @@ async function sendMessage(){
   document.getElementById('chatInner').style.display = 'block';
 
   const isFirstMsg = messages.length === 0;
-  messages.push({ role: 'user', content: finalTextUI });
+  const attachSnapshot = pendingAttachments.map(a => ({
+    name: a.name,
+    category: a.category,
+    previewUrl: a.category === 'image' ? a.previewUrl : null
+  }));
+  messages.push({ role: 'user', content: finalTextUI, rawText: text, attachments: attachSnapshot });
   input.value = '';
   autoGrow(input);
   pendingAttachments = [];       
@@ -1584,19 +1906,52 @@ function renderMessages(){
   messages.forEach(m => {
     const row = document.createElement('div');
     row.className = 'msg-row ' + m.role;
+
+    // kolom vertikal: lampiran (jika ada) ditumpuk di atas bubble teks
+    const col = document.createElement('div');
+    col.style.display = 'flex';
+    col.style.flexDirection = 'column';
+    col.style.gap = '8px';
+    col.style.alignItems = m.role === 'user' ? 'flex-end' : 'flex-start';
+    col.style.maxWidth = '100%';
+
     const bubble = document.createElement('div');
     bubble.className = 'msg-bubble';
-    
+
     if (m.role === 'user') {
-      bubble.innerHTML = escapeHtml(m.content);
+      const displayText = (m.rawText !== undefined) ? m.rawText : m.content;
+
+      if(m.attachments && m.attachments.length){
+        const attWrap = document.createElement('div');
+        attWrap.className = 'msg-attachments';
+        m.attachments.forEach(att => {
+          const card = document.createElement('div');
+          card.className = 'msg-attach-card';
+          if(att.category === 'image' && att.previewUrl){
+            card.innerHTML = `<img src="${att.previewUrl}" alt="${escapeHtml(att.name)}"><div class="msg-attach-name">${escapeHtml(att.name)}</div>`;
+            card.onclick = () => expandAttachmentImage(att.previewUrl, att.name);
+          } else {
+            card.innerHTML = `<div class="msg-attach-icon">${fileIconFor(att.category)}</div><div class="msg-attach-name">${escapeHtml(att.name)}</div>`;
+          }
+          attWrap.appendChild(card);
+        });
+        col.appendChild(attWrap);
+      }
+
+      if(displayText){
+        bubble.innerHTML = escapeHtml(displayText);
+        col.appendChild(bubble);
+      }
     } else {
       bubble.innerHTML = marked.parse(m.content);
       bubble.querySelectorAll('pre code').forEach((block) => {
         hljs.highlightElement(block);
       });
+      enhanceCodeBlocks(bubble);
+      col.appendChild(bubble);
     }
-    
-    row.appendChild(bubble);
+
+    row.appendChild(col);
     inner.appendChild(row);
   });
 }

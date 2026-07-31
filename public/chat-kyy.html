@@ -401,6 +401,8 @@
     font-size:12px;line-height:1;cursor:pointer;
     box-shadow:0 2px 6px rgba(0,0,0,.3);
   }
+  .attach-chip.loading{opacity:.7;border-color:var(--accent);}
+  .attach-chip.loading .attach-meta{color:var(--accent);}
 
   /* TOMBOL LAMPIRKAN FILE (PAPERCLIP) — untuk mobile yang tidak bisa drag & drop */
   .attach-btn{
@@ -899,12 +901,14 @@ async function addAttachment(file){
     category,
     previewUrl: null,    // thumbnail + data base64 khusus gambar (dikirim ke AI agar bisa "melihat")
     base64: null,
-    textContent: null    // isi file khusus untuk file teks (.txt/.md/.json/.csv)
+    textContent: null,   // isi file khusus untuk file teks (.txt/.md/.json/.csv)
+    loading: true         // true selagi file masih dibaca/dikompres — tombol kirim dikunci selama ini
   };
 
   // Render dulu (status memuat) supaya chip langsung muncul, baru diisi setelah file selesai dibaca
   pendingAttachments.push(att);
   renderAttachmentPreview();
+  updateSendBtnState();
 
   try{
     if(category === 'image'){
@@ -919,12 +923,24 @@ async function addAttachment(file){
     console.warn('Gagal membaca file lampiran:', err);
   }
 
+  att.loading = false;
   renderAttachmentPreview();
+  updateSendBtnState();
+}
+
+// Mencegah tombol kirim ditekan selagi ada file yang masih diproses (mencegah gambarData kosong terkirim)
+function updateSendBtnState(){
+  const btn = document.getElementById('sendBtn');
+  if(!btn) return;
+  const stillLoading = pendingAttachments.some(a => a.loading);
+  btn.disabled = stillLoading && !sending;
+  btn.title = stillLoading ? 'Menunggu file selesai dimuat...' : '';
 }
 
 function removeAttachment(id){
   pendingAttachments = pendingAttachments.filter(a => a.id !== id);
   renderAttachmentPreview();
+  updateSendBtnState();
 }
 
 function renderAttachmentPreview(){
@@ -942,12 +958,13 @@ function renderAttachmentPreview(){
     const thumb = (att.category === 'image' && att.previewUrl)
       ? `<img class="attach-thumb" src="${att.previewUrl}" alt="${escapeHtml(att.name)}">`
       : `<div class="attach-icon">${fileIconFor(att.category)}</div>`;
+    const metaText = att.loading ? 'Memuat...' : formatFileSize(att.size);
     return `
-      <div class="attach-chip" data-id="${att.id}">
+      <div class="attach-chip${att.loading ? ' loading' : ''}" data-id="${att.id}">
         ${thumb}
         <div class="attach-info">
           <div class="attach-name">${escapeHtml(att.name)}</div>
-          <div class="attach-meta">${formatFileSize(att.size)}</div>
+          <div class="attach-meta">${metaText}</div>
         </div>
         <button type="button" class="attach-remove" onclick="removeAttachment('${att.id}')">✕</button>
       </div>
@@ -1248,6 +1265,11 @@ async function sendMessage(){
   const input = document.getElementById('userInput');
   const text = input.value.trim();
   if((!text && pendingAttachments.length === 0) || sending) return;
+
+  // Lapis kedua: kalau masih ada file yang belum selesai dibaca/dikompres, jangan kirim dulu
+  if(pendingAttachments.some(a => a.loading)){
+    return;
+  }
 
   // Tag lampiran yang tampil di bubble chat, biar jelas file apa yang dikirim
   const attachTags = pendingAttachments.map(att => `[Melampirkan file: ${att.name} (${att.mime})]`);

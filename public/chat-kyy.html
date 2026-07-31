@@ -805,6 +805,36 @@ function handleKey(e){
 function isMobile(){ return window.innerWidth <= 768; }
 
 /* ================= CHAT LOGIC (INGATAN & DYNAMIC BACKEND) ================= */
+/* ================= MEMORI LINTAS OBROLAN & MODE ================= */
+async function getCrossSessionContext(limit = 40){
+  if(currentUser){
+    try{
+      let query = supabaseClient
+        .from('chat_history')
+        .select('role,content,session_id,created_at')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      if(currentSessionId) query = query.neq('session_id', currentSessionId);
+
+      const { data, error } = await query;
+      if(error) throw error;
+      return (data || []).reverse().map(m => ({ role: m.role, content: m.content }));
+    }catch(err){
+      console.warn('Gagal ambil memori lintas obrolan (login):', err);
+      return [];
+    }
+  } else {
+    const combined = [];
+    guestSessions.forEach(s=>{
+      if(s.id === currentSessionId) return;
+      (s.messages || []).forEach(m => combined.push({ role: m.role, content: m.content, ts: m.ts || 0 }));
+    });
+    combined.sort((a,b)=> (a.ts||0) - (b.ts||0));
+    return combined.slice(-limit).map(m => ({ role: m.role, content: m.content }));
+  }
+}
+
 async function sendMessage(){
   const input = document.getElementById('userInput');
   const text = input.value.trim();
@@ -839,12 +869,16 @@ async function sendMessage(){
     // RUTE SERVERLESS BACKEND SESUAI MODE YANG DIPILIH
     const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
 
+    // Gabung memori dari SEMUA obrolan/mode sebelumnya + obrolan yang sedang berjalan
+    const crossContext = await getCrossSessionContext();
+    const riwayatKirim = [...crossContext, ...messages];
+
     const res = await fetch(targetEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         pesan: text, 
-        riwayat: messages, 
+        riwayat: riwayatKirim, 
         mode: currentMode 
       })
     });

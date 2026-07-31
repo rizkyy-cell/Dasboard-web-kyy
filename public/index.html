@@ -1906,9 +1906,13 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     let dataAppLokal = [];
     let dataStoreLokal = [];
     let currentCategory = 'all';
+    let currentCategoryApp = 'all';
+    let currentCategoryStore = 'all';
     let searchQueryStr = '';
     let activeDownloadUrl = '';
     let daftarKategoriPublik = [];
+    let daftarKategoriPublikApp = [];
+    let daftarKategoriPublikStore = [];
 
     // =====================================================================
     // 2. SISTEM TARIK DATA PINTAR (ANTI-LAG & CACHING)
@@ -1928,17 +1932,45 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         } else {
             daftarKategoriPublik = data;
         }
-        renderKategoriTabs();
+        const pageEl = document.getElementById('page-home');
+        if (pageEl && pageEl.classList.contains('active')) renderKategoriTabs('web');
     }
 
-    function renderKategoriTabs() {
+    async function muatDaftarKategoriPublikApp() {
+        const { data, error } = await supabaseClient.from('app_kategori').select('*').order('nama', { ascending: true });
+        if (error || !data || data.length === 0) {
+            daftarKategoriPublikApp = [{ nama: 'lainnya' }];
+        } else {
+            daftarKategoriPublikApp = data;
+        }
+        const pageEl = document.getElementById('page-appmod');
+        if (pageEl && pageEl.classList.contains('active')) renderKategoriTabs('app');
+    }
+
+    async function muatDaftarKategoriPublikStore() {
+        const { data, error } = await supabaseClient.from('store_kategori').select('*').order('nama', { ascending: true });
+        if (error || !data || data.length === 0) {
+            daftarKategoriPublikStore = [{ nama: 'lainnya' }];
+        } else {
+            daftarKategoriPublikStore = data;
+        }
+        const pageEl = document.getElementById('page-store');
+        if (pageEl && pageEl.classList.contains('active')) renderKategoriTabs('store');
+    }
+
+    function renderKategoriTabs(sumber = 'web') {
         const list = document.getElementById('tg-tabs-list');
         if (!list) return;
-        let html = `<div class="tg-tab ${currentCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all', this)">All <span class="tab-badge" id="badge-all">0</span></div>`;
-        daftarKategoriPublik.forEach(k => {
+        let daftar, current;
+        if (sumber === 'app') { daftar = daftarKategoriPublikApp; current = currentCategoryApp; }
+        else if (sumber === 'store') { daftar = daftarKategoriPublikStore; current = currentCategoryStore; }
+        else { daftar = daftarKategoriPublik; current = currentCategory; }
+
+        let html = `<div class="tg-tab ${current === 'all' ? 'active' : ''}" onclick="filterCategory('all', this, '${sumber}')">All <span class="tab-badge" id="badge-all">0</span></div>`;
+        daftar.forEach(k => {
             const namaLower = k.nama.toLowerCase();
             const namaLabel = k.nama.charAt(0).toUpperCase() + k.nama.slice(1);
-            html += `<div class="tg-tab ${currentCategory === namaLower ? 'active' : ''}" onclick="filterCategory('${namaLower}', this)">${namaLabel} <span class="tab-badge" id="badge-${namaLower}">0</span></div>`;
+            html += `<div class="tg-tab ${current === namaLower ? 'active' : ''}" onclick="filterCategory('${namaLower}', this, '${sumber}')">${namaLabel} <span class="tab-badge" id="badge-${namaLower}">0</span></div>`;
         });
         list.innerHTML = html;
     }
@@ -2019,6 +2051,16 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         return; 
     }
 
+    // Hitung badge jumlah per kategori
+    const badgeAll = document.getElementById('badge-all');
+    if (badgeAll) badgeAll.innerText = dataAppLokal.length;
+    daftarKategoriPublikApp.forEach(k => {
+        const namaLower = k.nama.toLowerCase();
+        const jumlah = dataAppLokal.filter(i => (i.kategori || 'lainnya').toLowerCase() === namaLower).length;
+        const badgeEl = document.getElementById('badge-' + namaLower);
+        if (badgeEl) badgeEl.innerText = jumlah;
+    });
+
     // 1. Ambil ID Target dari URL (?app_id=...)
     const urlParams = new URLSearchParams(window.location.search);
     const appIdTarget = urlParams.get('app_id');
@@ -2034,9 +2076,13 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     }
     
     container.innerHTML = '';
+    let adaTampilApp = false;
     appsToRender.forEach((app, index) => {
         const namaAppStr = (app.nama_app || '').toLowerCase();
+        const kategoriApp = (app.kategori || 'lainnya').toLowerCase();
+        if (currentCategoryApp !== 'all' && kategoriApp !== currentCategoryApp) return;
         if (searchQueryStr && !namaAppStr.includes(searchQueryStr)) return;
+        adaTampilApp = true;
         
         let imgHtml = app.img_url ? `<img src="${app.img_url}" onerror="this.outerHTML='📱'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '📱';
         
@@ -2098,6 +2144,10 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
                 </div>
             </div>`;
     });
+
+    if (!adaTampilApp) {
+        container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Tidak ada aplikasi di kategori ini.</p>`;
+    }
 }
 
               // FUNGSI UNTUK BUKA/TUTUP DESKRIPSI DENGAN ANIMASI SMOOTH
@@ -2196,11 +2246,25 @@ async function cekParamUrlShare() {
         const container = document.getElementById('container-store-list');
         if (!container) return;
         if (dataStoreLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Etalase kosong.</p>`; return; }
+
+        // Hitung badge jumlah per kategori
+        const badgeAll = document.getElementById('badge-all');
+        if (badgeAll) badgeAll.innerText = dataStoreLokal.length;
+        daftarKategoriPublikStore.forEach(k => {
+            const namaLower = k.nama.toLowerCase();
+            const jumlah = dataStoreLokal.filter(i => (i.kategori || 'lainnya').toLowerCase() === namaLower).length;
+            const badgeEl = document.getElementById('badge-' + namaLower);
+            if (badgeEl) badgeEl.innerText = jumlah;
+        });
         
         container.innerHTML = '';
+        let adaTampilStore = false;
         dataStoreLokal.forEach(prod => {
             const namaProdStr = (prod.nama_produk || '').toLowerCase();
+            const kategoriProd = (prod.kategori || 'lainnya').toLowerCase();
+            if (currentCategoryStore !== 'all' && kategoriProd !== currentCategoryStore) return;
             if (searchQueryStr && !namaProdStr.includes(searchQueryStr)) return;
+            adaTampilStore = true;
             
             let stockBadge = `<span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; color:#fff;">Stock: ${prod.stock ?? '0'}</span>`;
             let iconHtml = prod.img_url ? `<img src="${prod.img_url}" onerror="this.outerHTML='🛍️'" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : '🛍️';
@@ -2220,6 +2284,10 @@ async function cekParamUrlShare() {
                     <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>
                 </div>`;
         });
+
+        if (!adaTampilStore) {
+            container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Tidak ada produk di kategori ini.</p>`;
+        }
     }
 
     // =====================================================================
@@ -2275,11 +2343,21 @@ async function cekParamUrlShare() {
             else title.innerText = page.charAt(0).toUpperCase() + page.slice(1);
         }
 
-        if (tabsHeader) tabsHeader.style.display = (page === 'home') ? 'block' : 'none';
+        if (tabsHeader) tabsHeader.style.display = (page === 'home' || page === 'appmod' || page === 'store') ? 'block' : 'none';
       
-        if (page === 'home') ambilDataWeb();
-        if (page === 'appmod') ambilDataApp();
-        if (page === 'store') ambilDataStore();
+        if (page === 'home') { 
+            renderKategoriTabs('web'); 
+            if (daftarKategoriPublik.length === 0) muatDaftarKategoriPublik();
+            ambilDataWeb(); 
+        } else if (page === 'appmod') { 
+            renderKategoriTabs('app'); 
+            if (daftarKategoriPublikApp.length === 0) muatDaftarKategoriPublikApp();
+            ambilDataApp(); 
+        } else if (page === 'store') { 
+            renderKategoriTabs('store'); 
+            if (daftarKategoriPublikStore.length === 0) muatDaftarKategoriPublikStore();
+            ambilDataStore(); 
+        }
     }
 
     function searchKarya(val) { 
@@ -2287,10 +2365,12 @@ async function cekParamUrlShare() {
         renderHomeList(); renderAppList(); renderStoreList(); 
     }
 
-    function filterCategory(cat, el) { 
+    function filterCategory(cat, el, sumber = 'web') { 
         document.querySelectorAll('.tg-tab').forEach(e => e.classList.remove('active')); 
         if (el) el.classList.add('active'); 
-        currentCategory = cat; renderHomeList(); 
+        if (sumber === 'app') { currentCategoryApp = cat; renderAppList(); }
+        else if (sumber === 'store') { currentCategoryStore = cat; renderStoreList(); }
+        else { currentCategory = cat; renderHomeList(); }
     }
     
     function toggleSearch() { 
@@ -3068,6 +3148,8 @@ function batalMediaKyy() {
         // Hapus window.onload, ganti jadi fungsi biasa ini:
         function bootSistem() {
           muatDaftarKategoriPublik().then(() => ambilDataWeb());
+          muatDaftarKategoriPublikApp();
+          muatDaftarKategoriPublikStore();
           ambilDataApp(); 
           ambilDataStore();
           muatSosmedDiPublik(); 

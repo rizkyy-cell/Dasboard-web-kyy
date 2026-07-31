@@ -357,6 +357,60 @@
     box-shadow: 0 0 15px rgba(51,144,236,0.3);
   }
 
+  /* PRATINJAU LAMPIRAN — FILE DITAHAN DI SINI SAMPAI USER KLIK KIRIM */
+  .attach-preview-bar{
+    display:none;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:0 4px 10px;
+  }
+  .attach-preview-bar.show{display:flex;}
+  .attach-chip{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:6px 10px 6px 6px;
+    max-width:220px;
+    animation:chipIn .18s ease;
+  }
+  @keyframes chipIn{from{opacity:0;transform:translateY(4px) scale(.96);}to{opacity:1;transform:none;}}
+  .attach-chip .attach-thumb{
+    width:36px;height:36px;border-radius:9px;
+    object-fit:cover;flex-shrink:0;background:var(--bg-sidebar);
+  }
+  .attach-chip .attach-icon{
+    width:36px;height:36px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;background:var(--bg-sidebar);flex-shrink:0;
+  }
+  .attach-chip .attach-info{min-width:0;}
+  .attach-chip .attach-name{
+    font-size:12.5px;font-weight:600;color:var(--text-main);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;
+  }
+  .attach-chip .attach-meta{font-size:10.5px;color:var(--text-soft);}
+  .attach-chip .attach-remove{
+    position:absolute;top:-6px;right:-6px;
+    width:18px;height:18px;border-radius:50%;
+    background:var(--accent);color:#fff;border:none;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;line-height:1;cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+
+  /* TOMBOL LAMPIRKAN FILE (PAPERCLIP) — untuk mobile yang tidak bisa drag & drop */
+  .attach-btn{
+    width:34px;height:34px;border-radius:50%;
+    background:transparent;border:none;color:var(--text-soft);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;cursor:pointer;
+  }
+  .attach-btn:hover{background:var(--sidebar-hover);color:var(--text-main);}
+
   .input-box textarea{
     flex:1;
     border:none;
@@ -566,7 +620,12 @@
   <!-- INPUT AREA (DENGAN DUKUNGAN DRAG & DROP) -->
   <div class="input-wrap">
     <div class="input-box-container">
+      <div class="attach-preview-bar" id="attachPreviewBar"></div>
       <div class="input-box" id="dropArea">
+        <input type="file" id="fileInputHidden" multiple style="display:none" onchange="handleFileInputChange(event)">
+        <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>
+        </button>
         <textarea id="userInput" placeholder="Tanyakan apa saja atau seret file/media ke sini..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -609,6 +668,9 @@ let currentSessionId = null;
 let messages = [];
 let sending = false;
 let guestSessions = [];
+let pendingAttachments = [];   // file yang sudah di-drop/dipilih tapi belum dikirim
+let attachSeq = 0;
+const MAX_ATTACHMENT_MB = 8;   // batas ukuran per file agar payload tidak kebesaran
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
@@ -698,7 +760,7 @@ function handleAuthSession(session){
   applyProfileUI();
 }
 
-/* ================= DRAG & DROP FILE / TEXT / MEDIA ================= */
+/* ================= DRAG & DROP + LAMPIRAN FILE (DITAHAN SAMPAI USER KLIK KIRIM) ================= */
 function initDragAndDrop(){
   const dropArea = document.getElementById('dropArea');
   const input = document.getElementById('userInput');
@@ -725,7 +787,8 @@ function initDragAndDrop(){
     const files = dt.files;
 
     if (files.length > 0) {
-      handleFiles(files);
+      // File di-drop -> jadi lampiran yang ditahan, BUKAN teks di textarea
+      Array.from(files).forEach(file => addAttachment(file));
     } else {
       const text = dt.getData('text');
       if (text) {
@@ -734,24 +797,162 @@ function initDragAndDrop(){
       }
     }
   });
+}
 
-  function handleFiles(files) {
-    Array.from(files).forEach(file => {
-      // Jika file berupa teks, baca isinya
-      if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          input.value += (input.value ? '\n' : '') + `[Isi File ${file.name}]:\n` + e.target.result;
-          autoGrow(input);
-        };
-        reader.readAsText(file);
-      } else {
-        // Untuk File Media (MP3, MP4, Gambar, PDF, dll)
-        input.value += (input.value ? '\n' : '') + `[Melampirkan file: ${file.name} (${file.type || 'Media'})]`;
-        autoGrow(input);
-      }
-    });
+// Dipanggil saat user memilih file lewat tombol paperclip (khusus mobile, drag&drop sering tak tersedia)
+function handleFileInputChange(e){
+  Array.from(e.target.files || []).forEach(file => addAttachment(file));
+  e.target.value = ''; // reset agar file yang sama bisa dipilih ulang
+}
+
+function fileToDataURL(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function fileToText(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
+
+// Kompres gambar sebelum dikirim (max 1000px, JPEG q0.7) — biar payload nggak kena limit Vercel (~4.5MB)
+function compressImageKyy(file, maxSizePx = 1000, quality = 0.7){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxSizePx) { height *= maxSizePx / width; width = maxSizePx; }
+        } else {
+          if (height > maxSizePx) { width *= maxSizePx / height; height = maxSizePx; }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({ dataUrl, base64: dataUrl.split(',')[1], mimeType: 'image/jpeg' });
+      };
+      img.onerror = reject;
+    };
+    reader.onerror = reject;
+  });
+}
+
+function categorizeFile(file){
+  const name = file.name.toLowerCase();
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md') || name.endsWith('.json') || name.endsWith('.csv')) return 'text';
+  if (file.type.startsWith('audio/')) return 'audio';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type === 'application/pdf') return 'pdf';
+  return 'other';
+}
+
+function fileIconFor(category){
+  switch(category){
+    case 'text': return '📄';
+    case 'audio': return '🎵';
+    case 'video': return '🎬';
+    case 'pdf': return '📕';
+    default: return '📎';
   }
+}
+
+function formatFileSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+// Menambahkan file ke daftar lampiran yang DITAHAN — belum dikirim sampai user klik tombol kirim
+async function addAttachment(file){
+  if(file.size > MAX_ATTACHMENT_MB * 1024 * 1024){
+    alert(`File "${file.name}" terlalu besar (maks ${MAX_ATTACHMENT_MB}MB).`);
+    return;
+  }
+
+  const category = categorizeFile(file);
+  const att = {
+    id: 'att_' + (++attachSeq) + '_' + Date.now(),
+    file,
+    name: file.name,
+    mime: file.type || 'application/octet-stream',
+    size: file.size,
+    category,
+    previewUrl: null,    // thumbnail + data base64 khusus gambar (dikirim ke AI agar bisa "melihat")
+    base64: null,
+    textContent: null    // isi file khusus untuk file teks (.txt/.md/.json/.csv)
+  };
+
+  // Render dulu (status memuat) supaya chip langsung muncul, baru diisi setelah file selesai dibaca
+  pendingAttachments.push(att);
+  renderAttachmentPreview();
+
+  try{
+    if(category === 'image'){
+      const hasil = await compressImageKyy(file, 1000, 0.7);
+      att.previewUrl = hasil.dataUrl;
+      att.base64 = hasil.base64;
+      att.mime = hasil.mimeType; // dipaksa jadi image/jpeg hasil kompresi
+    } else if(category === 'text'){
+      att.textContent = await fileToText(file);
+    }
+  }catch(err){
+    console.warn('Gagal membaca file lampiran:', err);
+  }
+
+  renderAttachmentPreview();
+}
+
+function removeAttachment(id){
+  pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+  renderAttachmentPreview();
+}
+
+function renderAttachmentPreview(){
+  const bar = document.getElementById('attachPreviewBar');
+  if(!bar) return;
+
+  if(pendingAttachments.length === 0){
+    bar.classList.remove('show');
+    bar.innerHTML = '';
+    return;
+  }
+
+  bar.classList.add('show');
+  bar.innerHTML = pendingAttachments.map(att => {
+    const thumb = (att.category === 'image' && att.previewUrl)
+      ? `<img class="attach-thumb" src="${att.previewUrl}" alt="${escapeHtml(att.name)}">`
+      : `<div class="attach-icon">${fileIconFor(att.category)}</div>`;
+    return `
+      <div class="attach-chip" data-id="${att.id}">
+        ${thumb}
+        <div class="attach-info">
+          <div class="attach-name">${escapeHtml(att.name)}</div>
+          <div class="attach-meta">${formatFileSize(att.size)}</div>
+        </div>
+        <button type="button" class="attach-remove" onclick="removeAttachment('${att.id}')">✕</button>
+      </div>
+    `;
+  }).join('');
 }
 
 /* ================= SESI & RIWAYAT CHAT ================= */
@@ -1046,20 +1247,49 @@ async function getCrossSessionContext(limit = 40){
 async function sendMessage(){
   const input = document.getElementById('userInput');
   const text = input.value.trim();
-  if(!text || sending) return;
+  if((!text && pendingAttachments.length === 0) || sending) return;
+
+  // Tag lampiran yang tampil di bubble chat, biar jelas file apa yang dikirim
+  const attachTags = pendingAttachments.map(att => `[Melampirkan file: ${att.name} (${att.mime})]`);
+  const finalText = [text, ...attachTags].filter(Boolean).join('\n');
+
+  // ===== SUSUN PAYLOAD SESUAI KONTRAK YANG SUDAH TERBUKTI JALAN DI chat.js/chat_2.js =====
+  // Backend cuma kenal field: pesan, gambarData (base64 JPEG), gambarType. Bukan array "lampiran".
+  const imageAtt = pendingAttachments.find(a => a.category === 'image' && a.base64);
+  const textAtts = pendingAttachments.filter(a => a.category === 'text');
+  const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text');
+
+  let pesanUntukAI = text;
+  textAtts.forEach(att => {
+    pesanUntukAI += (pesanUntukAI ? '\n\n' : '') + `Isi File ${att.name}:\n${att.textContent || '(gagal dibaca)'}`;
+  });
+  otherAtts.forEach(att => {
+    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[User melampirkan file ${att.name} (${att.mime}), tapi AI belum bisa membaca isi file jenis ini.]`;
+  });
+  if(imageAtt){
+    pesanUntukAI = pesanUntukAI
+      ? `User mengirimkan gambar dengan deskripsi: ${pesanUntukAI}`
+      : 'User mengirimkan gambar.';
+  }
+  // Kalau user lampirkan lebih dari 1 gambar, cuma yang pertama yang benar-benar "dilihat" AI (batasan backend saat ini)
+  if(pendingAttachments.filter(a => a.category === 'image').length > 1){
+    console.warn('Lebih dari 1 gambar dilampirkan — hanya gambar pertama yang dikirim ke AI.');
+  }
 
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('chatInner').style.display = 'block';
 
   const isFirstMsg = messages.length === 0;
-  messages.push({ role: 'user', content: text });
+  messages.push({ role: 'user', content: finalText });
   input.value = '';
   autoGrow(input);
+  pendingAttachments = [];       // baru dikosongkan SETELAH benar-benar terkirim
+  renderAttachmentPreview();
   renderMessages();
   scrollDown();
 
-  if(isFirstMsg) await ensureSession(text);
-  await persistMessage('user', text);
+  if(isFirstMsg) await ensureSession(finalText);
+  await persistMessage('user', finalText);
 
   sending = true;
   document.getElementById('sendBtn').disabled = true;
@@ -1084,14 +1314,20 @@ async function sendMessage(){
     const crossContext = await getCrossSessionContext();
     const riwayatKirim = [...crossContext, ...messages];
 
+    const payloadKirim = {
+      pesan: pesanUntukAI,
+      riwayat: riwayatKirim,
+      mode: currentMode
+    };
+    if(imageAtt){
+      payloadKirim.gambarData = imageAtt.base64;
+      payloadKirim.gambarType = imageAtt.mime;
+    }
+
     const res = await fetch(targetEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        pesan: text, 
-        riwayat: riwayatKirim, 
-        mode: currentMode 
-      })
+      body: JSON.stringify(payloadKirim)
     });
 
     const data = await res.json();

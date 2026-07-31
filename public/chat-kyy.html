@@ -1379,13 +1379,29 @@ function openSettingsPopup(){
   const el = document.getElementById('settingsPopup');
   if(!el) return;
   
-  // Tampilkan container overlay
+  // Tampilkan overlay container
   el.classList.add('show');
   
-  // Berikan sedikit jeda frame agar animasi transform: translateX(0) berjalan mulus
+  // Berikan jeda frame agar transisi translateX(0) berjalan mulus seperti Sidebar
   requestAnimationFrame(()=>{
     el.classList.add('visible');
   });
+}
+
+function closeSettingsPopup(e){
+  // Cegah penutupan jika mengeklik isi card (kecuali tombol kembali «)
+  if(e && e.target !== e.currentTarget && !e.target.classList.contains('btn-back-glass')) return;
+  
+  const el = document.getElementById('settingsPopup');
+  if(!el) return;
+  
+  // Tarik slide panel kembali ke luar layar kanan
+  el.classList.remove('visible');
+  
+  // Sembunyikan container overlay setelah animasi slide selesai (300ms)
+  setTimeout(()=>{
+    el.classList.remove('show');
+  }, 300);
 }
 
 function closeSettingsPopup(e){
@@ -1525,15 +1541,23 @@ async function sendMessage(){
   inner.appendChild(typingRow);
   scrollDown();
 
-  let replyText = '';
+    let replyText = '';
   try{
-    const targetEndpoint = currentMode === 'dev' ? '/api/chat_2' : '/api/chat';
+    // Arahkan endpoint secara tepat sesuai mode aktif
+    let targetEndpoint = '/api/chat';
+    if(currentMode === 'dev'){
+      targetEndpoint = '/api/chat_2';
+    } else if(currentMode === 'custom'){
+      targetEndpoint = '/api/chat_custom';
+    }
 
-    // 3. SUSUN PAYLOAD LENGKAP TERMASUK RIWAYAT & GAMBAR
+    // Susun payload termasuk Custom API Key & Custom Prompt
     const payloadKirim = {
       pesan: pesanUntukAI,
       riwayat: riwayatKirim,
-      mode: currentMode
+      mode: currentMode,
+      customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+      customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
     };
 
     if(imageAtt){

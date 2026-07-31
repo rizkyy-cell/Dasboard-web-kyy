@@ -242,7 +242,7 @@
     .nav-item { 
       flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; 
       color: rgba(255, 255, 255, 0.65); 
-      cursor: pointer; z-index: 10; position: relative; width: 20%; 
+      cursor: pointer; z-index: 10; position: relative; width: 16.6666%; 
       user-select: none; -webkit-user-select: none; 
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
     }
@@ -268,7 +268,7 @@
       position: absolute; 
       top: 50%; left: 6px; 
       height: 52px; 
-      width: calc((100% - 12px) / 5); 
+      width: calc((100% - 12px) / 6); 
       z-index: 1; pointer-events: none; 
       transform: translateY(-50%) translateX(0);
       will-change: transform;
@@ -283,6 +283,9 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.15); 
       border-radius: 26px; 
     }
+
+    @keyframes pulseChatIcon { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.75; } }
+    .nav-item:active { transform: scale(0.9); }
 
     /* PENYESUAIAN TEMA TERANG AGAR KACA TETAP MENGKILAP */
         .body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
@@ -1518,6 +1521,7 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     </div>
     <div class="nav-item" onclick="switchNav('settings', 3, this)"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0 0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span class="nav-label">Setting</span></div>
     <div class="nav-item" onclick="switchNav('profil', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img id="navProfilePic" src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profil</span></div>
+    <div class="nav-item" id="navChatKyy" onclick="bukaChatKyy(this)"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM11 5l1.2 2.6L15 8.8l-2.8 1.2L11 12.6 9.8 10 7 8.8l2.8-1.2L11 5zm5.5 5.5l.7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7.7-1.5z"/></svg><span class="nav-label">KYY AI</span></div>
   </div>
 
   <!-- POP-UP GLASSMORPHISM DOWNLOAD & BELI -->
@@ -2371,6 +2375,44 @@ async function cekParamUrlShare() {
         if (sumber === 'app') { currentCategoryApp = cat; renderAppList(); }
         else if (sumber === 'store') { currentCategoryStore = cat; renderStoreList(); }
         else { currentCategory = cat; renderHomeList(); }
+    }
+
+    // =====================================================================
+    // NAVIGASI KELUAR KE CHAT KYY AI (dengan transisi smooth, tidak kaku)
+    // =====================================================================
+    function bukaChatKyy(el) {
+        if (el.classList.contains('nav-leaving')) return; // cegah double-tap
+        el.classList.add('nav-leaving');
+
+        // 1. Aktifkan visual nav-item + geser indikator liquid glass ke slot ke-6
+        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        const indicator = document.getElementById('indicator');
+        const navItems = Array.from(document.querySelectorAll('.nav-item'));
+        const idx = navItems.indexOf(el);
+        if (indicator && idx > -1) {
+            indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            indicator.style.transform = `translateY(-50%) translateX(${idx * 100}%)`;
+        }
+
+        // 2. Overlay fade halus menutupi layar sebelum pindah halaman (biar tidak "loncat" kaku)
+        const fadeOverlay = document.createElement('div');
+        fadeOverlay.style.cssText = 'position:fixed; inset:0; background:var(--tg-bg); z-index:999999; opacity:0; pointer-events:none; transition:opacity 0.38s cubic-bezier(0.4,0,0.2,1); display:flex; align-items:center; justify-content:center;';
+        fadeOverlay.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0; transform:translateY(8px); transition:opacity 0.35s ease 0.12s, transform 0.35s ease 0.12s;" id="fadeOverlayContent">
+            <svg viewBox="0 0 24 24" style="width:34px; height:34px; fill:var(--tg-accent); animation:pulseChatIcon 1s ease-in-out infinite;"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM11 5l1.2 2.6L15 8.8l-2.8 1.2L11 12.6 9.8 10 7 8.8l2.8-1.2L11 5zm5.5 5.5l.7 1.5 1.5.7-1.5.7-.7 1.5-.7-1.5-1.5-.7 1.5-.7.7-1.5z"/></svg>
+            <span style="font-size:12.5px; color:var(--tg-text-muted); font-weight:600; letter-spacing:0.3px;">Membuka KYY AI...</span>
+        </div>`;
+        document.body.appendChild(fadeOverlay);
+        requestAnimationFrame(() => {
+            fadeOverlay.style.opacity = '1';
+            const content = document.getElementById('fadeOverlayContent');
+            if (content) { content.style.opacity = '1'; content.style.transform = 'translateY(0)'; }
+        });
+
+        // 3. Pindah halaman setelah animasi selesai (perceived-smooth, bukan loncat kaku)
+        setTimeout(() => {
+            window.location.href = 'https://jrxrezkyy-dashboard.vercel.app/chat-kyy.html';
+        }, 420);
     }
     
     function toggleSearch() { 

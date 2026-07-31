@@ -196,52 +196,10 @@
   }
   .icon-btn:hover{background:var(--sidebar-hover);}
   
-  /* DROPDOWN GLASSMORPHISM DI DEKAT IKON PROFILE */
-  .profile-dropdown-wrap{
-    position:relative;
-  }
-  .profile-dropdown{
-    display:none;
-    position:absolute;
-    top:110%;
-    left:0;
-    width:200px;
-    background:rgba(28, 39, 51, 0.85);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-    border:1px solid var(--border);
-    border-radius:14px;
-    padding:6px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.4);
-    z-index:150;
-  }
-  .profile-dropdown.show{
-    display:block;
-  }
-  .profile-dropdown-btn{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    padding:10px 12px;
-    border-radius:10px;
-    background:transparent;
-    border:none;
-    color:var(--text-main);
-    font-size:13.5px;
-    font-weight:500;
-    cursor:pointer;
-    text-decoration:none;
-    transition:background .15s;
-  }
-  .profile-dropdown-btn:hover{
-    background:var(--sidebar-hover);
-  }
-  .profile-dropdown-btn.door{
-    color:#fff;
-    background:var(--accent);
-    margin-top:4px;
-    justify-content:center;
+  /* Posisi Icon Pintu Keluar di Paling Kanan Topbar */
+  .exit-btn {
+    margin-left: auto;
+    text-decoration: none;
   }
 
   .model-selector{
@@ -435,13 +393,6 @@
   }
   .backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;}
   .backdrop.show{display:block;}
-
-    /* Posisi Icon Pintu Keluar di Paling Kanan Topbar */
-  .exit-btn {
-    margin-left: auto;
-    text-decoration: none;
-  }
-
 </style>
 </head>
 <body>
@@ -468,7 +419,7 @@
 
 <!-- MAIN CONTENT -->
 <div class="main">
-    <!-- TOPBAR (RAPI & SIMPEL) -->
+  <!-- TOPBAR (RAPI & SIMPEL) -->
   <div class="topbar">
     <!-- 1. Icon Garis 3 (Buka Sidebar Riwayat Chat) -->
     <button class="icon-btn" onclick="toggleSidebar()" title="Riwayat Chat">
@@ -515,7 +466,7 @@
   <div class="glass-popup-card" onclick="event.stopPropagation()">
     <div class="glass-popup-title">Pengaturan</div>
     <div style="font-size:13px; color:var(--text-soft); text-align:center; margin-bottom:12px;">Pengaturan tema & akun.</div>
-    <button class="profile-dropdown-btn door" style="width:100%;" onclick="closeSettingsPopup()">Tutup</button>
+    <button class="icon-btn" style="width:100%; background:var(--accent); color:#fff; border-radius:10px; height:36px;" onclick="closeSettingsPopup()">Tutup</button>
   </div>
 </div>
 
@@ -535,6 +486,140 @@ let sending = false;
 let guestSessions = [];
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
+
+/* ================= SESI & RIWAYAT (INI YANG TADINYA HILANG) ================= */
+function loadGuestSessions(){
+  try{
+    guestSessions = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
+  }catch(e){
+    guestSessions = [];
+  }
+}
+
+function saveGuestSessions(){
+  localStorage.setItem(GUEST_KEY, JSON.stringify(guestSessions));
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderHistorySidebar(){
+  const wrap = document.getElementById('chatHistory');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(guestSessions.length === 0){
+    wrap.innerHTML = '<div class="empty-history-hint">Belum ada riwayat obrolan.</div>';
+    return;
+  }
+
+  guestSessions.slice().reverse().forEach(sess=>{
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (sess.id === currentSessionId ? ' active' : '');
+    item.innerHTML = `<span class="chat-item-title">${escapeHtml(sess.title)}</span><button class="del-btn" title="Hapus">&times;</button>`;
+    item.addEventListener('click', (e)=>{
+      if(e.target.closest('.del-btn')) return;
+      loadSession(sess.id);
+    });
+    item.querySelector('.del-btn').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      deleteSession(sess.id);
+    });
+    wrap.appendChild(item);
+  });
+}
+
+async function ensureSession(firstText){
+  currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  const title = firstText.length > 40 ? firstText.slice(0,40) + '…' : firstText;
+
+  guestSessions.push({
+    id: currentSessionId,
+    title,
+    mode: currentMode,
+    messages: [],
+    createdAt: Date.now()
+  });
+  saveGuestSessions();
+  renderHistorySidebar();
+
+  if(currentUser){
+    try{
+      await supabaseClient.from('chat_sessions').insert({
+        id: currentSessionId,
+        user_id: currentUser.id,
+        title,
+        mode: currentMode
+      });
+    }catch(err){
+      console.warn('Gagal simpan sesi ke Supabase:', err);
+    }
+  }
+}
+
+async function persistMessage(role, content){
+  const sess = guestSessions.find(s => s.id === currentSessionId);
+  if(sess){
+    sess.messages.push({ role, content, ts: Date.now() });
+    saveGuestSessions();
+  }
+
+  if(currentUser && currentSessionId){
+    try{
+      await supabaseClient.from('chat_messages').insert({
+        session_id: currentSessionId,
+        role,
+        content
+      });
+    }catch(err){
+      console.warn('Gagal simpan pesan ke Supabase:', err);
+    }
+  }
+}
+
+function loadSession(id){
+  const sess = guestSessions.find(s => s.id === id);
+  if(!sess) return;
+
+  currentSessionId = sess.id;
+  currentMode = sess.mode || currentMode;
+  messages = sess.messages.map(m => ({ role: m.role, content: m.content }));
+
+  updateModelLabel();
+  document.getElementById('emptyState').style.display = messages.length ? 'none' : 'flex';
+  document.getElementById('chatInner').style.display = messages.length ? 'block' : 'none';
+  renderMessages();
+  renderHistorySidebar();
+  closeMobileSidebar();
+  scrollDown();
+}
+
+function deleteSession(id){
+  guestSessions = guestSessions.filter(s => s.id !== id);
+  saveGuestSessions();
+
+  if(currentSessionId === id){
+    currentSessionId = null;
+    messages = [];
+    renderMessages();
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('chatInner').style.display = 'none';
+  }
+  renderHistorySidebar();
+}
+
+function newChat(){
+  currentSessionId = null;
+  messages = [];
+  renderMessages();
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('chatInner').style.display = 'none';
+  renderHistorySidebar();
+  closeMobileSidebar();
+}
 
 /* ================= MODE ASISTEN ================= */
 let currentMode = localStorage.getItem('jrx_chat_mode') || 'biasa';
@@ -574,32 +659,6 @@ function toggleModeDropdown(){
   });
   document.getElementById('modelSelectorBtn').appendChild(dd);
   setTimeout(()=>{ document.addEventListener('click', function h(e){ if(!e.target.closest('#modelSelectorBtn')){ dd.remove(); document.removeEventListener('click', h); } }); }, 0);
-}
-
-/* ================= TOGGLE DROPDOWN PROFILE DEKAT IKON ================= */
-function toggleProfileDropdown(e){
-  e.stopPropagation();
-  const dd = document.getElementById('profileDropdown');
-  const isShow = dd.classList.contains('show');
-  
-  // Tutup dropdown mode jika terbuka
-  const modeDd = document.getElementById('modeDropdown');
-  if(modeDd) modeDd.remove();
-
-  if(isShow){
-    dd.classList.remove('show');
-  } else {
-    dd.classList.add('show');
-    // Klik di luar otomatis menutup dropdown
-    setTimeout(()=>{
-      document.addEventListener('click', function closeDd(evt){
-        if(!evt.target.closest('.profile-dropdown-wrap')){
-          dd.classList.remove('show');
-          document.removeEventListener('click', closeDd);
-        }
-      });
-    }, 0);
-  }
 }
 
 /* ================= SIDEBAR & PENGATURAN HANDLERS ================= */
@@ -730,6 +789,8 @@ function scrollDown(){
 
 /* ================= INIT ================= */
 updateModelLabel();
+loadGuestSessions();
+renderHistorySidebar();
 </script>
 </body>
 </html>

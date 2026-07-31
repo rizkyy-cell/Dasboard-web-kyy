@@ -487,7 +487,64 @@ let guestSessions = [];
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
-/* ================= SESI & RIWAYAT (INI YANG TADINYA HILANG) ================= */
+/* ================= AUTH & AVATAR (SUPABASE AUTH GOOGLE/EMAIL) ================= */
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function applyProfileUI(){
+  const footerAvatar = document.getElementById('footerAvatar');
+  const footerLabel = document.getElementById('footerLabel');
+  const emptyLogo = document.getElementById('emptyLogo');
+
+  if(currentUser && currentProfile){
+    const avatarUrl = currentProfile.avatar_url || '';
+    const name = currentProfile.full_name || currentUser.email || 'User';
+    if(footerAvatar){
+      footerAvatar.innerHTML = avatarUrl
+        ? `<img src="${avatarUrl}" alt="${escapeHtml(name)}">`
+        : escapeHtml(name.charAt(0).toUpperCase());
+    }
+    if(footerLabel) footerLabel.textContent = name;
+  } else {
+    if(footerAvatar) footerAvatar.innerHTML = '?';
+    if(footerLabel) footerLabel.textContent = 'Pengaturan (Tamu)';
+  }
+}
+
+async function initAuth(){
+  try{
+    const { data } = await supabaseClient.auth.getSession();
+    handleAuthSession(data?.session || null);
+
+    supabaseClient.auth.onAuthStateChange((_event, session)=>{
+      handleAuthSession(session);
+      loadHistoryForCurrentUser();
+    });
+  }catch(err){
+    console.warn('Gagal cek sesi login:', err);
+  }
+}
+
+function handleAuthSession(session){
+  if(session && session.user){
+    currentUser = session.user;
+    // Data akun Google (nama & foto) otomatis ada di user_metadata via Supabase Auth
+    const meta = currentUser.user_metadata || {};
+    currentProfile = {
+      full_name: meta.full_name || meta.name || '',
+      avatar_url: meta.avatar_url || meta.picture || ''
+    };
+  } else {
+    currentUser = null;
+    currentProfile = null;
+  }
+  applyProfileUI();
+}
+
+/* ================= SESI & RIWAYAT (TAMU = localStorage, LOGIN = Supabase) ================= */
 function loadGuestSessions(){
   try{
     guestSessions = JSON.parse(localStorage.getItem(GUEST_KEY) || '[]');
@@ -500,26 +557,40 @@ function saveGuestSessions(){
   localStorage.setItem(GUEST_KEY, JSON.stringify(guestSessions));
 }
 
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
+async function loadHistoryForCurrentUser(){
+  if(currentUser){
+    try{
+      const { data, error } = await supabaseClient
+        .from('chat_sessions')
+        .select('id,title,mode,created_at')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if(error) throw error;
+      renderHistorySidebar(data || []);
+    }catch(err){
+      console.warn('Gagal ambil riwayat dari Supabase:', err);
+      renderHistorySidebar([]);
+    }
+  } else {
+    loadGuestSessions();
+    renderHistorySidebar(guestSessions.slice().reverse());
+  }
 }
 
-function renderHistorySidebar(){
+function renderHistorySidebar(list){
   const wrap = document.getElementById('chatHistory');
   if(!wrap) return;
   wrap.innerHTML = '';
 
-  if(guestSessions.length === 0){
+  if(!list || list.length === 0){
     wrap.innerHTML = '<div class="empty-history-hint">Belum ada riwayat obrolan.</div>';
     return;
   }
 
-  guestSessions.slice().reverse().forEach(sess=>{
+  list.forEach(sess=>{
     const item = document.createElement('div');
     item.className = 'chat-item' + (sess.id === currentSessionId ? ' active' : '');
-    item.innerHTML = `<span class="chat-item-title">${escapeHtml(sess.title)}</span><button class="del-btn" title="Hapus">&times;</button>`;
+    item.innerHTML = `<span class="chat-item-title">${escapeHtml(sess.title || 'Obrolan')}</span><button class="del-btn" title="Hapus">&times;</button>`;
     item.addEventListener('click', (e)=>{
       if(e.target.closest('.del-btn')) return;
       loadSession(sess.id);
@@ -533,73 +604,102 @@ function renderHistorySidebar(){
 }
 
 async function ensureSession(firstText){
-  currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
   const title = firstText.length > 40 ? firstText.slice(0,40) + '…' : firstText;
-
-  guestSessions.push({
-    id: currentSessionId,
-    title,
-    mode: currentMode,
-    messages: [],
-    createdAt: Date.now()
-  });
-  saveGuestSessions();
-  renderHistorySidebar();
 
   if(currentUser){
     try{
-      await supabaseClient.from('chat_sessions').insert({
-        id: currentSessionId,
-        user_id: currentUser.id,
-        title,
-        mode: currentMode
-      });
+      // id uuid digenerate otomatis oleh database (default gen_random_uuid())
+      const { data, error } = await supabaseClient
+        .from('chat_sessions')
+        .insert({ user_id: currentUser.id, title, mode: currentMode })
+        .select('id')
+        .single();
+      if(error) throw error;
+      currentSessionId = data.id;
     }catch(err){
       console.warn('Gagal simpan sesi ke Supabase:', err);
+      currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
     }
-  }
-}
-
-async function persistMessage(role, content){
-  const sess = guestSessions.find(s => s.id === currentSessionId);
-  if(sess){
-    sess.messages.push({ role, content, ts: Date.now() });
+  } else {
+    currentSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    guestSessions.push({
+      id: currentSessionId,
+      title,
+      mode: currentMode,
+      messages: [],
+      createdAt: Date.now()
+    });
     saveGuestSessions();
   }
 
+  loadHistoryForCurrentUser();
+}
+
+async function persistMessage(role, content){
   if(currentUser && currentSessionId){
     try{
-      await supabaseClient.from('chat_messages').insert({
+      const { error } = await supabaseClient.from('chat_history').insert({
         session_id: currentSessionId,
+        user_id: currentUser.id,
         role,
         content
       });
+      if(error) throw error;
     }catch(err){
       console.warn('Gagal simpan pesan ke Supabase:', err);
+    }
+  } else {
+    const sess = guestSessions.find(s => s.id === currentSessionId);
+    if(sess){
+      sess.messages.push({ role, content, ts: Date.now() });
+      saveGuestSessions();
     }
   }
 }
 
-function loadSession(id){
-  const sess = guestSessions.find(s => s.id === id);
-  if(!sess) return;
+async function loadSession(id){
+  currentSessionId = id;
 
-  currentSessionId = sess.id;
-  currentMode = sess.mode || currentMode;
-  messages = sess.messages.map(m => ({ role: m.role, content: m.content }));
+  if(currentUser){
+    try{
+      const [{ data: sess }, { data: msgs, error }] = await Promise.all([
+        supabaseClient.from('chat_sessions').select('mode').eq('id', id).single(),
+        supabaseClient.from('chat_history').select('role,content').eq('session_id', id).order('created_at', { ascending: true })
+      ]);
+      if(error) throw error;
+      currentMode = sess?.mode || currentMode;
+      messages = (msgs || []).map(m => ({ role: m.role, content: m.content }));
+    }catch(err){
+      console.warn('Gagal buka riwayat dari Supabase:', err);
+      messages = [];
+    }
+  } else {
+    const sess = guestSessions.find(s => s.id === id);
+    if(!sess) return;
+    currentMode = sess.mode || currentMode;
+    messages = sess.messages.map(m => ({ role: m.role, content: m.content }));
+  }
 
   updateModelLabel();
   document.getElementById('emptyState').style.display = messages.length ? 'none' : 'flex';
   document.getElementById('chatInner').style.display = messages.length ? 'block' : 'none';
   renderMessages();
-  renderHistorySidebar();
+  loadHistoryForCurrentUser();
   closeMobileSidebar();
   scrollDown();
 }
 
-function deleteSession(id){
-  guestSessions = guestSessions.filter(s => s.id !== id);
-  saveGuestSessions();
+async function deleteSession(id){
+  if(currentUser){
+    try{
+      await supabaseClient.from('chat_sessions').delete().eq('id', id).eq('user_id', currentUser.id);
+    }catch(err){
+      console.warn('Gagal hapus riwayat di Supabase:', err);
+    }
+  } else {
+    guestSessions = guestSessions.filter(s => s.id !== id);
+    saveGuestSessions();
+  }
 
   if(currentSessionId === id){
     currentSessionId = null;
@@ -608,7 +708,7 @@ function deleteSession(id){
     document.getElementById('emptyState').style.display = 'flex';
     document.getElementById('chatInner').style.display = 'none';
   }
-  renderHistorySidebar();
+  loadHistoryForCurrentUser();
 }
 
 function newChat(){
@@ -617,7 +717,6 @@ function newChat(){
   renderMessages();
   document.getElementById('emptyState').style.display = 'flex';
   document.getElementById('chatInner').style.display = 'none';
-  renderHistorySidebar();
   closeMobileSidebar();
 }
 
@@ -789,8 +888,8 @@ function scrollDown(){
 
 /* ================= INIT ================= */
 updateModelLabel();
-loadGuestSessions();
-renderHistorySidebar();
+applyProfileUI();
+initAuth().then(loadHistoryForCurrentUser);
 </script>
 </body>
 </html>

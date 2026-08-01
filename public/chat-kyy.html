@@ -409,8 +409,8 @@
   .kyy-toast{
     position:fixed;
     left:50%;
-    bottom:90px;
-    transform:translateX(-50%) translateY(16px);
+    top:20px;
+    transform:translateX(-50%) translateY(-16px);
     display:flex;align-items:center;gap:8px;
     background:var(--bg-sidebar);
     border:1px solid var(--border);
@@ -419,7 +419,7 @@
     padding:10px 16px;
     border-radius:12px;
     box-shadow:0 10px 30px rgba(0,0,0,.4);
-    z-index:400;
+    z-index:500;
     opacity:0;
     transition:opacity .25s ease, transform .25s ease;
     pointer-events:none;
@@ -754,7 +754,7 @@
     transition:max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.3s ease;
   }
   .accordion-body.open {
-    max-height:500px;
+    max-height:none;
     opacity:1;
     margin-top:8px;
     margin-bottom:16px;
@@ -1136,6 +1136,9 @@
             <label class="config-label">Custom System Prompt (Gemini):</label>
             <textarea id="customPromptInput" class="config-field config-textarea" placeholder="Contoh: Kamu adalah Kyy CS yang pandai ngoding..."></textarea>
           </div>
+
+          <button class="btn-save-config" onclick="saveCustomConfig()">Simpan Custom Config</button>
+          <button class="btn-delete-config" onclick="deleteCustomConfig('gemini')">Hapus Custom Config</button>
         </div>
 
         <!-- KOTAK OPENROUTER -->
@@ -1164,12 +1167,11 @@
             <label class="config-label">Custom System Prompt (OpenRouter):</label>
             <textarea id="customOpenRouterPromptInput" class="config-field config-textarea" placeholder="Contoh: Kamu adalah Kyy CS yang pandai ngoding..."></textarea>
           </div>
+
+          <button class="btn-save-config" onclick="saveCustomConfig()">Simpan Custom Config</button>
+          <button class="btn-delete-config" onclick="deleteCustomConfig('openrouter')">Hapus Custom Config</button>
         </div>
 
-        <span class="config-hint" style="display:block;text-align:center;margin:2px 0 4px;">Cuma boleh aktifkan salah satu — nyalain dua-duanya bakal ditolak pas simpan.</span>
-
-        <button class="btn-save-config" onclick="saveCustomConfig()">Simpan Custom Config</button>
-        <button class="btn-delete-config" onclick="deleteCustomConfig()">Hapus Custom Config</button>
       </div>
     </div>
 
@@ -2612,24 +2614,45 @@ function scrollDown(){
 function toggleCustomConfigAccordion(){
   const body = document.getElementById('accordionBody');
   const arrow = document.getElementById('accordionArrow');
-  
+
   if(body.classList.contains('open')){
+    // Tutup: turunkan dari tinggi asli ke 0 biar transisinya smooth
+    body.style.overflow = 'hidden';
+    body.style.maxHeight = body.scrollHeight + 'px';
+    body.offsetHeight; // reflow paksa
+    body.style.maxHeight = '0px';
     body.classList.remove('open');
     arrow.classList.remove('active');
   } else {
+    // Buka: set max-height sesuai tinggi konten asli (bukan angka fix 500px)
     body.classList.add('open');
     arrow.classList.add('active');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // Setelah transisi selesai, lepas batas biar konten baru (mis. hasil ganti provider) tidak pernah kepotong
+    body.addEventListener('transitionend', function handler(e){
+      if(e.propertyName === 'max-height' && body.classList.contains('open')){
+        body.style.maxHeight = 'none';
+        body.style.overflow = 'visible';
+      }
+      body.removeEventListener('transitionend', handler);
+    });
   }
 }
 
 /* Live warning kalau dua toggle provider dinyalain bareng — nggak maksa matiin,
    cuma ngasih tau, biar user yang matiin sendiri (sesuai yang diminta). */
-function onProviderToggleChange(){
-  const geminiOn = document.getElementById('geminiToggle').checked;
-  const openrouterOn = document.getElementById('openrouterToggle').checked;
+/* Toggle provider sekarang saling eksklusif OTOMATIS — nyalain satu langsung
+   matiin yang lain (animasinya jalan sendiri lewat CSS transition di .slider). */
+function onProviderToggleChange(changedProvider){
+  const geminiToggle = document.getElementById('geminiToggle');
+  const openrouterToggle = document.getElementById('openrouterToggle');
 
-  if (geminiOn && openrouterOn) {
-    kyyToast('Cuma boleh aktifkan salah satu provider! Matikan salah satu dulu.', 'zap', true);
+  if (changedProvider === 'gemini' && geminiToggle.checked && openrouterToggle.checked) {
+    openrouterToggle.checked = false;
+    kyyToast('OpenRouter otomatis dimatikan — cuma 1 provider yang bisa aktif.', 'zap');
+  } else if (changedProvider === 'openrouter' && openrouterToggle.checked && geminiToggle.checked) {
+    geminiToggle.checked = false;
+    kyyToast('Gemini otomatis dimatikan — cuma 1 provider yang bisa aktif.', 'zap');
   }
 }
 
@@ -2716,27 +2739,18 @@ async function loadSavedCustomConfig() {
   document.getElementById('openrouterToggle').checked = openrouterEnabled;
 }
 
-async function saveCustomConfig() {
+/* Tulis semua field (kedua kotak) ke localStorage + Supabase, tanpa validasi,
+   tanpa toast, tanpa nutup popup — dipakai bareng oleh Save & Delete. */
+async function kyyPersistCustomConfig(){
   const geminiEnabled = document.getElementById('geminiToggle').checked;
   const openrouterEnabled = document.getElementById('openrouterToggle').checked;
-
-  // VALIDASI WAJIB: harus tepat 1 provider yang aktif
-  if (geminiEnabled && openrouterEnabled) {
-    kyyToast('Nggak bisa dua-duanya aktif — matikan salah satu dulu!', 'zap', true);
-    return;
-  }
-  if (!geminiEnabled && !openrouterEnabled) {
-    kyyToast('Aktifkan salah satu provider dulu (Gemini atau OpenRouter)!', 'zap', true);
-    return;
-  }
-
   const key = document.getElementById('customApiKeyInput').value.trim();
   const geminiModel = document.getElementById('customGeminiModelInput').value.trim();
   const geminiPrompt = document.getElementById('customPromptInput').value.trim();
   const openrouterKey = document.getElementById('customOpenRouterKeyInput').value.trim();
   const openrouterModel = document.getElementById('customOpenRouterModelInput').value.trim();
   const openrouterPrompt = document.getElementById('customOpenRouterPromptInput').value.trim();
-  const provider = geminiEnabled ? 'gemini' : 'openrouter';
+  const provider = geminiEnabled ? 'gemini' : (openrouterEnabled ? 'openrouter' : (localStorage.getItem('kyy_custom_provider') || 'gemini'));
 
   localStorage.setItem('kyy_custom_api_key', key);
   localStorage.setItem('kyy_custom_gemini_model', geminiModel);
@@ -2768,49 +2782,54 @@ async function saveCustomConfig() {
       console.warn('Gagal simpan Custom Config ke Supabase:', err);
     }
   }
+}
+
+async function saveCustomConfig() {
+  const geminiEnabled = document.getElementById('geminiToggle').checked;
+  const openrouterEnabled = document.getElementById('openrouterToggle').checked;
+
+  // Jaring pengaman doang — normalnya nggak akan kepicu lagi karena toggle udah auto-exclusive
+  if (geminiEnabled && openrouterEnabled) {
+    kyyToast('Nggak bisa dua-duanya aktif — matikan salah satu dulu!', 'zap', true);
+    return;
+  }
+  if (!geminiEnabled && !openrouterEnabled) {
+    kyyToast('Aktifkan salah satu provider dulu (Gemini atau OpenRouter)!', 'zap', true);
+    return;
+  }
+
+  await kyyPersistCustomConfig();
 
   kyyToast('Custom Config berhasil disimpan!', 'sparkles');
   closeSettingsPopup();
   updateModelLabel();
 }
 
-async function deleteCustomConfig() {
-  if (!confirm('Apakah kamu yakin ingin menghapus Custom Config?')) return;
+async function deleteCustomConfig(provider) {
+  const label = provider === 'openrouter' ? 'OpenRouter' : 'Gemini';
+  if (!confirm(`Yakin mau hapus Custom Config ${label}?`)) return;
 
-  localStorage.removeItem('kyy_custom_api_key');
-  localStorage.removeItem('kyy_custom_gemini_model');
-  localStorage.removeItem('kyy_custom_prompt');
-  localStorage.removeItem('kyy_custom_openrouter_key');
-  localStorage.removeItem('kyy_custom_openrouter_model');
-  localStorage.removeItem('kyy_custom_openrouter_prompt');
-  localStorage.removeItem('kyy_provider_gemini_enabled');
-  localStorage.removeItem('kyy_provider_openrouter_enabled');
-  localStorage.removeItem('kyy_custom_provider');
-  localStorage.removeItem('kyy_custom_config_saved');
-
-  if (currentUser) {
-    try {
-      await supabaseClient.from('user_custom_configs').delete().eq('user_id', currentUser.id);
-    } catch (err) {
-      console.warn('Gagal hapus Custom Config di Supabase:', err);
-    }
+  if (provider === 'openrouter') {
+    document.getElementById('customOpenRouterKeyInput').value = '';
+    document.getElementById('customOpenRouterModelInput').value = '';
+    document.getElementById('customOpenRouterPromptInput').value = '';
+    document.getElementById('openrouterToggle').checked = false;
+  } else {
+    document.getElementById('customApiKeyInput').value = '';
+    document.getElementById('customGeminiModelInput').value = '';
+    document.getElementById('customPromptInput').value = '';
+    document.getElementById('geminiToggle').checked = false;
   }
 
-  document.getElementById('customApiKeyInput').value = '';
-  document.getElementById('customGeminiModelInput').value = '';
-  document.getElementById('customPromptInput').value = '';
-  document.getElementById('customOpenRouterKeyInput').value = '';
-  document.getElementById('customOpenRouterModelInput').value = '';
-  document.getElementById('customOpenRouterPromptInput').value = '';
-  document.getElementById('geminiToggle').checked = false;
-  document.getElementById('openrouterToggle').checked = false;
+  await kyyPersistCustomConfig();
 
-  if (currentMode === 'custom') {
+  const stillActive = document.getElementById('geminiToggle').checked || document.getElementById('openrouterToggle').checked;
+  if (currentMode === 'custom' && !stillActive) {
     currentMode = 'biasa';
     localStorage.setItem('jrx_chat_mode', 'biasa');
   }
 
-  kyyToast('Custom Config telah dihapus.', 'trash-2', true);
+  kyyToast(`Custom Config ${label} telah dihapus.`, 'trash-2', true);
   closeSettingsPopup();
   updateModelLabel();
 }

@@ -387,6 +387,23 @@
   }
   .artifact-count-badge:hover{color:var(--text-main);border-color:var(--accent);}
 
+  /* ================= AKSI DI BAWAH BALASAN AI (salin, dengar, vote, ulang) ================= */
+  .msg-actions{
+    display:flex;align-items:center;gap:2px;
+    margin-top:2px;
+  }
+  .msg-actions button{
+    width:30px;height:30px;
+    border:none;background:transparent;
+    color:var(--text-soft);
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .msg-actions button:hover{background:var(--sidebar-hover);color:var(--text-main);}
+  .msg-actions .msg-vote-btn.active{color:var(--accent);}
+
   /* ================= KARTU LAMPIRAN DI BUBBLE PESAN ================= */
   .msg-attachments{
     display:flex;flex-wrap:wrap;gap:8px;
@@ -992,7 +1009,7 @@
         <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>
         </button>
-        <textarea id="userInput" placeholder="Reply to JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+        <textarea id="userInput" placeholder="Reply JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -2147,11 +2164,127 @@ function renderMessages(){
       });
       enhanceCodeBlocks(bubble, 'msg_' + mIdx);
       col.appendChild(bubble);
+
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.innerHTML = `
+        <button type="button" onclick="copyMessageText(${mIdx}, this)" title="Salin">⧉</button>
+        <button type="button" onclick="toggleSpeak(${mIdx}, this)" title="Dengarkan">▶</button>
+        <button type="button" class="msg-vote-btn${m._vote==='up'?' active':''}" data-vote="up" onclick="voteMessage(${mIdx},'up',this)" title="Suka">👍</button>
+        <button type="button" class="msg-vote-btn${m._vote==='down'?' active':''}" data-vote="down" onclick="voteMessage(${mIdx},'down',this)" title="Kurang suka">👎</button>
+        <button type="button" onclick="regenerateMessage(${mIdx})" title="Buat ulang">⟳</button>
+      `;
+      col.appendChild(actions);
     }
 
     row.appendChild(col);
     inner.appendChild(row);
   });
+}
+
+/* ================= AKSI PESAN (salin, dengarkan, vote, buat ulang) ================= */
+function copyMessageText(idx, btn){
+  const m = messages[idx];
+  if(!m) return;
+  navigator.clipboard?.writeText(m.content).then(() => {
+    const original = btn.textContent;
+    btn.textContent = '✓';
+    setTimeout(() => { btn.textContent = original; }, 1200);
+  }).catch(()=>{});
+}
+
+/* Fitur suara pakai Web Speech API bawaan browser (speechSynthesis) —
+   tidak butuh API/akun apapun, tapi kualitas & bahasa suaranya tergantung
+   text-to-speech yang tersedia di HP/browser pengguna. */
+let kyySpeakingBtn = null;
+function toggleSpeak(idx, btn){
+  if(!('speechSynthesis' in window)){
+    alert('Browser ini tidak mendukung fitur suara (Web Speech API).');
+    return;
+  }
+  if(kyySpeakingBtn === btn){
+    window.speechSynthesis.cancel();
+    btn.textContent = '▶';
+    kyySpeakingBtn = null;
+    return;
+  }
+  window.speechSynthesis.cancel();
+  if(kyySpeakingBtn){ kyySpeakingBtn.textContent = '▶'; }
+
+  const plainText = (messages[idx]?.content || '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/[#*_`~>]/g, '');
+
+  const utter = new SpeechSynthesisUtterance(plainText);
+  utter.lang = 'id-ID';
+  utter.onend = () => { btn.textContent = '▶'; kyySpeakingBtn = null; };
+  utter.onerror = () => { btn.textContent = '▶'; kyySpeakingBtn = null; };
+  window.speechSynthesis.speak(utter);
+  btn.textContent = '⏸';
+  kyySpeakingBtn = btn;
+}
+
+/* Vote cuma disimpan di state lokal (belum ke Supabase) */
+function voteMessage(idx, type, btn){
+  const m = messages[idx];
+  if(!m) return;
+  const row = btn.closest('.msg-actions');
+  row.querySelectorAll('.msg-vote-btn').forEach(b => b.classList.remove('active'));
+  if(m._vote === type){
+    m._vote = null;
+  } else {
+    m._vote = type;
+    btn.classList.add('active');
+  }
+}
+
+/* Buat ulang balasan: kirim ulang pesan user sebelumnya, ganti isi balasan ini.
+   Catatan: hasil regenerate cuma menggantikan tampilan sesi saat ini,
+   belum menimpa baris lama di Supabase. */
+async function regenerateMessage(idx){
+  if(sending) return;
+  const userMsg = messages[idx - 1];
+  if(!userMsg || userMsg.role !== 'user') return;
+
+  sending = true;
+  messages[idx].content = '_Menulis ulang..._';
+  renderMessages();
+  scrollDown();
+
+  try{
+    const crossContext = await getCrossSessionContext();
+    const rawHistory = [...crossContext, ...messages.slice(0, idx - 1)];
+    const riwayatKirim = rawHistory.map(item => ({
+      role: item.role,
+      content: (item.content || '').replace(/\[\s*MODE DEV KYY - AKTIF\s*\]/gi, '').trim()
+    }));
+
+    let targetEndpoint = '/api/chat';
+    if(currentMode === 'dev') targetEndpoint = '/api/chat_2';
+    else if(currentMode === 'custom') targetEndpoint = '/api/chat_custom';
+
+    const payloadKirim = {
+      pesan: userMsg.content,
+      riwayat: riwayatKirim,
+      mode: currentMode,
+      customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+      customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
+    };
+
+    const res = await fetch(targetEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payloadKirim)
+    });
+    const data = await res.json();
+    messages[idx].content = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons)');
+  }catch(err){
+    messages[idx].content = '**Error koneksi:** ' + err.message;
+  }
+
+  sending = false;
+  renderMessages();
+  scrollDown();
 }
 
 function scrollDown(){

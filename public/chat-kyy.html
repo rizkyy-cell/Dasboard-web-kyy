@@ -762,6 +762,32 @@
 
   .config-input-group { margin-bottom:12px; }
   .config-label { font-size:12px; color:var(--text-soft); margin-bottom:6px; display:block; font-weight:500; }
+  .config-hint { font-size:11px; color:var(--text-soft); opacity:.75; display:block; margin-top:6px; line-height:1.4; }
+
+  .provider-switch{
+    display:flex;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:3px;
+    gap:3px;
+  }
+  .provider-switch-btn{
+    flex:1;
+    border:none;
+    background:transparent;
+    color:var(--text-soft);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .provider-switch-btn.active{
+    background:var(--accent);
+    color:#fff;
+  }
   .config-field {
     width:100%;
     background:var(--bg-input);
@@ -1086,10 +1112,42 @@
 
       <div class="accordion-body" id="accordionBody">
         <div class="config-input-group">
-          <label class="config-label">Custom API Key (Gemini):</label>
-          <div class="api-key-input-wrapper">
-            <input type="password" id="customApiKeyInput" class="config-field" placeholder="AIzaSy..." autocomplete="off">
-            <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility()" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+          <label class="config-label">Provider Custom Mode:</label>
+          <div class="provider-switch" id="providerSwitch">
+            <button type="button" class="provider-switch-btn active" data-provider="gemini" onclick="setCustomProvider('gemini')">Gemini</button>
+            <button type="button" class="provider-switch-btn" data-provider="openrouter" onclick="setCustomProvider('openrouter')">OpenRouter</button>
+          </div>
+        </div>
+
+        <!-- BLOK GEMINI -->
+        <div id="providerBlockGemini">
+          <div class="config-input-group">
+            <label class="config-label">Custom API Key (Gemini):</label>
+            <div class="api-key-input-wrapper">
+              <input type="password" id="customApiKeyInput" class="config-field" placeholder="AIzaSy..." autocomplete="off">
+              <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility('customApiKeyInput', this)" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+            </div>
+          </div>
+          <div class="config-input-group">
+            <label class="config-label">Model (Gemini):</label>
+            <input type="text" id="customGeminiModelInput" class="config-field" placeholder="gemini-3.1-flash-lite" autocomplete="off">
+            <span class="config-hint">Kosongkan buat pakai default: gemini-3.1-flash-lite</span>
+          </div>
+        </div>
+
+        <!-- BLOK OPENROUTER -->
+        <div id="providerBlockOpenrouter" style="display:none;">
+          <div class="config-input-group">
+            <label class="config-label">Custom API Key (OpenRouter):</label>
+            <div class="api-key-input-wrapper">
+              <input type="password" id="customOpenRouterKeyInput" class="config-field" placeholder="sk-or-v1-..." autocomplete="off">
+              <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility('customOpenRouterKeyInput', this)" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+            </div>
+          </div>
+          <div class="config-input-group">
+            <label class="config-label">Model (OpenRouter):</label>
+            <input type="text" id="customOpenRouterModelInput" class="config-field" placeholder="openai/gpt-4o-mini" autocomplete="off">
+            <span class="config-hint">Kosongkan buat otomatis — OpenRouter yang pilihkan model terbaik (openrouter/auto)</span>
           </div>
         </div>
 
@@ -1154,7 +1212,57 @@ const KYY_LANG_ALIASES = {
   rs:'rust', rust:'rust', swift:'swift',
   kt:'kotlin', kotlin:'kotlin',
   yaml:'yaml', yml:'yaml', md:'markdown', markdown:'markdown', dart:'dart',
-  xml:'xml', plaintext:'text'
+  xml:'xml', plaintext:'text',
+  pl:'perl', perl:'perl',
+  lua:'lua',
+  asm:'assembly', assembly:'assembly', nasm:'assembly',
+  ex:'elixir', exs:'elixir', elixir:'elixir',
+  erl:'erlang', erlang:'erlang',
+  hs:'haskell', haskell:'haskell',
+  scala:'scala', sc:'scala',
+  r:'r',
+  matlab:'matlab', m:'matlab',
+  groovy:'groovy',
+  objc:'objectivec', objectivec:'objectivec', 'objective-c':'objectivec',
+  ps1:'powershell', powershell:'powershell',
+  clj:'clojure', cljs:'clojure', clojure:'clojure',
+  fs:'fsharp', fsharp:'fsharp', 'f#':'fsharp',
+  ml:'ocaml', ocaml:'ocaml',
+  jl:'julia', julia:'julia',
+  cr:'crystal', crystal:'crystal',
+  nim:'nim',
+  zig:'zig',
+  sol:'solidity', solidity:'solidity',
+  graphql:'graphql', gql:'graphql',
+  dockerfile:'dockerfile', docker:'dockerfile',
+  tf:'terraform', terraform:'terraform', hcl:'terraform',
+  vim:'vim', vimscript:'vim',
+  tex:'latex', latex:'latex',
+  coffee:'coffeescript', coffeescript:'coffeescript',
+  elm:'elm',
+  sass:'sass',
+  less:'less',
+  ini:'ini', toml:'toml',
+  cmake:'cmake',
+  makefile:'makefile', make:'makefile',
+  v:'verilog', verilog:'verilog',
+  vhdl:'vhdl',
+  prolog:'prolog',
+  scm:'scheme', scheme:'scheme',
+  lisp:'lisp', el:'lisp',
+  f90:'fortran', fortran:'fortran',
+  cobol:'cobol', cbl:'cobol',
+  ada:'ada',
+  pas:'pascal', pascal:'pascal', delphi:'pascal',
+  vb:'visualbasic', vbnet:'visualbasic', visualbasic:'visualbasic',
+  as:'actionscript', actionscript:'actionscript',
+  ino:'arduino', arduino:'arduino',
+  svelte:'svelte',
+  vue:'vue',
+  gd:'gdscript', gdscript:'gdscript',
+  proto:'protobuf', protobuf:'protobuf',
+  nginx:'nginx',
+  wasm:'webassembly', webassembly:'webassembly'
 };
 const KYY_LANG_META = {
   javascript:{label:'Js', color:'#f2c94c'},
@@ -1181,7 +1289,58 @@ const KYY_LANG_META = {
   markdown:{label:'Markdown', color:'#9aa5ce'},
   dart:{label:'Dart', color:'#3ecf8e'},
   xml:{label:'XML', color:'#9aa5ce'},
-  text:{label:'Text', color:'#9aa5ce'}
+  text:{label:'Text', color:'#9aa5ce'},
+  perl:{label:'Perl', color:'#39457e'},
+  lua:{label:'Lua', color:'#000080'},
+  assembly:{label:'Assembly', color:'#6e4c13'},
+  elixir:{label:'Elixir', color:'#4e2a8e'},
+  erlang:{label:'Erlang', color:'#a90533'},
+  haskell:{label:'Haskell', color:'#5e5086'},
+  scala:{label:'Scala', color:'#dc322f'},
+  r:{label:'R', color:'#276dc3'},
+  matlab:{label:'Matlab', color:'#e16737'},
+  groovy:{label:'Groovy', color:'#4298b8'},
+  objectivec:{label:'Obj-C', color:'#438eff'},
+  powershell:{label:'PowerShell', color:'#4273ca'},
+  clojure:{label:'Clojure', color:'#63b132'},
+  fsharp:{label:'F#', color:'#378bba'},
+  ocaml:{label:'OCaml', color:'#ec6813'},
+  julia:{label:'Julia', color:'#9558b2'},
+  crystal:{label:'Crystal', color:'#000000'},
+  nim:{label:'Nim', color:'#ffc200'},
+  zig:{label:'Zig', color:'#f7a41d'},
+  solidity:{label:'Solidity', color:'#363636'},
+  graphql:{label:'GraphQL', color:'#e10098'},
+  dockerfile:{label:'Docker', color:'#2496ed'},
+  terraform:{label:'Terraform', color:'#7b42bc'},
+  vim:{label:'Vim', color:'#019833'},
+  latex:{label:'LaTeX', color:'#008080'},
+  coffeescript:{label:'CoffeeScript', color:'#244776'},
+  elm:{label:'Elm', color:'#1293d8'},
+  sass:{label:'Sass', color:'#cf649a'},
+  less:{label:'Less', color:'#1d365d'},
+  ini:{label:'INI', color:'#9aa5ce'},
+  toml:{label:'TOML', color:'#9c4221'},
+  cmake:{label:'CMake', color:'#064f8c'},
+  makefile:{label:'Makefile', color:'#9aa5ce'},
+  verilog:{label:'Verilog', color:'#b53939'},
+  vhdl:{label:'VHDL', color:'#adb2cb'},
+  prolog:{label:'Prolog', color:'#74283c'},
+  scheme:{label:'Scheme', color:'#1e4aec'},
+  lisp:{label:'Lisp', color:'#3fb68b'},
+  fortran:{label:'Fortran', color:'#734f96'},
+  cobol:{label:'COBOL', color:'#005ca5'},
+  ada:{label:'Ada', color:'#02f88c'},
+  pascal:{label:'Pascal', color:'#e3f171'},
+  visualbasic:{label:'VB.NET', color:'#945db7'},
+  actionscript:{label:'ActionScript', color:'#882044'},
+  arduino:{label:'Arduino', color:'#00979d'},
+  svelte:{label:'Svelte', color:'#ff3e00'},
+  vue:{label:'Vue', color:'#42b883'},
+  gdscript:{label:'GDScript', color:'#478cbf'},
+  protobuf:{label:'Protobuf', color:'#4285f4'},
+  nginx:{label:'Nginx', color:'#009639'},
+  webassembly:{label:'WASM', color:'#654ff0'}
 };
 function kyyLangMeta(raw){
   const key = KYY_LANG_ALIASES[(raw||'').trim().toLowerCase()] || (raw||'').trim().toLowerCase() || 'text';
@@ -1213,7 +1372,33 @@ const KYY_LANG_ICON_CLASS = {
   kotlin: 'devicon-kotlin-plain colored',
   yaml: 'devicon-yaml-plain colored',
   markdown: 'devicon-markdown-original colored',
-  dart: 'devicon-dart-plain colored'
+  dart: 'devicon-dart-plain colored',
+  perl: 'devicon-perl-plain colored',
+  lua: 'devicon-lua-plain colored',
+  elixir: 'devicon-elixir-plain colored',
+  erlang: 'devicon-erlang-plain colored',
+  haskell: 'devicon-haskell-plain colored',
+  scala: 'devicon-scala-plain colored',
+  r: 'devicon-r-plain colored',
+  matlab: 'devicon-matlab-plain colored',
+  groovy: 'devicon-groovy-plain colored',
+  objectivec: 'devicon-objectivec-plain colored',
+  powershell: 'devicon-powershell-plain colored',
+  clojure: 'devicon-clojure-plain colored',
+  ocaml: 'devicon-ocaml-plain colored',
+  julia: 'devicon-julia-plain colored',
+  solidity: 'devicon-solidity-plain colored',
+  graphql: 'devicon-graphql-plain colored',
+  dockerfile: 'devicon-docker-plain colored',
+  terraform: 'devicon-terraform-plain colored',
+  vim: 'devicon-vim-plain colored',
+  elm: 'devicon-elm-plain colored',
+  sass: 'devicon-sass-original colored',
+  cmake: 'devicon-cmake-plain colored',
+  arduino: 'devicon-arduino-plain colored',
+  svelte: 'devicon-svelte-plain colored',
+  vue: 'devicon-vuejs-plain colored',
+  nginx: 'devicon-nginx-original colored'
 };
 function kyyLangIconHTML(meta){
   const cls = KYY_LANG_ICON_CLASS[meta.key];
@@ -2169,7 +2354,11 @@ async function sendMessage(){
       pesan: pesanUntukAI,
       riwayat: riwayatKirim,
       mode: currentMode,
+      customProvider: localStorage.getItem('kyy_custom_provider') || 'gemini',
       customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+      customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
+      customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
+      customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
       customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
     };
 
@@ -2387,7 +2576,11 @@ async function regenerateMessage(idx){
       pesan: userMsg.content,
       riwayat: riwayatKirim,
       mode: currentMode,
+      customProvider: localStorage.getItem('kyy_custom_provider') || 'gemini',
       customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+      customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
+      customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
+      customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
       customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
     };
 
@@ -2426,9 +2619,22 @@ function toggleCustomConfigAccordion(){
   }
 }
 
-function toggleApiKeyVisibility() {
-  const input = document.getElementById('customApiKeyInput');
-  const btn = event.currentTarget;
+let kyyCustomProvider = localStorage.getItem('kyy_custom_provider') || 'gemini';
+
+function setCustomProvider(provider){
+  kyyCustomProvider = provider;
+
+  document.querySelectorAll('.provider-switch-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.provider === provider);
+  });
+
+  document.getElementById('providerBlockGemini').style.display = (provider === 'gemini') ? 'block' : 'none';
+  document.getElementById('providerBlockOpenrouter').style.display = (provider === 'openrouter') ? 'block' : 'none';
+}
+
+function toggleApiKeyVisibility(inputId, btn) {
+  const input = document.getElementById(inputId || 'customApiKeyInput');
+  btn = btn || event.currentTarget;
   if (input.type === 'password') {
     input.type = 'text';
     btn.innerHTML = kyyIcon('eye-off',16);
@@ -2440,21 +2646,33 @@ function toggleApiKeyVisibility() {
 
 async function loadSavedCustomConfig() {
   let key = localStorage.getItem('kyy_custom_api_key') || '';
+  let geminiModel = localStorage.getItem('kyy_custom_gemini_model') || '';
+  let openrouterKey = localStorage.getItem('kyy_custom_openrouter_key') || '';
+  let openrouterModel = localStorage.getItem('kyy_custom_openrouter_model') || '';
   let prompt = localStorage.getItem('kyy_custom_prompt') || '';
+  let provider = localStorage.getItem('kyy_custom_provider') || 'gemini';
 
   if (currentUser) {
     try {
       const { data, error } = await supabaseClient
         .from('user_custom_configs')
-        .select('custom_api_key, custom_prompt')
+        .select('custom_api_key, custom_gemini_model, custom_openrouter_key, custom_openrouter_model, custom_prompt, custom_provider')
         .eq('user_id', currentUser.id)
         .single();
 
       if (data && !error) {
         key = data.custom_api_key || key;
+        geminiModel = data.custom_gemini_model || geminiModel;
+        openrouterKey = data.custom_openrouter_key || openrouterKey;
+        openrouterModel = data.custom_openrouter_model || openrouterModel;
         prompt = data.custom_prompt || prompt;
+        provider = data.custom_provider || provider;
         localStorage.setItem('kyy_custom_api_key', key);
+        localStorage.setItem('kyy_custom_gemini_model', geminiModel);
+        localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
+        localStorage.setItem('kyy_custom_openrouter_model', openrouterModel);
         localStorage.setItem('kyy_custom_prompt', prompt);
+        localStorage.setItem('kyy_custom_provider', provider);
         localStorage.setItem('kyy_custom_config_saved', 'true');
       }
     } catch (err) {
@@ -2463,17 +2681,33 @@ async function loadSavedCustomConfig() {
   }
 
   const keyInput = document.getElementById('customApiKeyInput');
+  const geminiModelInput = document.getElementById('customGeminiModelInput');
+  const openrouterInput = document.getElementById('customOpenRouterKeyInput');
+  const openrouterModelInput = document.getElementById('customOpenRouterModelInput');
   const promptInput = document.getElementById('customPromptInput');
   if (keyInput) keyInput.value = key;
+  if (geminiModelInput) geminiModelInput.value = geminiModel;
+  if (openrouterInput) openrouterInput.value = openrouterKey;
+  if (openrouterModelInput) openrouterModelInput.value = openrouterModel;
   if (promptInput) promptInput.value = prompt;
+
+  setCustomProvider(provider === 'openrouter' ? 'openrouter' : 'gemini');
 }
 
 async function saveCustomConfig() {
   const key = document.getElementById('customApiKeyInput').value.trim();
+  const geminiModel = document.getElementById('customGeminiModelInput').value.trim();
+  const openrouterKey = document.getElementById('customOpenRouterKeyInput').value.trim();
+  const openrouterModel = document.getElementById('customOpenRouterModelInput').value.trim();
   const prompt = document.getElementById('customPromptInput').value.trim();
+  const provider = kyyCustomProvider;
 
   localStorage.setItem('kyy_custom_api_key', key);
+  localStorage.setItem('kyy_custom_gemini_model', geminiModel);
+  localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
+  localStorage.setItem('kyy_custom_openrouter_model', openrouterModel);
   localStorage.setItem('kyy_custom_prompt', prompt);
+  localStorage.setItem('kyy_custom_provider', provider);
   localStorage.setItem('kyy_custom_config_saved', 'true');
 
   if (currentUser) {
@@ -2481,7 +2715,11 @@ async function saveCustomConfig() {
       await supabaseClient.from('user_custom_configs').upsert({
         user_id: currentUser.id,
         custom_api_key: key,
+        custom_gemini_model: geminiModel,
+        custom_openrouter_key: openrouterKey,
+        custom_openrouter_model: openrouterModel,
         custom_prompt: prompt,
+        custom_provider: provider,
         updated_at: new Date()
       });
     } catch (err) {
@@ -2498,7 +2736,11 @@ async function deleteCustomConfig() {
   if (!confirm('Apakah kamu yakin ingin menghapus Custom Config?')) return;
 
   localStorage.removeItem('kyy_custom_api_key');
+  localStorage.removeItem('kyy_custom_gemini_model');
+  localStorage.removeItem('kyy_custom_openrouter_key');
+  localStorage.removeItem('kyy_custom_openrouter_model');
   localStorage.removeItem('kyy_custom_prompt');
+  localStorage.removeItem('kyy_custom_provider');
   localStorage.removeItem('kyy_custom_config_saved');
 
   if (currentUser) {
@@ -2510,7 +2752,11 @@ async function deleteCustomConfig() {
   }
 
   document.getElementById('customApiKeyInput').value = '';
+  document.getElementById('customGeminiModelInput').value = '';
+  document.getElementById('customOpenRouterKeyInput').value = '';
+  document.getElementById('customOpenRouterModelInput').value = '';
   document.getElementById('customPromptInput').value = '';
+  setCustomProvider('gemini');
 
   if (currentMode === 'custom') {
     currentMode = 'biasa';

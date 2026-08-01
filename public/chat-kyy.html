@@ -764,29 +764,27 @@
   .config-label { font-size:12px; color:var(--text-soft); margin-bottom:6px; display:block; font-weight:500; }
   .config-hint { font-size:11px; color:var(--text-soft); opacity:.75; display:block; margin-top:6px; line-height:1.4; }
 
-  .provider-switch{
-    display:flex;
-    background:var(--bg-input);
+  .provider-box{
     border:1px solid var(--border);
-    border-radius:10px;
-    padding:3px;
-    gap:3px;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+    background:rgba(255,255,255,.02);
   }
-  .provider-switch-btn{
-    flex:1;
-    border:none;
-    background:transparent;
-    color:var(--text-soft);
-    font-size:13px;
-    font-weight:600;
-    padding:8px 10px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:background .15s ease, color .15s ease;
+  .provider-box-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
   }
-  .provider-switch-btn.active{
-    background:var(--accent);
-    color:#fff;
+  .provider-box-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--text-main);
+  }
+  .provider-box:has(#geminiToggle:checked),
+  .provider-box:has(#openrouterToggle:checked){
+    border-color:var(--accent);
   }
   .config-field {
     width:100%;
@@ -1111,16 +1109,17 @@
       </div>
 
       <div class="accordion-body" id="accordionBody">
-        <div class="config-input-group">
-          <label class="config-label">Provider Custom Mode:</label>
-          <div class="provider-switch" id="providerSwitch">
-            <button type="button" class="provider-switch-btn active" data-provider="gemini" onclick="setCustomProvider('gemini')">Gemini</button>
-            <button type="button" class="provider-switch-btn" data-provider="openrouter" onclick="setCustomProvider('openrouter')">OpenRouter</button>
-          </div>
-        </div>
 
-        <!-- BLOK GEMINI -->
-        <div id="providerBlockGemini">
+        <!-- KOTAK GEMINI -->
+        <div class="provider-box">
+          <div class="provider-box-header">
+            <span class="provider-box-title">Custom Config (Gemini)</span>
+            <label class="switch">
+              <input type="checkbox" id="geminiToggle" onchange="onProviderToggleChange('gemini')">
+              <span class="slider"></span>
+            </label>
+          </div>
+
           <div class="config-input-group">
             <label class="config-label">Custom API Key (Gemini):</label>
             <div class="api-key-input-wrapper">
@@ -1133,10 +1132,22 @@
             <input type="text" id="customGeminiModelInput" class="config-field" placeholder="gemini-3.1-flash-lite" autocomplete="off">
             <span class="config-hint">Kosongkan buat pakai default: gemini-3.1-flash-lite</span>
           </div>
+          <div class="config-input-group">
+            <label class="config-label">Custom System Prompt (Gemini):</label>
+            <textarea id="customPromptInput" class="config-field config-textarea" placeholder="Contoh: Kamu adalah Kyy CS yang pandai ngoding..."></textarea>
+          </div>
         </div>
 
-        <!-- BLOK OPENROUTER -->
-        <div id="providerBlockOpenrouter" style="display:none;">
+        <!-- KOTAK OPENROUTER -->
+        <div class="provider-box">
+          <div class="provider-box-header">
+            <span class="provider-box-title">Custom Config (OpenRouter)</span>
+            <label class="switch">
+              <input type="checkbox" id="openrouterToggle" onchange="onProviderToggleChange('openrouter')">
+              <span class="slider"></span>
+            </label>
+          </div>
+
           <div class="config-input-group">
             <label class="config-label">Custom API Key (OpenRouter):</label>
             <div class="api-key-input-wrapper">
@@ -1149,17 +1160,19 @@
             <input type="text" id="customOpenRouterModelInput" class="config-field" placeholder="openai/gpt-4o-mini" autocomplete="off">
             <span class="config-hint">Kosongkan buat otomatis — OpenRouter yang pilihkan model terbaik (openrouter/auto)</span>
           </div>
+          <div class="config-input-group">
+            <label class="config-label">Custom System Prompt (OpenRouter):</label>
+            <textarea id="customOpenRouterPromptInput" class="config-field config-textarea" placeholder="Contoh: Kamu adalah Kyy CS yang pandai ngoding..."></textarea>
+          </div>
         </div>
 
-        <div class="config-input-group">
-          <label class="config-label">Custom System Prompt:</label>
-          <textarea id="customPromptInput" class="config-field config-textarea" placeholder="Contoh: Kamu adalah Kyy CS yang pandai ngoding..."></textarea>
-        </div>
+        <span class="config-hint" style="display:block;text-align:center;margin:2px 0 4px;">Cuma boleh aktifkan salah satu — nyalain dua-duanya bakal ditolak pas simpan.</span>
 
         <button class="btn-save-config" onclick="saveCustomConfig()">Simpan Custom Config</button>
         <button class="btn-delete-config" onclick="deleteCustomConfig()">Hapus Custom Config</button>
       </div>
     </div>
+
 
   </div>
 </div>
@@ -2354,12 +2367,7 @@ async function sendMessage(){
       pesan: pesanUntukAI,
       riwayat: riwayatKirim,
       mode: currentMode,
-      customProvider: localStorage.getItem('kyy_custom_provider') || 'gemini',
-      customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
-      customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
-      customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
-      customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
-      customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
+      ...kyyGetCustomPayloadFields()
     };
 
     if(imageAtt){
@@ -2576,12 +2584,7 @@ async function regenerateMessage(idx){
       pesan: userMsg.content,
       riwayat: riwayatKirim,
       mode: currentMode,
-      customProvider: localStorage.getItem('kyy_custom_provider') || 'gemini',
-      customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
-      customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
-      customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
-      customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
-      customPrompt: localStorage.getItem('kyy_custom_prompt') || ''
+      ...kyyGetCustomPayloadFields()
     };
 
     const res = await fetch(targetEndpoint, {
@@ -2619,17 +2622,15 @@ function toggleCustomConfigAccordion(){
   }
 }
 
-let kyyCustomProvider = localStorage.getItem('kyy_custom_provider') || 'gemini';
+/* Live warning kalau dua toggle provider dinyalain bareng — nggak maksa matiin,
+   cuma ngasih tau, biar user yang matiin sendiri (sesuai yang diminta). */
+function onProviderToggleChange(){
+  const geminiOn = document.getElementById('geminiToggle').checked;
+  const openrouterOn = document.getElementById('openrouterToggle').checked;
 
-function setCustomProvider(provider){
-  kyyCustomProvider = provider;
-
-  document.querySelectorAll('.provider-switch-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.provider === provider);
-  });
-
-  document.getElementById('providerBlockGemini').style.display = (provider === 'gemini') ? 'block' : 'none';
-  document.getElementById('providerBlockOpenrouter').style.display = (provider === 'openrouter') ? 'block' : 'none';
+  if (geminiOn && openrouterOn) {
+    kyyToast('Cuma boleh aktifkan salah satu provider! Matikan salah satu dulu.', 'zap', true);
+  }
 }
 
 function toggleApiKeyVisibility(inputId, btn) {
@@ -2644,35 +2645,60 @@ function toggleApiKeyVisibility(inputId, btn) {
   }
 }
 
+/* Kumpulkan field custom-mode yang mau dikirim ke backend, sesuai provider yang aktif.
+   Dipakai bareng di sendMessage() dan regenerateMessage() biar nggak duplikat logic. */
+function kyyGetCustomPayloadFields(){
+  const provider = localStorage.getItem('kyy_custom_provider') || 'gemini';
+  const activePrompt = provider === 'openrouter'
+    ? (localStorage.getItem('kyy_custom_openrouter_prompt') || '')
+    : (localStorage.getItem('kyy_custom_prompt') || '');
+
+  return {
+    customProvider: provider,
+    customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+    customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
+    customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
+    customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
+    customPrompt: activePrompt
+  };
+}
+
 async function loadSavedCustomConfig() {
   let key = localStorage.getItem('kyy_custom_api_key') || '';
   let geminiModel = localStorage.getItem('kyy_custom_gemini_model') || '';
+  let geminiPrompt = localStorage.getItem('kyy_custom_prompt') || '';
   let openrouterKey = localStorage.getItem('kyy_custom_openrouter_key') || '';
   let openrouterModel = localStorage.getItem('kyy_custom_openrouter_model') || '';
-  let prompt = localStorage.getItem('kyy_custom_prompt') || '';
-  let provider = localStorage.getItem('kyy_custom_provider') || 'gemini';
+  let openrouterPrompt = localStorage.getItem('kyy_custom_openrouter_prompt') || '';
+  let geminiEnabled = localStorage.getItem('kyy_provider_gemini_enabled') === 'true';
+  let openrouterEnabled = localStorage.getItem('kyy_provider_openrouter_enabled') === 'true';
 
   if (currentUser) {
     try {
       const { data, error } = await supabaseClient
         .from('user_custom_configs')
-        .select('custom_api_key, custom_gemini_model, custom_openrouter_key, custom_openrouter_model, custom_prompt, custom_provider')
+        .select('custom_api_key, custom_gemini_model, custom_prompt, custom_openrouter_key, custom_openrouter_model, custom_openrouter_prompt, custom_gemini_enabled, custom_openrouter_enabled')
         .eq('user_id', currentUser.id)
         .single();
 
       if (data && !error) {
         key = data.custom_api_key || key;
         geminiModel = data.custom_gemini_model || geminiModel;
+        geminiPrompt = data.custom_prompt || geminiPrompt;
         openrouterKey = data.custom_openrouter_key || openrouterKey;
         openrouterModel = data.custom_openrouter_model || openrouterModel;
-        prompt = data.custom_prompt || prompt;
-        provider = data.custom_provider || provider;
+        openrouterPrompt = data.custom_openrouter_prompt || openrouterPrompt;
+        geminiEnabled = !!data.custom_gemini_enabled;
+        openrouterEnabled = !!data.custom_openrouter_enabled;
+
         localStorage.setItem('kyy_custom_api_key', key);
         localStorage.setItem('kyy_custom_gemini_model', geminiModel);
+        localStorage.setItem('kyy_custom_prompt', geminiPrompt);
         localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
         localStorage.setItem('kyy_custom_openrouter_model', openrouterModel);
-        localStorage.setItem('kyy_custom_prompt', prompt);
-        localStorage.setItem('kyy_custom_provider', provider);
+        localStorage.setItem('kyy_custom_openrouter_prompt', openrouterPrompt);
+        localStorage.setItem('kyy_provider_gemini_enabled', geminiEnabled ? 'true' : 'false');
+        localStorage.setItem('kyy_provider_openrouter_enabled', openrouterEnabled ? 'true' : 'false');
         localStorage.setItem('kyy_custom_config_saved', 'true');
       }
     } catch (err) {
@@ -2680,33 +2706,46 @@ async function loadSavedCustomConfig() {
     }
   }
 
-  const keyInput = document.getElementById('customApiKeyInput');
-  const geminiModelInput = document.getElementById('customGeminiModelInput');
-  const openrouterInput = document.getElementById('customOpenRouterKeyInput');
-  const openrouterModelInput = document.getElementById('customOpenRouterModelInput');
-  const promptInput = document.getElementById('customPromptInput');
-  if (keyInput) keyInput.value = key;
-  if (geminiModelInput) geminiModelInput.value = geminiModel;
-  if (openrouterInput) openrouterInput.value = openrouterKey;
-  if (openrouterModelInput) openrouterModelInput.value = openrouterModel;
-  if (promptInput) promptInput.value = prompt;
-
-  setCustomProvider(provider === 'openrouter' ? 'openrouter' : 'gemini');
+  document.getElementById('customApiKeyInput').value = key;
+  document.getElementById('customGeminiModelInput').value = geminiModel;
+  document.getElementById('customPromptInput').value = geminiPrompt;
+  document.getElementById('customOpenRouterKeyInput').value = openrouterKey;
+  document.getElementById('customOpenRouterModelInput').value = openrouterModel;
+  document.getElementById('customOpenRouterPromptInput').value = openrouterPrompt;
+  document.getElementById('geminiToggle').checked = geminiEnabled;
+  document.getElementById('openrouterToggle').checked = openrouterEnabled;
 }
 
 async function saveCustomConfig() {
+  const geminiEnabled = document.getElementById('geminiToggle').checked;
+  const openrouterEnabled = document.getElementById('openrouterToggle').checked;
+
+  // VALIDASI WAJIB: harus tepat 1 provider yang aktif
+  if (geminiEnabled && openrouterEnabled) {
+    kyyToast('Nggak bisa dua-duanya aktif — matikan salah satu dulu!', 'zap', true);
+    return;
+  }
+  if (!geminiEnabled && !openrouterEnabled) {
+    kyyToast('Aktifkan salah satu provider dulu (Gemini atau OpenRouter)!', 'zap', true);
+    return;
+  }
+
   const key = document.getElementById('customApiKeyInput').value.trim();
   const geminiModel = document.getElementById('customGeminiModelInput').value.trim();
+  const geminiPrompt = document.getElementById('customPromptInput').value.trim();
   const openrouterKey = document.getElementById('customOpenRouterKeyInput').value.trim();
   const openrouterModel = document.getElementById('customOpenRouterModelInput').value.trim();
-  const prompt = document.getElementById('customPromptInput').value.trim();
-  const provider = kyyCustomProvider;
+  const openrouterPrompt = document.getElementById('customOpenRouterPromptInput').value.trim();
+  const provider = geminiEnabled ? 'gemini' : 'openrouter';
 
   localStorage.setItem('kyy_custom_api_key', key);
   localStorage.setItem('kyy_custom_gemini_model', geminiModel);
+  localStorage.setItem('kyy_custom_prompt', geminiPrompt);
   localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
   localStorage.setItem('kyy_custom_openrouter_model', openrouterModel);
-  localStorage.setItem('kyy_custom_prompt', prompt);
+  localStorage.setItem('kyy_custom_openrouter_prompt', openrouterPrompt);
+  localStorage.setItem('kyy_provider_gemini_enabled', geminiEnabled ? 'true' : 'false');
+  localStorage.setItem('kyy_provider_openrouter_enabled', openrouterEnabled ? 'true' : 'false');
   localStorage.setItem('kyy_custom_provider', provider);
   localStorage.setItem('kyy_custom_config_saved', 'true');
 
@@ -2716,9 +2755,12 @@ async function saveCustomConfig() {
         user_id: currentUser.id,
         custom_api_key: key,
         custom_gemini_model: geminiModel,
+        custom_prompt: geminiPrompt,
         custom_openrouter_key: openrouterKey,
         custom_openrouter_model: openrouterModel,
-        custom_prompt: prompt,
+        custom_openrouter_prompt: openrouterPrompt,
+        custom_gemini_enabled: geminiEnabled,
+        custom_openrouter_enabled: openrouterEnabled,
         custom_provider: provider,
         updated_at: new Date()
       });
@@ -2737,9 +2779,12 @@ async function deleteCustomConfig() {
 
   localStorage.removeItem('kyy_custom_api_key');
   localStorage.removeItem('kyy_custom_gemini_model');
+  localStorage.removeItem('kyy_custom_prompt');
   localStorage.removeItem('kyy_custom_openrouter_key');
   localStorage.removeItem('kyy_custom_openrouter_model');
-  localStorage.removeItem('kyy_custom_prompt');
+  localStorage.removeItem('kyy_custom_openrouter_prompt');
+  localStorage.removeItem('kyy_provider_gemini_enabled');
+  localStorage.removeItem('kyy_provider_openrouter_enabled');
   localStorage.removeItem('kyy_custom_provider');
   localStorage.removeItem('kyy_custom_config_saved');
 
@@ -2753,10 +2798,12 @@ async function deleteCustomConfig() {
 
   document.getElementById('customApiKeyInput').value = '';
   document.getElementById('customGeminiModelInput').value = '';
+  document.getElementById('customPromptInput').value = '';
   document.getElementById('customOpenRouterKeyInput').value = '';
   document.getElementById('customOpenRouterModelInput').value = '';
-  document.getElementById('customPromptInput').value = '';
-  setCustomProvider('gemini');
+  document.getElementById('customOpenRouterPromptInput').value = '';
+  document.getElementById('geminiToggle').checked = false;
+  document.getElementById('openrouterToggle').checked = false;
 
   if (currentMode === 'custom') {
     currentMode = 'biasa';

@@ -1879,6 +1879,7 @@ async function persistMessage(role, content){
 }
 
 async function loadSession(id){
+  kyyStopSpeaking();
   currentSessionId = id;
 
   if(currentUser){
@@ -1923,6 +1924,7 @@ async function deleteSession(id){
   }
 
   if(currentSessionId === id){
+    kyyStopSpeaking();
     currentSessionId = null;
     messages = [];
     renderMessages();
@@ -1933,6 +1935,7 @@ async function deleteSession(id){
 }
 
 function newChat(){
+  kyyStopSpeaking();
   currentSessionId = null;
   messages = [];
   renderMessages();
@@ -2305,6 +2308,15 @@ function copyMessageText(idx, btn){
    tidak butuh API/akun apapun, tapi kualitas & bahasa suaranya tergantung
    text-to-speech yang tersedia di HP/browser pengguna. */
 let kyySpeakingBtn = null;
+
+/* Hentikan paksa suara yang lagi jalan — dipanggil tiap kali pesan diganti
+   (pindah sesi, chat baru, hapus sesi) supaya suara tidak "nyangkut". */
+function kyyStopSpeaking(){
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+  }
+  kyySpeakingBtn = null;
+}
 function toggleSpeak(idx, btn){
   if(!('speechSynthesis' in window)){
     alert('Browser ini tidak mendukung fitur suara (Web Speech API).');

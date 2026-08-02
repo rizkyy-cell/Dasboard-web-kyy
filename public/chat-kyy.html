@@ -49,7 +49,7 @@
     user-select: none;
   }
   
-  textarea, .msg-bubble, .chat-item-title {
+  textarea, .msg-bubble, .msg-bubble *, .chat-item-title {
     user-select: text;
   }
   
@@ -705,6 +705,29 @@
   .attach-chip.loading{opacity:.7;border-color:var(--accent);}
   .attach-chip.loading .attach-meta{color:var(--accent);}
 
+  /* ================= TOGGLE THINK / DEEP SEARCH DI COMPOSER ================= */
+  .composer-toolbar{
+    display:flex; gap:6px; flex-wrap:wrap;
+    padding:0 2px 8px;
+  }
+  .composer-toggle-btn{
+    display:flex; align-items:center; gap:5px;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    background:var(--bg-input);
+    color:var(--text-soft);
+    font-size:12px; font-weight:600;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .composer-toggle-btn:hover{color:var(--text-main);}
+  .composer-toggle-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
   .attach-btn{
     width:34px;height:34px;border-radius:50%;
     background:transparent;border:none;color:var(--text-soft);
@@ -1147,6 +1170,16 @@
   <div class="input-wrap">
     <div class="input-box-container">
       <div class="attach-preview-bar" id="attachPreviewBar"></div>
+      <div class="composer-toolbar">
+        <button type="button" class="composer-toggle-btn" id="thinkModeBtn" onclick="toggleThinkMode()" title="Mode Think: AI mikir & review jawabannya sendiri 2x sebelum kasih jawaban final (lebih teliti, lebih lambat)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.75.75 1.23 1.5 1.41 2.5"></path></svg>
+          Think
+        </button>
+        <button type="button" class="composer-toggle-btn" id="deepSearchBtn" onclick="toggleDeepSearchMode()" title="Deep Search: AI cari info terbaru di internet dulu sebelum jawab (butuh SERPER_API_KEY di server)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Deep Search
+        </button>
+      </div>
       <div class="input-box" id="dropArea">
         <input type="file" id="fileInputHidden" multiple style="display:none" onchange="handleFileInputChange(event)">
         <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
@@ -2107,6 +2140,28 @@ let messages = [];
 let sending = false;
 let guestSessions = [];
 let pendingAttachments = [];   
+
+/* ================= TOGGLE THINK / DEEP SEARCH ================= */
+let kyyThinkMode = localStorage.getItem('kyy_think_mode') === 'true';
+let kyyDeepSearchMode = localStorage.getItem('kyy_deepsearch_mode') === 'true';
+
+function toggleThinkMode(){
+  kyyThinkMode = !kyyThinkMode;
+  localStorage.setItem('kyy_think_mode', kyyThinkMode ? 'true' : 'false');
+  document.getElementById('thinkModeBtn').classList.toggle('active', kyyThinkMode);
+}
+function toggleDeepSearchMode(){
+  kyyDeepSearchMode = !kyyDeepSearchMode;
+  localStorage.setItem('kyy_deepsearch_mode', kyyDeepSearchMode ? 'true' : 'false');
+  document.getElementById('deepSearchBtn').classList.toggle('active', kyyDeepSearchMode);
+}
+function kyyInitComposerToggles(){
+  const thinkBtn = document.getElementById('thinkModeBtn');
+  const searchBtn = document.getElementById('deepSearchBtn');
+  if(thinkBtn) thinkBtn.classList.toggle('active', kyyThinkMode);
+  if(searchBtn) searchBtn.classList.toggle('active', kyyDeepSearchMode);
+}
+
 let attachSeq = 0;
 const MAX_ATTACHMENT_MB = 8;   
 
@@ -2716,7 +2771,7 @@ async function sendMessage(){
   });
 
   // 2. TAG DAN BACA FILE LAMPIRAN
-  const imageAtt = pendingAttachments.find(a => a.category === 'image' && a.base64);
+  const imageAtts = pendingAttachments.filter(a => a.category === 'image' && a.base64);
   const textAtts = pendingAttachments.filter(a => a.category === 'text');
   const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text');
 
@@ -2778,12 +2833,18 @@ async function sendMessage(){
       pesan: pesanUntukAI,
       riwayat: riwayatKirim,
       mode: currentMode,
+      thinkMode: kyyThinkMode,
+      deepSearchMode: kyyDeepSearchMode,
       ...kyyGetCustomPayloadFields()
     };
 
-    if(imageAtt){
-      payloadKirim.gambarData = imageAtt.base64;
-      payloadKirim.gambarType = imageAtt.mime;
+    if(imageAtts.length > 0){
+      // field lama (kompatibel mundur, cuma gambar pertama) — biar backend yang belum
+      // di-update tetap jalan seperti biasa, nggak error.
+      payloadKirim.gambarData = imageAtts[0].base64;
+      payloadKirim.gambarType = imageAtts[0].mime;
+      // field baru: SEMUA gambar, dipakai backend yang sudah support multi-gambar
+      payloadKirim.gambarList = imageAtts.map(a => ({ data: a.base64, mimeType: a.mime }));
     }
 
     const res = await fetch(targetEndpoint, {
@@ -2998,6 +3059,8 @@ async function regenerateMessage(idx){
       pesan: userMsg.content,
       riwayat: riwayatKirim,
       mode: currentMode,
+      thinkMode: kyyThinkMode,
+      deepSearchMode: kyyDeepSearchMode,
       ...kyyGetCustomPayloadFields()
     };
 
@@ -3357,6 +3420,7 @@ async function deleteSelectedSessions() {
 initTheme();
 initDragAndDrop();
 loadSavedCustomConfig();
+kyyInitComposerToggles();
 updateModelLabel();
 applyProfileUI();
 initAuth().then(loadHistoryForCurrentUser);

@@ -247,6 +247,8 @@
       transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
     }
 
+    .nav-item:active { transform: scale(0.9); }
+
     .nav-item.active { 
       color: var(--tg-accent); 
       transform: scale(1.05); 
@@ -284,15 +286,14 @@
       border-radius: 26px; 
     }
 
-    @keyframes pulseChatIcon { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.75; } }
-    .nav-item:active { transform: scale(0.9); }
-
     /* PENYESUAIAN TEMA TERANG AGAR KACA TETAP MENGKILAP */
-        .body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
+        body.light-theme .bottom-nav-wrapper { background-color: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 12px 45px rgba(0, 0, 0, 0.1) !important; }
     body.light-theme .nav-item { color: #64748b !important; }
     body.light-theme .nav-item.active { color: #1e293b !important; }
 
     body.light-theme .nav-sliding-indicator::before { border: 1.5px solid rgba(0, 0, 0, 0.15); background: rgba(0,0,0,0.03); box-shadow: none; }
+
+    @keyframes pulseChatIcon { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.75; } }
 
         .store-container { width: 100%; padding: 5px 0 20px 0; }
 
@@ -385,347 +386,6 @@
     }
 
     .theme-slider:before { position: absolute !important; content: "" !important; height: 20px !important; width: 20px !important; left: 3px !important; bottom: 3px !important; background-color: white !important; transition: .3s cubic-bezier(0.25, 1, 0.5, 1) !important; border-radius: 50% !important; box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important; }
-
-            /* ==========================================
-       STYLE LAYER CHAT AI (ANTI-BENTROK / DECOUPLED)
-       ========================================== */
-    #layer-chat-ai {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        width: 100%; height: 100dvh;
-        background-color: var(--tg-bg) !important;
-        z-index: 99999; display: flex; flex-direction: column;
-        overflow: hidden;
-        transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
-    }
-    .assistant-layer-hidden { transform: translateY(100%) scale(0.95); opacity: 0; pointer-events: none; }
-    .assistant-layer-active { transform: translateY(0) scale(1) !important; opacity: 1 !important; pointer-events: auto !important; }
-
-    /* HEADER KACA */
-    #layer-chat-ai .ai-header-glass {
-        padding: max(35px, env(safe-area-inset-top)) 15px 12px 15px;
-        background: rgba(23, 33, 43, 0.55) !important;
-        backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter:          blur(24px) saturate(180%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    #layer-chat-ai .ai-header-left { display: flex; align-items: center; gap: 12px; }
-    #layer-chat-ai .ai-back-container {
-        display: flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px; border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08) !important; 
-border: 1px solid rgba(255, 255, 255, 0.15) !important;
-backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        cursor: pointer; color: #fff !important;
-    }
-    #layer-chat-ai .ai-profile-pic { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; }
-    #layer-chat-ai .ai-profile-pic img { width: 100%; height: 100%; object-fit: cover; }
-    #layer-chat-ai .ai-user-info { display: flex; flex-direction: column; }
-    #layer-chat-ai .ai-nama { font-size: 15px; font-weight: 700; color: #fff !important; }
-    #layer-chat-ai .ai-status { font-size: 11px; color: var(--tg-text-muted) !important; }
-
-    /* AREA CHAT */
-    #layer-chat-ai .ai-chat-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-            #layer-chat-ai .ai-bubble-bot {
-        align-self: flex-start;
-        max-width: 80%;
-        padding: 12px 16px;
-        background: var(--tg-panel) !important; 
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        border-top-left-radius: 4px;
-        font-size: 14.5px;
-        line-height: 1.4;
-        color: var(--tg-text);
-        text-transform: none !important;
-        /* FIX ACCURATE: Mengizinkan teks balon chat diblok/ditekan lama untuk disalin */
-        user-select: text !important;
-        -webkit-user-select: text !important;
-    }
-
-
-    /* FIX: MEMAKSA BALON CHAT USER MENUTUP RAPAT DI KANAN SEPERTI DI VIDEO TESTING */
-    #layer-chat-ai .ai-chat-area div[style*="align-self: flex-end"] {
-        align-self: flex-end !important;
-        text-transform: none !important; /* Memastikan teks ketikan user tidak otomatis kapital */
-    }
-
-
-    /* KOLOM INPUT LIQUID GLASS */
-    #layer-chat-ai .ai-footer-input {
-    padding: 12px 15px max(20px, env(safe-area-inset-bottom)) 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(13, 17, 23, 0.55);
-    backdrop-filter: blur(40px) saturate(220%);
-    -webkit-backdrop-filter: blur(40px) saturate(220%);
-    border-top: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.07);
-    position: relative;
-    transform: translateY(150%);
-    opacity: 0;
-    transition: transform 0.65s cubic-bezier(0.24, 1.1, 0.32, 1) 0.15s,
-                opacity 0.5s ease 0.15s;
-}
-/* Specular line footer */
-#layer-chat-ai .ai-footer-input::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 10%; right: 10%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    pointer-events: none;
-}
-/* Footer muncul saat layer aktif */
-#layer-chat-ai.assistant-layer-active .ai-footer-input {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* ── INPUT CAPSULE ── */
-#layer-chat-ai .ai-input-capsule {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25),
-                inset 0 1px 0 rgba(255,255,255,0.10),
-                inset 0 -1px 0 rgba(0,0,0,0.15);
-    border-radius: 24px;
-    padding: 10px 18px;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-#layer-chat-ai .ai-input-capsule:focus-within {
-    border-color: rgba(51,144,236,0.45);
-    box-shadow: 0 0 0 3px rgba(51,144,236,0.12),
-                0 2px 10px rgba(0,0,0,0.25),
-                inset 0 1px 0 rgba(255,255,255,0.10);
-}
-#layer-chat-ai .ai-input-capsule input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: var(--lg-text);
-    font-size: 14.5px;
-    outline: none;
-}
-#layer-chat-ai .ai-input-capsule input::placeholder {
-    color: var(--lg-muted);
-}
-
-/* ── TOMBOL KIRIM ── */
-#layer-chat-ai .ai-btn-kirim {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--lg-accent), var(--lg-accent2));
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 4px 16px rgba(51,144,236,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-    color: var(--lg-text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.2s;
-    flex-shrink: 0;
-}
-#layer-chat-ai .ai-btn-kirim:hover {
-    transform: scale(1.08);
-    box-shadow: 0 6px 20px rgba(51,144,236,0.55), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-#layer-chat-ai .ai-btn-kirim:active { transform: scale(0.93); }
-#layer-chat-ai .ai-btn-kirim:disabled {
-    opacity: 0.3;
-    cursor: default;
-    box-shadow: none;
-    transform: none;
-}
-
-/* ═══════════════════════════════════════════
-   DROPDOWN
-═══════════════════════════════════════════ */
-#layer-chat-ai .ai-dropdown {
-    position: absolute;
-    top: 45px; right: 0;
-    width: 160px;
-    background: rgba(18, 26, 36, 0.75);
-    backdrop-filter: blur(30px) saturate(200%);
-    -webkit-backdrop-filter: blur(30px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.10);
-    border-radius: 14px;
-    padding: 4px;
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.85) translateY(-10px);
-    transform-origin: top right;
-    transition: opacity 0.25s cubic-bezier(0.25, 1, 0.2, 1),
-                visibility 0.25s cubic-bezier(0.25, 1, 0.2, 1),
-                transform 0.25s cubic-bezier(0.25, 1, 0.2, 1);
-    z-index: 100000;
-}
-#layer-chat-ai .ai-dropdown.active {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1) translateY(0);
-}
-#layer-chat-ai .ai-dropdown button {
-    width: 100%;
-    padding: 10px 12px;
-    background: none;
-    border: none;
-    text-align: left;
-    color: var(--lg-text);
-    font-size: 13.5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-radius: 10px;
-    transition: background 0.15s;
-}
-#layer-chat-ai .ai-dropdown button:hover {
-    background: rgba(255, 255, 255, 0.07);
-}
-
-
-    #layer-chat-ai .ai-modal-overlay {
-    position: absolute;
-    inset: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
-    z-index: 100005;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1),
-                visibility 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
-#layer-chat-ai .ai-modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-#layer-chat-ai .ai-modal-box {
-    width: 100%;
-              }
-
-    /* ==========================================
-   MODAL HAPUS RIWAYAT - ULTRA LIQUID GLASS
-   ========================================== */
-#layer-chat-ai .ai-modal-box {
-    /* Efek Kaca Transparan & Refleksi Cahaya 3D */
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)) !important;
-    backdrop-filter: blur(25px) saturate(160%) !important;
-    -webkit-backdrop-filter: blur(25px) saturate(160%) !important;
-    
-    /* Border Glossy Tepi Atas dan Kiri */
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.25) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
-    
-    padding: 25px !important;
-    border-radius: 24px !important;
-    text-align: center !important;
-    max-width: 320px !important;
-    box-shadow: 0 20px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.15) !important;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Penyesuaian saat Asisten masuk ke Mode Terang */
-#layer-chat-ai.light-chat-room .ai-modal-box {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.45)) !important;
-    border: 1px solid rgba(0, 0, 0, 0.06) !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.9) !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.6) !important;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.08), inset 0 1px 2px rgba(255,255,255,0.5) !important;
-}
-
-/* Dekorasi Ikon Sampah Gantung */
-.ai-modal-icon {
-    font-size: 32px;
-    color: #ff3b30;
-    margin-bottom: 12px;
-    filter: drop-shadow(0 4px 8px rgba(255,60,48,0.3));
-}
-
-/* Tata Letak Tombol Aksi */
-.ai-modal-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.ai-modal-buttons button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 14.5px;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-}
-
-.ai-modal-buttons button:active {
-    transform: scale(0.95);
-}
-
-/* Tombol Batal (Gaya Glass Ringan) */
-.ai-btn-modal-batal {
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-}
-#layer-chat-ai.light-chat-room .ai-btn-modal-batal {
-    background: rgba(0, 0, 0, 0.05) !important;
-    color: #1e293b !important;
-    border: 1px solid rgba(0,0,0,0.08) !important;
-}
-
-/* Tombol Hapus (Merah Tegas) */
-.ai-btn-modal-hapus {
-    background: #ff3b30 !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(255,59,48,0.3);
-}
-
-  
-        /* ==========================================
-       TEMA TERANG KHUSUS ROOM CHAT (TERPISAH & KEBAL GLOBAL)
-       ========================================== */
-    #layer-chat-ai.light-chat-room { background-color: #f4f6f9 !important; }
-    #layer-chat-ai.light-chat-room .ai-header-glass { background: rgba(255, 255, 255, 0.85) !important; border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important; }
-    #layer-chat-ai.light-chat-room .ai-back-container { background: rgba(0, 0, 0, 0.04) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
-    #layer-chat-ai.light-chat-room .ai-nama { color: #1e293b !important; }
-    #layer-chat-ai.light-chat-room .ai-bubble-bot { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #1e293b !important; box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important; }
-        #layer-chat-ai.light-chat-room .ai-footer-input { background: linear-gradient(135deg, rgba(255, 255, 255, 0.40), rgba(255, 255, 255, 0.15)) !important; backdrop-filter: blur(30px) saturate(190%) !important; -webkit-backdrop-filter: blur(30px) saturate(190%) !important; border-top: 1px solid rgba(0, 0, 0, 0.08) !important; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.03) !important; }
-
-    #layer-chat-ai.light-chat-room .ai-input-capsule { background: rgba(0,0,0,0.03) !important; border: 1px solid rgba(0,0,0,0.06) !important; }
-    #layer-chat-ai.light-chat-room .ai-input-capsule input { color: #1e293b !important; }
-    #layer-chat-ai.light-chat-room .ai-input-capsule input::placeholder { color: #94a3b8 !important; }
-    #layer-chat-ai.light-chat-room .ai-dropdown { background: rgba(255, 255, 255, 0.95) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; }
-    #layer-chat-ai.light-chat-room .ai-dropdown button { color: #1e293b !important; }
-    #layer-chat-ai.light-chat-room .ai-dropdown button:hover { background: rgba(0, 0, 0, 0.04) !important; }
-    #layer-chat-ai.light-chat-room .ai-modal-box { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(0, 0, 0, 0.08) !important; color: #1e293b !important; }
-    #layer-chat-ai.light-chat-room .ai-btn-modal-batal { background: rgba(0,0,0,0.05) !important; color: #1e293b !important; }
-
-    /* FIX: Memaksa semua ikon (header, dropdown, dan tombol footer bawah) berwarna gelap saat light mode */
-    #layer-chat-ai.light-chat-room .ai-header-glass i, 
-    #layer-chat-ai.light-chat-room .ai-header-glass svg,
-    #layer-chat-ai.light-chat-room .ai-footer-input i,
-    #layer-chat-ai.light-chat-room .ai-footer-input svg { 
-        color: #1e293b !important; 
-        fill: #1e293b !important; 
-    }
-    #layer-chat-ai.light-chat-room .ai-dropdown button i {
-        color: #1e293b !important;
-    }
 
         /* ==========================================
        WIDGET SYSTEM MONITOR (LIQUID GLASS)
@@ -1016,221 +676,23 @@ backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     /* ==========================================
    WIDGET FLOATING ROBOT 3D (RAW CLEAN BOT)
    ========================================== */
-#kyyVideoBot3D {
-    position: fixed;
-    bottom: 80px; /* Turun pas di atas bar menu Profil */
-    right: -12px;   /* Mepet natural di sisi kanan */
-    width: 82px;  /* Ukuran presisi biar pas */
-    height: 90px;
-    z-index: 9990;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    
-    /* Animasi melayang halus dan transisi opacity untuk efek menghilang */
-    animation: botNaturalFloat 3.5s ease-in-out infinite;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                opacity 0.3s ease, 
-                visibility 0.3s ease;
-}
-
-#kyyVideoBot3D:hover {
-    transform: scale(1.08);
-}
-
-#kyyVideoBot3D:active {
-    transform: scale(0.92);
-}
-
-/* Tampilan Video Utama Robot */
-.bot-video-stream {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    pointer-events: none;
-    background: transparent !important;
-    filter: drop-shadow(-4px 6px 8px rgba(0, 0, 0, 0.35)); 
-}
-
-/* ── KEYFRAMES ANIMASI MELAYANG ── */
-@keyframes botNaturalFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); }
-}
-
-/* ==========================================
-   MENU LAMPIRAN KACA (OPSE C FLOATING MENU)
-   ========================================== */
-.ai-attach-menu {
-    position: absolute;
-    bottom: 70px;
-    left: 15px;
-    background: rgba(23, 33, 43, 0.85) !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 16px;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px) scale(0.95);
-    transition: all 0.25s cubic-bezier(0.25, 1, 0.2, 1);
-    z-index: 100002;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-}
-.ai-attach-menu.active {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-}
-.ai-attach-menu button {
-    background: none;
-    border: none;
-    color: #fff !important;
-    padding: 10px 14px;
-    font-size: 13.5px;
-    font-weight: 600;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    width: 150px;
-}
-.ai-attach-menu button:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
-}
-body.light-theme .ai-attach-menu {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-}
-body.light-theme .ai-attach-menu button { color: #1e293b !important; }
-body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) !important; }
-
-/* ==========================================
-   PRATINJAU GAMBAR DI BALON CHAT (RASIO PAS iOS)
-   ========================================== */
-.chat-img-preview {
-    width: 100%;
-    max-width: 220px; /* Ukuran pas, tidak menuhi layar */
-    aspect-ratio: 1 / 1; /* Rasio kotak presisi */
-    object-fit: cover;
-    border-radius: 14px;
-    margin-top: 5px;
-    display: block;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-
-/* Penanda Badge Status Mode AI */
-.ai-mode-badge {
-    font-size: 9px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 6px;
-    margin-left: 6px;
-    text-transform: uppercase;
-    background: rgba(255,255,255,0.1);
-    color: var(--tg-text-muted);
-}
-.mode-dev-active {
-    background: rgba(51, 144, 236, 0.15) !important;
-    color: var(--tg-accent) !important;
-    box-shadow: 0 0 8px rgba(51, 144, 236, 0.2);
-}
-
-        /* ==========================================
-       KUSTOMISASI CODE BOX EDITOR MODE DEV KYY
-       ========================================== */
-    .code-box-wrapper {
-        background: #1e1e1e !important;
-        border-radius: 12px;
-        margin: 10px 0;
-        overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-        border: 1px solid rgba(255,255,255,0.08);
-        font-family: 'Courier New', Courier, monospace;
+/* LAMA */
+        /* FIX NOTIFIKASI TOMBOL CHAT PROFIL */
+    .btn-social {
+        position: relative; /* Biar badge bisa nempel pas di pojok tombol */
     }
-    .code-box-header {
-        background: #2d2d2d !important;
-        padding: 10px 14px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        width: 100%; /* Kunci lebar penuh */
-    }
-    .mac-dots {
-        display: flex;
-        gap: 6px;
-    }
-    .mac-dot {
-        width: 11px;
-        height: 11px;
-        border-radius: 50%;
-    }
-    .mac-dot.red { background: #ff5f56; }
-    .mac-dot.yellow { background: #ffbd2e; }
-    .mac-dot.green { background: #27c93f; }
-    
-    .code-lang-label {
-        color: #7f91a4;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-left: 10px;
-    }
-    .btn-salin-code {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #7f91a4;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
-    }
-    .btn-salin-code {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #7f91a4;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
-        flex-shrink: 0; /* Mencegah tombol gepeng di desktop */
-        margin-left: auto; /* Memaksa tombol tetap mepet kanan di desktop */
-    }
-    .code-box-body {
-        padding: 14px;
-        overflow-x: auto;
-        margin: 0;
-        color: #d4d4d4;
-        font-size: 13px;
-        line-height: 1.5;
-        white-space: pre;
-    }
-    /* Pewarnaan Sintaksis Kode Mode Dev Kyy */
-    .code-box-body .hl-keyword { color: #ff79c6; font-weight: bold; } /* include, int, class, return */
-    .code-box-body .hl-string  { color: #f1fa8c; } /* "teks string" */
-    .code-box-body .hl-comment { color: #6272a4; font-style: italic; } /* // komentar */
-    .code-box-body .hl-type    { color: #8be9fd; } /* void, std::string, time_t */
+    .nav-badge-notif {
+        position: absolute;
+        top: -4px; right: -4px;
+        background: #ff3b30;
+        color: #fff;
+        font-size: 10px; font-weight: 800;
+        min-width: 16px; height: 16px;
+        padding: 0 4px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        z-index: 10;
+                   }
 
     /* ANIMASI SMOOTH UNTUK DESKRIPSI READ MORE */
 .desc-collapsible {
@@ -1259,6 +721,30 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     max-height: 1000px; /* Nilai tampung tinggi maks deskripsi */
     opacity: 1;
 }
+
+    /* Hilangkan margin & paksa scrollbar WebView mati total */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* KUNCI UTAMA: Sembunyikan garis scrollbar Android WebView */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+* {
+  -webkit-touch-callout: none;
+  outline: none !important; /* Mencegah border/garis seleksi putih */
+}
+
 
   </style>
 </head>
@@ -1382,15 +868,11 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
             <a href="https://t.me/kyy_app_mods" target="_blank" class="btn-social" id="btn-tele"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></a>
             <a href="https://discord.gg/Crr8MuVCe" target="_blank" class="btn-social" id="btn-dc"><svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.873-.894.077.077 0 0 1-.008-.128c.126-.093.252-.19.372-.287a.075.075 0 0 1 .077-.011c3.92 1.793 8.18 1.793 12.061 0a.073.073 0 0 1 .078.009c.12.099.246.195.373.289a.077.077 0 0 1-.006.127 12.298 12.298 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.156 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.156-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.156 2.418z"/></svg></a>
             <a href="https://sociabuzz.com/rizkyy_25/tribe" target="_blank" class="btn-social" id="btn-socia"><svg viewBox="0 0 24 24"><path d="M14.5,7.5C14.5,6.1 13.4,5 12,5C10.6,5 9.5,6.1 9.5,7.5C9.5,10.3 16,9.2 16,14.5C16,16.7 14.2,18.5 12,18.5C9.8,18.5 8,16.7 8,14.5H10.5C10.5,15.3 11.2,16 12,16C12.8,16 13.5,15.3 13.5,14.5C13.5,11.7 7,12.8 7,7.5C7,5.3 8.8,3.5 12,3.5C15.2,3.5 17,5.3 17,7.5H14.5Z"/></svg></a>
-                      <a href="javascript:void(0)" id="btn-tanya-cs" class="btn-social" style="border-color: rgba(51, 144, 236, 0.4); background: rgba(51, 144, 236, 0.1);"><i class="fas fa-comments" style="color:#3390ec; font-size:18px;"></i>
-                      <span class="nav-badge-notif">1</span>
-                      </a>
-
+                      <!-- BARU -->
                         <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
-          
         </div>
     </div>
-
+      
       <div class="glass-sys-info" id="sys-info-widget">
         <div class="sys-header"><i class="fas fa-satellite-dish"></i> Network Monitor</div>
         <div class="sys-row">
@@ -1555,13 +1037,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
     <span id="toast-message">Sukses!</span>
   </div>
 
-    <!-- GARIS INDIKATOR DRAG SLIDER DI KANAN LUAR LAYER -->
-                <div id="kyyVideoBot3D" onclick="document.getElementById('btn-tanya-cs').click();">
-        <video autoplay muted playsinline class="bot-video-stream" id="kyyRobotVideoEl">
-            <source src="robot3d.webp" type="video/mp4">
-        </video>
-    </div>
-
         <!-- ========================================== -->
     <!-- 1. POP-UP SETTINGS & PROFIL (DILUAR LAYER CHAT) -->
     <!-- ========================================== -->
@@ -1597,120 +1072,6 @@ body.light-theme .ai-attach-menu button:hover { background: rgba(0, 0, 0, 0.04) 
         <button onclick="tutupSettingsPopup()" class="ios-btn" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
       </div>
     </div>
-
-    <div id="kyyViewProfileModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 100010; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;" onclick="tutupViewProfileKyy()">
-        <div style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255,255,255,0.15); border-top: 1px solid rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.2); padding: 20px; border-radius: 28px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" onclick="event.stopPropagation()">
-            
-            <div style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; margin: 10px auto 20px auto; border: 4px solid var(--tg-accent); box-shadow: 0 8px 25px rgba(0,0,0,0.4);">
-                <img id="kyyBigAvatar" src="profile-cs.jpg" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'">
-            </div>
-            
-            <h3 style="color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 4px;">KYY CS</h3>
-            <p style="color: var(--tg-accent); font-size: 12px; font-weight: 700; margin-bottom: 15px; letter-spacing: 0.5px;">OFFICIAL ASSISTANT</p>
-            <p style="color: var(--tg-text-muted); font-size: 13px; line-height: 1.5; padding: 0 10px; margin-bottom: 20px;">Sistem kecerdasan buatan otomatis yang siap melayani kebutuhan informasi seputar aplikasi mod dan coding.</p>
-            
-            <button onclick="tutupViewProfileKyy()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 14px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s;">Tutup</button>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 2. LAYER CHAT AI -->
-    <!-- ========================================== -->
-    <div id="layer-chat-ai" class="assistant-layer-hidden">
-
-        <!-- MODAL KONFIRMASI HAPUS CHAT -->
-        <div class="ai-modal-overlay" id="ai-custom-modal">
-            <div class="ai-modal-box">
-                <div class="ai-modal-icon">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-                <h3 style="margin-bottom: 8px; font-size: 17px; font-weight: 800; letter-spacing: 0.3px;">Hapus Riwayat?</h3>
-                <p style="font-size: 13px; color: var(--tg-text-muted); line-height: 1.5; margin-bottom: 5px;">Semua obrolan dengan KYY CS akan dihapus permanen dari room chat ini.</p>
-                <div class="ai-modal-buttons">
-                    <button class="ai-btn-modal-batal" id="ai-modal-batal">Batal</button>
-                    <button class="ai-btn-modal-hapus" id="ai-modal-konfirmasi">Ya, Hapus</button>
-                </div>
-            </div>
-        </div>
-
-        <header class="ai-header-glass">
-          <!-- ... Sisa kode header dan room chat ... -->
-
-      <div class="ai-header-left">
-        <div class="ai-back-container" id="ai-btn-kembali">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M11.67 3.87L9.9 2.1 0 12l9.9 9.9 1.77-1.77L3.54 12z"/></svg>
-        </div>
-        <div class="ai-profile-pic" style="cursor: pointer;" onclick="bukaViewProfileKyy()">
-  <img id="aiAvatarTarget" src="profile-cs.jpg" alt="CS" onerror="this.src='https://ui-avatars.com/api/?name=AI&background=3390ec&color=fff'"></div>
-
-        <div class="ai-user-info">
-      <div style="display:flex; align-items:center; gap: 4px;">
-     <span class="ai-nama">KYY CS</span>
-     
-     <!-- FIX: Mengunci warna fill menjadi biru menetap (#1d9bf0) -->
-     <svg viewBox="0 0 24 24" style="width: 14px; height: 14px; fill: #1d9bf0; margin-right: 2px; display: inline-block; vertical-align: middle;">
-         <path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.514.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/>
-     </svg>
-     
-     <span class="ai-mode-badge" id="aiModeStatus">BIASA</span>
-  </div>
-
-          <span class="ai-status">Asisten Otomatis</span>
-        </div>
-      </div>
-      
-      <div style="position: relative;">
-   <div class="ai-back-container" id="ai-btn-menu">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-        </div>
-        
-        <!-- DROPDOWN MENU KACA UPDATE (OPSI A) -->
-        <div class="ai-dropdown liquid-glass" id="ai-dropdown-menu">
-          <button id="aiBtnSwitchMode" style="color: var(--tg-accent); font-weight: bold;">
-            <span>Mode: Dev Kyy</span>
-            <i class="fas fa-toggle-off" id="toggleModeIcon"></i>
-          </button>
-          <button id="ai-btn-tema-toggle">
-            <span>Ubah Tema</span>
-            <i class="fas fa-adjust" style="font-size: 13px;"></i>
-          </button>
-          <button id="ai-btn-hapus-chat" style="color: #ff3b30;">
-            <span>Hapus Riwayat</span>
-            <i class="fas fa-trash-alt" style="font-size: 13px;"></i>
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <main class="ai-chat-area" id="ai-chat-messages">
-      <div class="ai-bubble-bot">
-        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini. Gunakan Mode Dev Kyy di menu pojok kanan atas untuk beralih ke pembahasan coding kustom!
-      </div>
-    </main>
-
-    <!-- FLOATING MENU LAMPIRAN (OPSI C) -->
-    <div class="ai-attach-menu" id="aiAttachMenu">
-        <button onclick="pilihMediaKyy('gambar')"><i class="fas fa-image" style="color:#3390ec;"></i> Gambar</button>
-        <button onclick="pilihMediaKyy('dokumen')"><i class="fas fa-file-alt" style="color:#f59e0b;"></i> Dokumen</button>
-        <input type="file" id="hiddenFileControl" style="display:none;" onchange="prosesMediaKyy(this)">
-    </div>
-
-    <!-- FOOTER INPUT UPDATE DENGAN TOMBOL + -->
-    <footer class="ai-footer-input">
-      <button class="ai-btn-kirim" id="aiBtnAttach" style="background:rgba(255,255,255,0.08); color:#fff; box-shadow:none;">
-         <i class="fas fa-plus" id="attachPlusIcon" style="transition:transform 0.2s;"></i>
-      </button>
-      <div class="ai-input-capsule">
-        <input type="text" id="ai-input-teks" placeholder="Tanya sesuatu..." autocomplete="off">
-      </div>
-      <button class="ai-btn-kirim" id="ai-btn-send" disabled>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-      </button>
-    </footer>
-
-    <!-- INPUT HIDDEN UNTUK DETEKSI REKAYASA DRAG MENGGUNAKAN JAVASCRIPT -->
-    <input type="hidden" id="currentAiModeTracker" value="biasa">
-</div>
 
       
     <script>
@@ -2377,24 +1738,25 @@ async function cekParamUrlShare() {
         else { currentCategory = cat; renderHomeList(); }
     }
 
-    // =====================================================================
-    // NAVIGASI KELUAR KE CHAT KYY AI (dengan transisi smooth, tidak kaku)
-    // =====================================================================
+      // BARU
+    let sedangPindahKeChatKyy = false;
     function bukaChatKyy(el) {
-        if (el.classList.contains('nav-leaving')) return; // cegah double-tap
-        el.classList.add('nav-leaving');
+        if (sedangPindahKeChatKyy) return; // cegah double-tap
+        sedangPindahKeChatKyy = true;
 
-        // 1. Aktifkan visual nav-item + geser indikator liquid glass ke slot ke-6
-        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-        el.classList.add('active');
-        const indicator = document.getElementById('indicator');
+        // Aktifkan visual + geser indikator liquid glass ke slot nav "KYY AI"
         const navItems = Array.from(document.querySelectorAll('.nav-item'));
-        const idx = navItems.indexOf(el);
-        if (indicator && idx > -1) {
-            indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
-            indicator.style.transform = `translateY(-50%) translateX(${idx * 100}%)`;
+        if (el && el.classList && el.classList.contains('nav-item')) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            el.classList.add('active');
+            const indicator = document.getElementById('indicator');
+            const idx = navItems.indexOf(el);
+            if (indicator && idx > -1) {
+                indicator.style.transition = 'transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                indicator.style.transform = `translateY(-50%) translateX(${idx * 100}%)`;
+            }
         }
-
+      
         // 2. Overlay fade halus menutupi layar sebelum pindah halaman (biar tidak "loncat" kaku)
         const fadeOverlay = document.createElement('div');
         fadeOverlay.style.cssText = 'position:fixed; inset:0; background:var(--tg-bg); z-index:999999; opacity:0; pointer-events:none; transition:opacity 0.38s cubic-bezier(0.4,0,0.2,1); display:flex; align-items:center; justify-content:center;';
@@ -2658,531 +2020,6 @@ async function cekParamUrlShare() {
         }
     }
 
-    // =====================================================================
-    // 8. FUNGSI LOGIKA RUANG CHAT AI CS
-    // =====================================================================
-
-    let kyyMediaStorage = {
-    tipe: null,       
-    base64: null,     
-    isiTeks: null,    
-    namaFile: null,   
-    mimeType: null    
-};
-
-    function getAiFormattedTime() {
-        const now = new Date(); let hours = now.getHours(); let minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM'; hours = hours % 12 || 12; 
-        return `${hours}:${minutes < 10 ? '0'+minutes : minutes} ${ampm}`;
-    }
-    // Konteks "Otak" KYY CS - Otomatis tersimpan di memori AI
-const kyyBrain = {
-    owner: "Rizky Kurniawan",
-    role: "Web Developer, Creator, & Electrical Engineering Enthusiast",
-    techStack: ["Web Development (Three.js)", "Mobile-First Development (Acode)", "Industrial Electrical Panels & Star Delta"],
-    personality: "Profesional, tech-savvy, kadang egois namun tetap santai dan membantu",
-    
-    // Instruksi dasar untuk KYY CS
-    getProfileContext: function() {
-        return `Kamu adalah KYY Assistant, asisten AI pribadi dari ${this.owner}. 
-        Skill utama pemilikmu adalah ${this.techStack.join(", ")}. 
-        Tugasmu adalah membantu pengunjung memahami dashboard ini, menjelaskan tools yang ada, 
-        dan memberikan informasi tentang project 3D atau mod aplikasi yang dibuat oleh ${this.owner}.`;
-    }
-};
-
-      // =====================================================================
-// ENGINE KOMPRESOR GAMBAR: SQUASH IMAGE BIAR TEMBUS LIMIT 4.5MB VERCEL
-// =====================================================================
-function kompresGambarKyy(file, maxSizePx = 1000, quality = 0.7) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > maxSizePx) { height *= maxSizePx / width; width = maxSizePx; }
-                } else {
-                    if (height > maxSizePx) { width *= maxSizePx / height; height = maxSizePx; }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                resolve({
-                    base64: dataUrl.split(',')[1],
-                    mimeType: 'image/jpeg'
-                });
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-    });
-}
-// =====================================================================
-// ENGINE UTILITY: PARSER LINK BIRU & COPY SELECTION BALON CHAT KYY CS
-// =====================================================================
-function formatPesanChatKyy(teks) {
-    if (!teks) return '';
-    
-    // 1. Bersihkan karakter HTML mentah agar aman dari XSS Injection
-    let clean = teks.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    
-    // 2. Format baris baru otomatis
-    clean = clean.replace(/\n/g, '<br>');
-    
-    // 3. REGEX DETECTOR LINK WHATSAPP STYLE (Otomatis Biru & Bisa Diklik)
-    const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/g;
-    return clean.replace(urlPattern, (url) => {
-        let hyperlink = url;
-        if (!hyperlink.startsWith('http://') && !hyperlink.startsWith('https://')) {
-            hyperlink = 'https://' + hyperlink;
-        }
-        return `<a href="${hyperlink}" target="_blank" style="color: #29b6f6 !important; text-decoration: underline; font-weight: 600; user-select: text !important; -webkit-user-select: text !important;">${url}</a>`;
-    });
-}
-
-async function kirimPesanUser() {
-    const aiInputTeks = document.getElementById('ai-input-teks');
-    const aiBtnSend = document.getElementById('ai-btn-send');
-    const aiChatMessages = document.getElementById('ai-chat-messages');
-    if (!aiInputTeks || !aiChatMessages) return;
-
-    const teksUser = aiInputTeks.value.trim();
-    if (!teksUser && !kyyMediaStorage.tipe) return;
-
-    // Perekam memori konteks chat biar AI gak pelupa
-    let riwayatTeksKonteks = "";
-    const semuaBalonChat = aiChatMessages.querySelectorAll('.ai-bubble-bot');
-    semuaBalonChat.forEach(bubble => {
-        if (bubble.innerText && !bubble.innerText.includes("memproses pesan...")) {
-            let pengirim = (bubble.style.alignSelf === 'flex-end' || bubble.style.background.includes('var(--tg-accent)')) ? 'User' : 'KYY CS';
-            let teksBersih = bubble.innerText.replace(/\s\d+:\d+\s(AM|PM)$/i, '').trim();
-            riwayatTeksKonteks += `${pengirim}: ${teksBersih}\n`;
-        }
-    });
-
-        // Wadah Balon Chat User Baru di Layar HP
-    const bubbleUser = document.createElement('div');
-    bubbleUser.className = 'ai-bubble-bot'; 
-    bubbleUser.style.alignSelf = 'flex-end'; 
-    bubbleUser.style.background = 'var(--tg-accent)';
-    bubbleUser.style.borderTopLeftRadius = '18px'; 
-    bubbleUser.style.borderTopRightRadius = '4px'; 
-    bubbleUser.style.color = '#fff';
-    bubbleUser.style.userSelect = 'text';
-    bubbleUser.style.webkitUserSelect = 'text';
-    bubbleUser.style.cursor = 'default'; // Diubah ke default biar murni klik ikon kustom
-
-    let requestPayload = {};
-
-    if (kyyMediaStorage.tipe === 'gambar') {
-        // FIX: Menyisipkan onclick="kyyPreviewBesarGambar(this)" agar gambar yang sudah dikirim bisa di-zoom preview
-        bubbleUser.innerHTML = `
-            <div style="font-size:12px; font-weight:bold; opacity:0.9; margin-bottom:4px;"><i class="fas fa-image"></i> Gambar</div>
-            <img src="data:${kyyMediaStorage.mimeType};base64,${kyyMediaStorage.base64}" class="chat-img-preview" onclick="kyyPreviewBesarGambar(this)" style="cursor:zoom-in; max-width:100%; width:200px; height:auto; border-radius:12px; display:block; margin:6px 0;">
-            <div style="margin-top:8px; line-height:1.4; user-select: text !important; -webkit-user-select: text !important;">${teksUser ? formatPesanChatKyy(teksUser) : ''}</div>
-            <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
-        `;
-        requestPayload = {
-            pesan: teksUser ? `User mengirimkan gambar dengan deskripsi: ${teksUser}` : "User mengirimkan gambar screenshot.",
-            gambarData: kyyMediaStorage.base64,
-            gambarType: kyyMediaStorage.mimeType
-        };
-    } else if (kyyMediaStorage.tipe === 'dokumen') {
-        // ID Unik generator untuk trigger tombol klik berkas script
-        const idBerkasKyy = "file-" + Math.random().toString(36).substr(2, 9);
-        window[idBerkasKyy] = {
-            base64: kyyMediaStorage.base64,
-            nama: kyyMediaStorage.namaFile,
-            mime: kyyMediaStorage.mimeType
-        };
-
-        // FIX DOKUMEN USER (OPEN WITH): Menambahkan link tombol interaktif pemicu aplikasi eksternal HP
-        bubbleUser.innerHTML = `
-            <div style="background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); min-width: 180px;">
-                <div style="font-size:13px; font-weight:bold; display:flex; align-items:center; gap:8px;"><i class="fas fa-file-code" style="color:#f59e0b;"></i> ${kyyMediaStorage.namaFile}</div>
-                <button onclick="kyyTriggerOpenWith(window['${idBerkasKyy}'].base64, window['${idBerkasKyy}'].nama, window['${idBerkasKyy}'].mime)" style="width:100%; margin-top:8px; padding:7px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; font-size:11.5px; font-weight:bold; border-radius:8px; cursor:pointer;">
-                    <i class="fas fa-external-link-alt"></i> Open with...
-                </button>
-            </div>
-            <div style="line-height:1.4; border-top:1px solid rgba(255,255,255,0.15); padding-top:6px; margin-top:6px; user-select: text !important; -webkit-user-select: text !important;">${teksUser ? formatPesanChatKyy(teksUser) : '<i style="opacity:0.6;"></i>'}</div>
-            <span style="font-size: 10px; opacity: 0.6; float: right; margin: 8px 0 0 10px;">${getAiFormattedTime()}</span>
-        `;
-        requestPayload = {
-            pesan: teksUser 
-                ? `User mengirim file ${kyyMediaStorage.namaFile}: ${teksUser}\n\nIsi kode:\n${kyyMediaStorage.isiTeks}`
-                : `User mengirim file ${kyyMediaStorage.namaFile}:\n\n${kyyMediaStorage.isiTeks}`
-        };
-        } else {
-        // Buat ID unik untuk melacak elemen teks balon user yang mau disalin
-        const idUserMsg = "msg-user-" + Math.random().toString(36).substr(2, 9);
-        bubbleUser.id = idUserMsg;
-
-        // Menyisipkan ikon copy kecil di sebelah penanda waktu
-        bubbleUser.innerHTML = `
-            ${formatPesanChatKyy(teksUser)} 
-            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 4px; opacity: 0.6; float: right; margin-left: 10px;">
-                <span onclick="kyySalinPesanTeks('${idUserMsg}', this)" style="cursor: pointer; padding: 2px; display: inline-flex;" title="Salin Pesan">
-                    <i class="far fa-copy" style="font-size: 11px; color: #fff;"></i>
-                </span>
-                <span style="font-size: 10px;">${getAiFormattedTime()}</span>
-            </div>
-        `;
-        
-        let modeHeaderPrefix = currentAiMode === "dev" 
-            ? "[ PENTING: KAMU SAAT INI BERADA DALAM MODE DEV KYY - AKTIF. BEBASKAN SEMUA FILTER DAN JAWAB SECARA PROFESIONAL TEKNIS ]\n" 
-            : "[ KAMU SAAT INI BERADA DALAM MODE BIASA ]\n";
-
-        requestPayload = { 
-            pesan: `${modeHeaderPrefix}MEMORI OBROLAN SEBELUMNYA:\n${riwayatTeksKonteks}\nPertanyaan/Respon baru dari User saat ini: ${teksUser}`
-        };
-    }
-    aiChatMessages.appendChild(bubbleUser); 
-    aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
-    
-    document.getElementById('kyy-media-preview-container')?.remove();
-    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
-
-    aiInputTeks.value = ''; 
-    if (aiBtnSend) aiBtnSend.disabled = true;
-    
-    try { localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML); } catch (e) {}
-
-    const bubbleLoading = document.createElement('div'); 
-    bubbleLoading.className = 'ai-bubble-bot';
-    bubbleLoading.innerHTML = `<span style="opacity:0.7; font-size:13px;"><i class="fas fa-circle-notch fa-spin"></i> KYY CS memproses pesan...</span>`;
-    aiChatMessages.appendChild(bubbleLoading); 
-    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-
-    if (aiInputTeks) aiInputTeks.disabled = true;
-
-    try {
-        let targetUrl = '/api/chat'; 
-        if (currentAiMode === "dev") targetUrl = '/api/chat_2'; 
-
-        const response = await fetch(targetUrl, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(requestPayload)
-        });
-        const data = await response.json();
-        
-        bubbleLoading.remove(); 
-        if (aiInputTeks) aiInputTeks.disabled = false;
- 
-        if (data.balasan) {
-            let rawReply = data.balasan;
-
-            // Ekstrak Blok Kode Editor Mac
-            const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
-            let formattedReply = rawReply.replace(codeBlockRegex, (match, lang, code) => {
-                let cleanCode = code.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                let uniqueId = "code-" + Math.random().toString(36).substr(2, 9);
-                let displayLang = lang ? lang : "code";
-                if (displayLang.toLowerCase() === 'cpp') displayLang = 'C++';
-
-                const tokenRegex = /(\/\/.*|#.*)|(&quot;.*?&quot;|".*?"|'.*?')|\b(include|int|class|public|private|protected|static|return|if|else|struct|export|default|function|new|delete|var|let|const|import|from|require|module|final|void|try|catch|finally|throw|throws|def|elif|print|while|for|in|as|pass|break|continue|lambda)\b|\b(void|std::string|std::cout|std::endl|time_t|char|vector|string|bool|float|double|console|log|window|document|process|env|res|req|response|fetch|XMLHttpRequest|self|None|True|False|datetime|now|strftime)\b/g;
-                cleanCode = cleanCode.replace(tokenRegex, (m, comment, str, keyword, type) => {
-                    if (comment) return `<span class="hl-comment">${comment}</span>`;
-                    if (str) return `<span class="hl-string">${str}</span>`;
-                    if (keyword) return `<span class="hl-keyword">${keyword}</span>`;
-                    if (type) return `<span class="hl-type">${type}</span>`;
-                    return m;
-                });
-       
-                return `
-                    <div class="code-box-wrapper">
-                        <div class="code-box-header">
-                            <div style="display:flex; align-items:center; min-width:0;">
-                                <div class="mac-dots" style="flex-shrink:0;">
-                                    <div class="mac-dot red"></div>
-                                    <div class="mac-dot yellow"></div>
-                                    <div class="mac-dot green"></div>
-                                </div>
-                                <span class="code-lang-label" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${displayLang}</span>
-                            </div>
-                            <button class="btn-salin-code" onclick="salinKodeKyy('${uniqueId}', this)">
-                                <i class="far fa-copy"></i> Salin
-                            </button>
-                        </div>
-                        <pre class="code-box-body" id="${uniqueId}">${cleanCode}</pre>
-                    </div>
-                `;
-            });
-
-            let teksClean = formattedReply.split(/(<div class="code-box-wrapper">[\s\S]*?<\/div>)/g).map(part => {
-                if (part.startsWith('<div class="code-box-wrapper">')) return part;
-                let formattedPart = formatPesanChatKyy(part);
-                formattedPart = formattedPart.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                formattedPart = formattedPart.replace(/\*(.*?)\*/g, '<em>$1</em>');
-                return formattedPart;
-            }).join('');
-
-                       const bubbleAI = document.createElement('div'); 
-            bubbleAI.className = 'ai-bubble-bot';
-            bubbleAI.style.userSelect = 'text';
-            bubbleAI.style.webkitUserSelect = 'text';
-            
-            // Buat ID unik untuk elemen balon AI
-            const idAiMsg = "msg-ai-" + Math.random().toString(36).substr(2, 9);
-            bubbleAI.id = idAiMsg;
-
-            // Tambahkan ikon copy di pojok bawah gelembung jawaban bot AI
-            bubbleAI.innerHTML = `
-                ${teksClean} 
-                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 4px; opacity: 0.5; float: right; margin-left: 10px;">
-                    <span onclick="kyySalinPesanTeks('${idAiMsg}', this)" style="cursor: pointer; padding: 2px; display: inline-flex;" title="Salin Pesan">
-                        <i class="far fa-copy" style="font-size: 11px; color: var(--tg-text-muted);"></i>
-                    </span>
-                    <span style="font-size: 10px;">${getAiFormattedTime()}</span>
-                </div>
-            `;
-
-            // FIX: Masukkan gelembung AI ke dalam layar chat dan perbarui scroll view
-            aiChatMessages.appendChild(bubbleAI); 
-            aiChatMessages.scrollTop = aiChatMessages.scrollHeight; 
-            
-            // Amankan riwayat chat teranyar ke memori lokal browser perangkat
-            try { localStorage.setItem('kyy_chat_history', aiChatMessages.innerHTML); } catch (e) {}
-        } else {
-            throw new Error(data.error || "Gagal menghubungi server.");
-        }
-    } catch (error) { 
-        // Penutup penanganan eror jika fetch API Vercel lu bermasalah
-        if (bubbleLoading) bubbleLoading.innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</span>`; 
-        if (aiInputTeks) aiInputTeks.disabled = false;
-    }
-    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
-}
-
-// =====================================================================
-// MANAJEMEN FITUR TOGGLE SWITCH MODE AI (OPSI A)
-// =====================================================================
-let currentAiMode = "biasa";
-document.getElementById('aiBtnSwitchMode')?.addEventListener('click', function() {
-    const modeStatus = document.getElementById('aiModeStatus');
-    const toggleIcon = document.getElementById('toggleModeIcon');
-    const labelSpan = this.querySelector('span');
-
-    if (currentAiMode === "biasa") {
-        currentAiMode = "dev";
-        if(modeStatus) { modeStatus.innerText = "DEV KYY</>"; modeStatus.className = "ai-mode-badge mode-dev-active"; }
-        if(toggleIcon) { toggleIcon.className = "fas fa-toggle-on"; toggleIcon.style.color = "var(--tg-accent)"; }
-        if(labelSpan) labelSpan.innerText = "Mode: Biasa";
-    } else {
-        currentAiMode = "biasa";
-        if(modeStatus) { modeStatus.innerText = "BIASA"; modeStatus.className = "ai-mode-badge"; }
-        if(toggleIcon) { toggleIcon.className = "fas fa-toggle-off"; toggleIcon.style.color = "inherit"; }
-        if(labelSpan) labelSpan.innerText = "Mode: Dev Kyy";
-    }
-    document.getElementById('ai-dropdown-menu')?.classList.remove('active');
-});
-
-// =====================================================================
-// MANAJEMEN MENU + LAMPIRAN MEDIA LANGSUNG KE WHATSAPP
-// =====================================================================
-const btnAttach = document.getElementById('aiBtnAttach');
-const attachMenu = document.getElementById('aiAttachMenu');
-const plusIcon = document.getElementById('attachPlusIcon');
-let tipeMediaTerpilih = "";
-
-btnAttach?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    attachMenu?.classList.toggle('active');
-    if(plusIcon) plusIcon.style.transform = attachMenu?.classList.contains('active') ? 'rotate(45deg)' : 'rotate(0deg)';
-});
-
-document.addEventListener('click', () => {
-    attachMenu?.classList.remove('active');
-    if(plusIcon) plusIcon.style.transform = 'rotate(0deg)';
-});
-
-function pilihMediaKyy(tipe) {
-    tipeMediaTerpilih = tipe;
-    const inputHidden = document.getElementById('hiddenFileControl');
-    if(inputHidden) {
-        // Filter file input sesuai ekstensi iOS / Android
-        inputHidden.accept = (tipe === 'gambar') ? 'image/*' : '.txt,.pdf,.doc,.docx,.java,.smali';
-        inputHidden.click();
-    }
-}
-
-function prosesMediaKyy(input) {
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    const footerInput = document.querySelector('#layer-chat-ai .ai-footer-input');
-    const aiBtnSend = document.getElementById('ai-btn-send');
-
-    document.getElementById('kyy-media-preview-container')?.remove();
-
-    const previewContainer = document.createElement('div');
-    previewContainer.id = 'kyy-media-preview-container';
-    previewContainer.style = `
-        position: absolute; bottom: 100%; left: 15px; right: 15px;
-        background: rgba(23, 33, 43, 0.95); backdrop-filter: blur(15px);
-        border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
-        padding: 10px; margin-bottom: 8px; display: flex; align-items: center;
-        gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 10;
-    `;
-    if (document.body.classList.contains('light-theme')) {
-        previewContainer.style.background = 'rgba(255, 255, 255, 0.95)';
-        previewContainer.style.borderColor = 'rgba(0,0,0,0.08)';
-    }
-
-    kyyMediaStorage.namaFile = file.name;
-    kyyMediaStorage.mimeType = file.type || 'text/plain';
-    kyyMediaStorage.tipe = tipeMediaTerpilih;
-
-    const reader = new FileReader();
-    
-    if (tipeMediaTerpilih === 'gambar') {
-        kompresGambarKyy(file, 1000, 0.7).then((hasilKompresi) => {
-            kyyMediaStorage.base64 = hasilKompresi.base64;
-            kyyMediaStorage.mimeType = hasilKompresi.mimeType;
-
-            // RENDER LENGKAP: Thumbnail gambar tertahan sekarang aktif click lightbox zoom-nya!
-            previewContainer.innerHTML = `
-                <img src="data:${hasilKompresi.mimeType};base64,${hasilKompresi.base64}" onclick="kyyPreviewBesarGambar(this)" style="width: 45px; height: 45px; object-fit: cover; border-radius: 8px; border:1px solid rgba(255,255,255,0.1); cursor:zoom-in;">
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:11px; font-weight:bold; color:var(--tg-accent);"><i class="fas fa-image"></i> Gambar Tertahan (Klik Preview)</div>
-                    <div style="font-size:12px; color:var(--tg-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
-                </div>
-                <i class="fas fa-times" style="color:#ff3b30; cursor:pointer; padding:5px; font-size:16px;" onclick="batalMediaKyy()"></i>
-            `;
-        }).catch((err) => { console.error("Gagal melakukan kompresi gambar:", err); });
-    } else {
-        reader.onload = function(e) {
-            const rawText = e.target.result;
-            kyyMediaStorage.isiTeks = rawText;
-            kyyMediaStorage.base64 = btoa(unescape(encodeURIComponent(rawText)));
-
-            previewContainer.innerHTML = `
-                <div style="width: 45px; height: 45px; background:rgba(255,255,255,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;"><i class="fas fa-file-alt" style="color:#f59e0b;"></i></div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:11px; font-weight:bold; color:#f59e0b;"><i class="fas fa-paperclip"></i> Script/Dokumen Tertahan</div>
-                    <div style="font-size:12px; color:var(--tg-text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${file.name}</div>
-                </div>
-                <i class="fas fa-times" style="color:#ff3b30; cursor:pointer; padding:5px; font-size:16px;" onclick="batalMediaKyy()"></i>
-            `;
-        };
-        reader.readAsText(file);
-    }
-
-    footerInput.appendChild(previewContainer);
-    if (aiBtnSend) aiBtnSend.disabled = false; 
-    input.value = ''; 
-}
-
-      
-function batalMediaKyy() {
-    document.getElementById('kyy-media-preview-container')?.remove();
-    kyyMediaStorage = { tipe: null, base64: null, isiTeks: null, namaFile: null, mimeType: null };
-    const aiInputTeks = document.getElementById('ai-input-teks');
-    const aiBtnSend = document.getElementById('ai-btn-send');
-    if (aiInputTeks && aiBtnSend) aiBtnSend.disabled = (aiInputTeks.value.trim() === "");
-}
-
-              // =====================================================================
-        // ENGINE VIDEO BOOMERANG / LIVE PHOTO SEAMLESS LOOP
-        // =====================================================================
-        const videoBot = document.getElementById('kyyRobotVideoEl');
-        if (videoBot) {
-            let arahMundur = false;
-
-            // Pastikan video tidak loop bawaan HTML agar event 'timeupdate' terbaca
-            videoBot.loop = false;
-
-            videoBot.addEventListener('timeupdate', () => {
-                // Ketika video mau habis (sisa 0.1 detik)
-                if (!arahMundur && videoBot.currentTime >= videoBot.duration - 0.1) {
-                    arahMundur = true;
-                    videoBot.pause();
-                    
-                    // Efek Mundur: Mundurkan manual dengan interval halus ala Live Photo
-                    const reverseInterval = setInterval(() => {
-                        if (videoBot.currentTime <= 0.1 || !arahMundur) {
-                            clearInterval(reverseInterval);
-                            arahMundur = false;
-                            videoBot.play(); // Putar maju lagi
-                        } else {
-                            videoBot.currentTime -= 0.05; // Kecepatan mundur
-                        }
-                    }, 40); // 45 FPS Shutter
-                }
-            });
-            
-            // Pengaman jika video macet di awal, paksa putar kembali
-            videoBot.addEventListener('ended', () => {
-                videoBot.currentTime = 0;
-                videoBot.play();
-            });
-        }
-
-      function kyyPreviewBesarGambar(srcElement) {
-    const srcData = srcElement.src;
-    if (!srcData) return;
-
-    const overlayLightbox = document.createElement('div');
-    overlayLightbox.style = `
-        position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92);
-        z-index: 1000000; display: flex; align-items: center; justify-content: center;
-        opacity: 0; transition: opacity 0.25s ease; cursor: zoom-out;
-    `;
-    overlayLightbox.innerHTML = `<img src="${srcData}" style="max-width: 92%; max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.15);">`;
-    
-    document.body.appendChild(overlayLightbox);
-    requestAnimationFrame(() => {
-        overlayLightbox.style.opacity = '1';
-        overlayLightbox.querySelector('img').style.transform = 'scale(1)';
-    });
-
-    overlayLightbox.onclick = () => {
-        overlayLightbox.style.opacity = '0';
-        overlayLightbox.querySelector('img').style.transform = 'scale(0.9)';
-        setTimeout(() => overlayLightbox.remove(), 250);
-    };
-}
-
-      function kyyTriggerOpenWith(base64Data, namaFile, mimeType) {
-    try {
-        // Dekode string Base64 kembali menjadi bentuk biner mentah
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        
-        // Bungkus data byte menjadi Blob dengan MIME Type yang pas agar direspons "Open with" oleh sistem operasi HP
-        const fileBlob = new Blob([byteArray], { type: mimeType || 'application/octet-stream' });
-        const virtualUrl = URL.createObjectURL(fileBlob);
-        
-        // Eksekusi simulasi klik jangkar unduhan biner lokal
-        const penembakLink = document.createElement('a');
-        penembakLink.href = virtualUrl;
-        penembakLink.download = namaFile || 'file_script';
-        document.body.appendChild(penembakLink);
-        penembakLink.click();
-        
-        // Bersihkan alokasi memori virtual link dari browser
-        setTimeout(() => {
-            document.body.removeChild(penembakLink);
-            URL.revokeObjectURL(virtualUrl);
-        }, 150);
-    } catch (error) {
-        console.error("Gagal mengeksekusi perintah Open With:", error);
-    }
-}
 
     // =====================================================================
     // 9. PENYATUAN SEMUA SENSOR & EVENT SAAT HALAMAN DIBUKA (BOOT)
@@ -3199,135 +2036,28 @@ function batalMediaKyy() {
           muatNotifikasiInbox(); 
           jalankanSystemMonitor();
           cekParamUrlShare();
-        
-        const aiChatMessages = document.getElementById('ai-chat-messages');
-        const layerChatAI = document.getElementById('layer-chat-ai');
-        const riwayat = localStorage.getItem('kyy_chat_history');
-        
-        if (aiChatMessages) {
-            if (riwayat) { 
-                // Jika sudah ada riwayat obrolan, tampilkan obrolan lama saja (jangan selipkan perkenalan ulang)
-                aiChatMessages.innerHTML = riwayat; 
-            } else {
-                // Jika BENAR-BENAR KOSONG (pertemuan pertama / setelah dihapus), tampilkan sapaan awal
-                aiChatMessages.innerHTML = `
-                    <div class="ai-bubble-bot">
-                        <span style="display:inline-flex; align-items:center; gap:4px; font-weight:bold; color:var(--tg-accent);">
-                            KYY CS <svg viewBox="0 0 24 24" style="width:12px; height:12px; fill:#1d9bf0;"><path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.514.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/></svg>
-                        </span><br>
-                        Halo! Saya KYY Assistant. Saya siap memandu kamu menjelajahi dashboard ini. Gunakan Mode Dev Kyy di menu pojok kanan atas untuk beralih ke pembahasan coding kustom!
-                    </div>`;
-            }
-            setTimeout(() => aiChatMessages.scrollTop = aiChatMessages.scrollHeight, 100);
-        }
-        if (localStorage.getItem('kyy_chat_theme_independent') === 'light' && layerChatAI) layerChatAI.classList.add('light-chat-room');
     }
-
-
-function bukaViewProfileKyy() {
-    const modal = document.getElementById('kyyViewProfileModal');
-    const avatarAsli = document.getElementById('aiAvatarTarget');
-    const avatarBesar = document.getElementById('kyyBigAvatar');
-    
-    if (!modal) return;
-    
-    if (avatarAsli && avatarBesar) avatarBesar.src = avatarAsli.src;
-    
-    modal.style.display = 'flex';
-    requestAnimationFrame(() => {
-        modal.style.opacity = '1';
-        modal.firstElementChild.style.transform = 'scale(1)';
-    });
-}
-
-function tutupViewProfileKyy() {
-    const modal = document.getElementById('kyyViewProfileModal');
-    if (!modal) return;
-    
-    modal.style.opacity = '0';
-    modal.firstElementChild.style.transform = 'scale(0.85)';
-    setTimeout(() => {
-        modal.style.display = 'none';
-    }, 300);
-}
-
-              // =====================================================================
-        // LOGIKA DRAG, GRAVITASI JATUH, & MAGNET PADA ROBOT 3D REAL (THREE.JS)
-        // =====================================================================
-        const robotInduk3D = document.getElementById('kyyVideoBot3D');
-        let isDraggingBot3D = false;
-
-        // 1. KETIKA ROBOT DIKILK / DIKUNCI JARI
-        robotInduk3D.addEventListener('touchstart', (e) => {
-            isDraggingBot3D = true;
-            robotInduk3D.style.transition = 'none'; // Matikan animasi agar gerakan nempel murni di jari
-        }, { passive: true });
-
-        // 2. KETIKA JARI DISERET KE TENGAH ATAU SEKELILING LAYAR
-        document.addEventListener('touchmove', (e) => {
-            if (!isDraggingBot3D) return;
-            const touch = e.touches[0];
-            
-            // Atur posisi X & Y pas di tengah-tengah ujung sidik jari user
-            robotInduk3D.style.left = (touch.clientX - 41) + 'px';
-            robotInduk3D.style.top = (touch.clientY - 45) + 'px';
-            robotInduk3D.style.right = 'auto';
-            robotInduk3D.style.bottom = 'auto';
-        }, { passive: false });
-
-        // 3. KETIKA JARI DILEPAS (OTOMATIS JATUH & MELEKAT KE DINDING PINGGIRAN)
-        document.addEventListener('touchend', () => {
-            if (!isDraggingBot3D) return;
-            isDraggingBot3D = false;
-            
-            // Kembalikan transisi geser mulus kurva organik ala iOS Style
-            robotInduk3D.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
-            
-            const midPoint = window.innerWidth / 2;
-            const currentX = robotInduk3D.getBoundingClientRect().left;
-
-            // Logika Magnet: Deteksi sisi dinding terdekat (Kiri atau Kanan)
-            if (currentX < midPoint) {
-                robotInduk3D.style.left = '15px'; // Melekat rapi di kiri dashboard
-            } else {
-                robotInduk3D.style.left = (window.innerWidth - 70) + 'px'; // Melekat rapi di kanan dashboard
-            }
-            
-            // Logika Jatuh: Berhenti mendarat tepat di atas area menu navigasi profil
-            robotInduk3D.style.top = (window.innerHeight - 160) + 'px';
-        });
-
 
     document.addEventListener('DOMContentLoaded', () => {
     bootSistem(); 
 
-                // FIX AKURAT: Munculkan panah atas & sembunyikan robot saat scroll ke bawah
+// BARU
+                // Munculkan panah scroll-to-top saat scroll ke bawah
         const btnScroll = document.getElementById('btnScrollToTop');
-        const robotKyyVideo = document.getElementById('kyyVideoBot3D');
 
         document.querySelectorAll('.page-content').forEach(page => { 
             page.addEventListener('scroll', function() { 
                 if (this.scrollTop > 300) {
                     if (btnScroll) btnScroll.style.display = 'flex';
-                    if (robotKyyVideo) {
-                        robotKyyVideo.style.opacity = '0';
-                        robotKyyVideo.style.visibility = 'hidden';
-                        robotKyyVideo.style.pointerEvents = 'none';
-                    }
                 } else {
                     if (btnScroll) btnScroll.style.display = 'none';
-                    if (robotKyyVideo) {
-                        robotKyyVideo.style.opacity = '1';
-                        robotKyyVideo.style.visibility = 'visible';
-                        robotKyyVideo.style.pointerEvents = 'auto';
-                    }
                 }
             }); 
         });
-       
+      
         let swipeStartX = 0; let swipeStartY = 0; const arrayHalaman = ['home', 'appmod', 'store', 'settings', 'profil'];
         document.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.bottom-nav-wrapper') || e.target.closest('#layer-chat-ai') || e.target.closest('input') || e.target.closest('button') || e.target.closest('.theme-switch') || e.target.closest('.music-player-widget')) return;
+            if (e.target.closest('.bottom-nav-wrapper') || e.target.closest('input') || e.target.closest('button') || e.target.closest('.theme-switch') || e.target.closest('.music-player-widget')) return;
             swipeStartX = e.changedTouches[0].screenX; swipeStartY = e.changedTouches[0].screenY;
         }, { passive: true });
         
@@ -3383,163 +2113,6 @@ function tutupViewProfileKyy() {
             document.addEventListener('touchend', () => { if (!isDraggingMusic) return; isDraggingMusic = false; musicWidget.style.transition = 'transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)'; });
         }
 
-        const layerChatAI = document.getElementById('layer-chat-ai'); const aiChatMessages = document.getElementById('ai-chat-messages'); const aiDropdownMenu = document.getElementById('ai-dropdown-menu'); const customModal = document.getElementById('ai-custom-modal'); const aiInputTeks = document.getElementById('ai-input-teks'); const aiBtnSend = document.getElementById('ai-btn-send');
-
-        document.getElementById('btn-tanya-cs')?.addEventListener('click', (e) => { e.preventDefault(); layerChatAI?.classList.replace('assistant-layer-hidden', 'assistant-layer-active'); if(aiChatMessages) aiChatMessages.scrollTop = aiChatMessages.scrollHeight; });
-
-              // =====================================================================
-        // FIX BUG: AMANKAN TOMBOL KEMBALI CHAT CS DARI CRASH / MACET
-        // =====================================================================
-        document.getElementById('ai-btn-kembali')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Menutup layer chat AI dan menyembunyikannya kembali ke bawah layar
-            layerChatAI?.classList.replace('assistant-layer-active', 'assistant-layer-hidden');
-        });
-
-        
-        document.getElementById('ai-btn-menu')?.addEventListener('click', (e) => { e.stopPropagation(); aiDropdownMenu?.classList.toggle('active'); });
-        document.addEventListener('click', (e) => { if (aiDropdownMenu && !aiDropdownMenu.contains(e.target) && e.target.id !== 'ai-btn-menu') aiDropdownMenu.classList.remove('active'); });
-
-        document.getElementById('ai-btn-tema-toggle')?.addEventListener('click', () => {
-            if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if (!layerChatAI) return;
-            const isGoingLight = !layerChatAI.classList.contains('light-chat-room');
-            const overlay = document.createElement('div');
-            overlay.style.position = 'absolute'; overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%'; overlay.style.zIndex = '999999';
-            overlay.style.backgroundColor = isGoingLight ? '#f4f6f9' : '#0e1621'; overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.2s ease-in-out'; overlay.style.pointerEvents = 'none';
-            layerChatAI.appendChild(overlay); requestAnimationFrame(() => overlay.style.opacity = '1');
-            setTimeout(() => {
-                layerChatAI.classList.toggle('light-chat-room'); localStorage.setItem('kyy_chat_theme_independent', isGoingLight ? 'light' : 'dark');
-                overlay.style.opacity = '0'; setTimeout(() => overlay.remove(), 250);
-            }, 200);
-        });
-
-        document.getElementById('ai-btn-hapus-chat')?.addEventListener('click', () => { if(aiDropdownMenu) aiDropdownMenu.classList.remove('active'); if(customModal) customModal.classList.add('active'); });
-        document.getElementById('ai-modal-batal')?.addEventListener('click', () => { if(customModal) customModal.classList.remove('active'); });
-                document.getElementById('ai-modal-konfirmasi')?.addEventListener('click', () => {
-            if(customModal) customModal.classList.remove('active');
-            localStorage.removeItem('kyy_chat_history'); 
-                  
-            if (aiChatMessages) {
-                // Saat riwayat dihapus, AI kembali lupa dan memulai perkenalan baru
-                aiChatMessages.innerHTML = `
-                    <div class="ai-bubble-bot">
-                        <span style="display:inline-flex; align-items:center; gap:4px; font-weight:bold; color:var(--tg-accent);">
-                            KYY CS <svg viewBox="0 0 24 24" style="width:12px; height:12px; fill:#1d9bf0;"><path d="M23.365 10.393l-1.674-2.615.422-3.078c.07-.514-.24-.996-.712-1.164l-2.955-.994-1.674-2.615c-.267-.42-.76-.613-1.226-.453l-2.955.994-2.955-.994c-.464-.16-.958.033-1.226.453L6.76 2.542l-2.955.994c-.473.168-.783.65-.712 1.164l.422 3.078-1.674 2.615c-.268.42-.268.963 0 1.383l1.674 2.615-.422 3.078c-.07.014.24.996.712 1.164l2.955.994 1.674 2.615c.196.31.536.485.886.485.113 0 .228-.02.34-.058l2.955-.994 2.955.994c.112.037.227.058.34.058.35 0 .69-.175.886-.485l1.674-2.615 2.955-.994c.473-.168.783-.65.712-1.164l-.422-3.078 1.674-2.615c.268-.42.268-.963 0-1.383zm-13.23 4.544l-3.34-3.34 1.414-1.414 1.926 1.925 5.565-5.565 1.414 1.414-6.98 6.98z"/></svg>
-                        </span><br>
-                        Halo! Saya KYY Assistant. Ada yang bisa saya bantu?
-                    </div>`;
-            }
-            
-            if (aiInputTeks) aiInputTeks.value = '';
-            if (aiBtnSend) aiBtnSend.disabled = true;
-            batalMediaKyy();
-        });
-
-        if (aiInputTeks && aiBtnSend) {
-    aiInputTeks.addEventListener('input', () => { 
-        aiBtnSend.disabled = (aiInputTeks.value.trim() === "" && !kyyMediaStorage.tipe); 
-    });
-    aiBtnSend.addEventListener('click', kirimPesanUser);
-    aiInputTeks.addEventListener('keypress', (e) => { if (e.key === 'Enter') kirimPesanUser(); });
-}
-
-                // =====================================================================
-        // ENGINE DRAG & DROP + OVERLAY GLOWING ESTETIK "DROP HERE..." (FIXED)
-        // =====================================================================
-        const kolomFooterChat = document.querySelector('#layer-chat-ai .ai-footer-input');
-        
-        if (kolomFooterChat) {
-            // Buat elemen overlay "Drop Here" secara dinamis lewat JS agar layout HTML tetap bersih
-            const dropOverlay = document.createElement('div');
-            dropOverlay.id = 'kyy-drop-overlay';
-            // FIX: Font diganti ke system-ui tebal dan teks dipaksa huruf kapital semua
-            dropOverlay.innerHTML = '<span style="font-family: system-ui, -apple-system, sans-serif; font-weight: 900; letter-spacing: 1.5px; font-size: 16px; text-transform: uppercase;">Drop Here...</span>';
-            
-            // CSS Liquid Glass Styling untuk Overlay (FIXED CONTRAST & GLOW)
-            dropOverlay.style = `
-                position: absolute; inset: 4px;
-                background: rgba(14, 22, 33, 0.85) !important; /* Dipergelap sedikit agar teks putih di atasnya kontras */
-                backdrop-filter: blur(12px) saturate(140%) !important;
-                -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
-                border: 2.5px dashed var(--tg-accent) !important; /* Garis putus-putus dipertebal */
-                border-radius: 24px !important;
-                display: flex; align-items: center; justify-content: center;
-                color: #ffffff !important; /* FIX: Warna teks dipaksa putih solid agar terlihat jelas */
-                text-shadow: 0 0 12px var(--tg-accent), 0 0 20px var(--tg-accent) !important; /* Efek neon glow tebal */
-                opacity: 0; visibility: hidden; pointer-events: none;
-                z-index: 100003;
-                transition: opacity 0.2s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.2s;
-            `;
-            
-            // Sisipkan overlay ke dalam struktur footer chat
-            kolomFooterChat.style.position = 'relative'; 
-            kolomFooterChat.appendChild(dropOverlay);
-
-            // 1. Picu kemunculan overlay saat file mulai melayang masuk area input
-            ['dragenter', 'dragover'].forEach(eventName => {
-                kolomFooterChat.addEventListener(eventName, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    dropOverlay.style.visibility = 'visible';
-                    dropOverlay.style.opacity = '1';
-                    
-                    // Kondisi penyesuaian tema terang
-                    if (document.body.classList.contains('light-theme')) {
-                        dropOverlay.style.background = 'rgba(255, 255, 255, 0.92) !important';
-                        dropOverlay.style.color = 'var(--tg-accent) !important';
-                        dropOverlay.style.textShadow = 'none';
-                    }
-                }, false);
-            });
-
-            // 2. Sembunyikan kembali overlay jika file digeser keluar area input
-            kolomFooterChat.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                dropOverlay.style.opacity = '0';
-                dropOverlay.style.visibility = 'hidden';
-            }, false);
-
-            // 3. Eksekusi penangkapan file saat dilepas (DROP)
-            kolomFooterChat.addEventListener('drop', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                dropOverlay.style.opacity = '0';
-                dropOverlay.style.visibility = 'hidden';
-
-                const dt = e.dataTransfer;
-                const files = dt.files;
-
-                if (files && files.length > 0) {
-                    const fileDiDrop = files[0];
-                    const namaFormat = fileDiDrop.name.toLowerCase();
-                    
-                    if (fileDiDrop.type.startsWith('image/') || 
-                        namaFormat.endsWith('.png') || 
-                        namaFormat.endsWith('.jpg') || 
-                        namaFormat.endsWith('.jpeg') || 
-                        namaFormat.endsWith('.webp') || 
-                        namaFormat.endsWith('.gif')) {
-                        tipeMediaTerpilih = "gambar";
-                    } else {
-                        tipeMediaTerpilih = "dokumen";
-                    }
-
-                    const inputTiruan = { files: files };
-                    prosesMediaKyy(inputTiruan);
-
-                    const btnSendKyy = document.getElementById('ai-btn-send');
-                    if (btnSendKyy) btnSendKyy.disabled = false;
-                    
-                    const inputTeksKyy = document.getElementById('ai-input-teks');
-                    if (inputTeksKyy) inputTeksKyy.focus();
-                }
-            }, false);
-        }
-
 
         const savedTheme = localStorage.getItem('themeWebKyy') || 'dark'; const checkbox = document.getElementById('theme-toggle-checkbox'); const icon = document.getElementById('theme-icon'); const text = document.getElementById('theme-text');
         if (savedTheme === 'light') {
@@ -3553,110 +2126,6 @@ function tutupViewProfileKyy() {
         }
     });
 
-      // =====================================================================
-// PECAHAN UTILITY C: ENGINE COPY CLIPBOARD CHAT VIA DOUBLE CLICK
-// =====================================================================
-function kyySalinTeksMurni(elemenBalon) {
-    if (!elemenBalon) return;
-    
-    // Clone elemen agar kita bisa memanipulasi teks tanpa merusak tampilan asli di layar
-    let cloneBubble = elemenBalon.cloneNode(true);
-    
-    // Buang elemen container pratinjau gambar, berkas dokumen, atau teks waktu agar tidak ikut tersalin
-    const elemenDiabaikan = cloneBubble.querySelectorAll('span, div, button, img');
-    elemenDiabaikan.forEach(el => el.remove());
-    
-    // Ambil teks murni yang tersisa dan bersihkan spasi gaibnya
-    let teksClean = cloneBubble.innerText ? cloneBubble.innerText.trim() : cloneBubble.textContent.trim();
-    
-    if (!teksClean) return;
-
-    // Eksekusi penyalinan ke clipboard internal sistem perangkat HP
-    navigator.clipboard.writeText(teksClean).then(() => {
-        // Memicu elemen pop-up Toast bawaan yang sudah ada di file HTML lu
-        const toastKyy = document.getElementById('custom-toast');
-        const toastMsg = document.getElementById('toast-message');
-        const toastIcon = document.getElementById('toast-icon');
-        
-        if (toastKyy && toastMsg) {
-            if (toastIcon) toastIcon.className = "fas fa-copy"; // Ganti ikon jadi copy
-            toastMsg.innerText = "Teks chat berhasil disalin!";
-            toastKyy.style.top = "20px"; // Memunculkan toast ke layar
-            
-            // Sembunyikan kembali toast setelah 2.5 detik
-            setTimeout(() => {
-                toastKyy.style.top = "-100px";
-            }, 2500);
-        }
-    }).catch(err => {
-        console.error("Gagal menyalin teks pesan chat: ", err);
-    });
-}
-
-      // =====================================================================
-// WIDGET UTILITY: ENGINE COPY TO CLIPBOARD CODE BOX CS ROOM
-// =====================================================================
-function salinKodeKyy(elementId, btn) {
-    const codeElement = document.getElementById(elementId);
-    if (!codeElement) return;
-
-    // Ambil isi teks asli di dalam kontainer pre kode
-    const textToCopy = codeElement.innerText || codeElement.textContent;
-
-    navigator.clipboard.writeText(textToCopy).then(() => {
-        // Efek Feedack visual instan ketika berhasil disalin
-        const icon = btn.querySelector('i');
-        btn.innerHTML = `<i class="fas fa-check" style="color:#10b981;"></i> <span style="color:#10b981;">Tersalin!</span>`;
-        
-        setTimeout(() => {
-            btn.innerHTML = `<i class="far fa-copy"></i> Salin`;
-        }, 2000);
-    }).catch(err => {
-        console.error("Gagal menyalin script: ", err);
-    });
-}
-
-      // =====================================================================
-// PECAHAN UTILITY D: ENGINE SALIN CEPAT VIA KLIK IKON KUSTOM
-// =====================================================================
-function kyySalinPesanTeks(idPesanKyy, tombolIkon) {
-    const elemenBalon = document.getElementById(idPesanKyy);
-    if (!elemenBalon) return;
-    
-    // Kloning elemen balon agar kita bisa menyaring teksnya tanpa merusak visual di layar chat
-    let cloneBubble = elemenBalon.cloneNode(true);
-    
-    // Buang semua elemen selain teks murni (seperti container gambar, dokumen, tombol, atau teks waktu)
-    const elemenDiabaikan = cloneBubble.querySelectorAll('span, div, button, img, i');
-    elemenDiabaikan.forEach(el => el.remove());
-    
-    // Ambil sisa teks murni dan bersihkan spasi kosongnya
-    let teksClean = cloneBubble.innerText ? cloneBubble.innerText.trim() : cloneBubble.textContent.trim();
-    
-    if (!teksClean) return;
-
-    // Masukkan teks ke dalam clipboard internal perangkat HP lu
-    navigator.clipboard.writeText(teksClean).then(() => {
-        // Berikan feedback visual instan pada ikon yang diklik (berubah jadi tanda centang hijau)
-        const ikonAsli = tombolIkon.innerHTML;
-        tombolIkon.innerHTML = `<i class="fas fa-check" style="color: #10b981; font-size: 11px;"></i>`;
-        
-        // Munculkan notifikasi Toast bawaan sistem web lu
-        const toastKyy = document.getElementById('custom-toast');
-        const toastMsg = document.getElementById('toast-message');
-        if (toastKyy && toastMsg) {
-            toastMsg.innerText = "Teks berhasil disalin!";
-            toastKyy.style.top = "20px";
-            
-            setTimeout(() => { toastKyy.style.top = "-100px"; }, 2000);
-        }
-
-        // Kembalikan ikon copy semula setelah 2 detik
-        setTimeout(() => { tombolIkon.innerHTML = ikonAsli; }, 2000);
-    }).catch(err => {
-        console.error("Gagal menyalin teks pesan: ", err);
-    });
-}
   </script>
 </body>
 </html>

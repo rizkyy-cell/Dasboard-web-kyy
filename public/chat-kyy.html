@@ -310,6 +310,71 @@
   .msg-bubble p{margin-bottom:10px;}
   .msg-bubble p:last-child{margin-bottom:0;}
 
+  /* ================= ELEMEN MARKDOWN DI PESAN AI ================= */
+  .msg-bubble h1,.msg-bubble h2,.msg-bubble h3,.msg-bubble h4,.msg-bubble h5,.msg-bubble h6{
+    color:var(--text-main); font-weight:700; line-height:1.35;
+    margin:22px 0 10px;
+  }
+  .msg-bubble h1:first-child,.msg-bubble h2:first-child,.msg-bubble h3:first-child{margin-top:0;}
+  .msg-bubble h1{font-size:21px;}
+  .msg-bubble h2{font-size:18.5px;}
+  .msg-bubble h3{font-size:16px;}
+  .msg-bubble h4,.msg-bubble h5,.msg-bubble h6{font-size:14.5px;}
+
+  .msg-bubble ul,.msg-bubble ol{margin:4px 0 14px; padding-left:22px;}
+  .msg-bubble li{margin-bottom:6px; line-height:1.6;}
+  .msg-bubble li::marker{color:var(--text-soft);}
+  .msg-bubble li>ul,.msg-bubble li>ol{margin:6px 0 0;}
+
+  .msg-bubble blockquote{
+    border-left:3px solid var(--accent);
+    padding:2px 14px; margin:12px 0;
+    color:var(--text-soft); font-style:italic;
+  }
+  .msg-bubble blockquote p:last-child{margin-bottom:0;}
+
+  .msg-bubble a{color:var(--accent); text-decoration:underline; text-underline-offset:2px; word-break:break-word;}
+  .msg-bubble a:hover{opacity:.8;}
+
+  .msg-bubble hr{border:none; border-top:1px solid var(--border); margin:20px 0;}
+  .msg-bubble strong{color:var(--text-main); font-weight:700;}
+
+  .msg-bubble code:not(.hljs){
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    padding:1.5px 6px;
+    border-radius:5px;
+    font-size:.88em;
+    font-family:'SFMono-Regular',Consolas,monospace;
+    color:#e0af68;
+    word-break:break-word;
+  }
+
+  .table-scroll{
+    overflow-x:auto;
+    margin:14px 0;
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+  .msg-bubble table{
+    width:100%; min-width:100%;
+    border-collapse:collapse;
+    font-size:13.5px;
+    margin:0; border:none; border-radius:0;
+  }
+  .msg-bubble thead{background:var(--bg-input);}
+  .msg-bubble th{
+    color:var(--text-main); font-weight:700; text-align:left;
+    padding:9px 14px; white-space:nowrap;
+    border-bottom:2px solid var(--border);
+  }
+  .msg-bubble td{
+    padding:9px 14px; color:var(--text-soft);
+    border-bottom:1px solid var(--border);
+  }
+  .msg-bubble tbody tr:last-child td{border-bottom:none;}
+  .msg-bubble tbody tr:hover{background:rgba(255,255,255,.02);}
+
   /* ================= ARTIFACT CARD (kode) ================= */
   .artifact-card{
     margin:10px 0;
@@ -754,7 +819,7 @@
     transition:max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, margin 0.3s ease;
   }
   .accordion-body.open {
-    max-height:none;
+    max-height:500px;
     opacity:1;
     margin-top:8px;
     margin-bottom:16px;
@@ -1059,7 +1124,7 @@
         <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>
         </button>
-        <textarea id="userInput" placeholder="Reply JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
+        <textarea id="userInput" placeholder="Reply to JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
@@ -1076,6 +1141,7 @@
       <div class="artifact-lang" id="artifactModalTitle"></div>
       <div class="artifact-actions">
         <button type="button" id="artifactModalCopyBtn" onclick="copyArtifactModalCode()" title="Salin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+        <button type="button" id="artifactModalDownloadBtn" onclick="downloadArtifactModalCode()" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
         <button type="button" onclick="closeArtifactModal()" title="Tutup"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       </div>
     </div>
@@ -1204,7 +1270,8 @@ const KYY_ICON_PATHS = {
   sparkles: '<path d="M12 3l1.6 4.9L18 9.4l-4.4 1.5L12 15.8l-1.6-4.9L6 9.4l4.4-1.5L12 3z"></path><path d="M5 3v3.5M3.3 4.8h3.4M19 16.5V20M17.3 18.3h3.4"></path>',
   zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
   'code-2': '<polyline points="18 16 22 12 18 8"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="14.5" y1="4" x2="9.5" y2="20"></line>',
-  check: '<polyline points="20 6 9 17 4 12"></polyline>'
+  check: '<polyline points="20 6 9 17 4 12"></polyline>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
 };
 function kyyIcon(name, size){
   const s = size || 16;
@@ -1421,6 +1488,49 @@ function kyyLangIconHTML(meta){
   return `<span class="artifact-lang-icon" style="color:${meta.color}">${kyyIcon('code-2', 15)}</span>`;
 }
 
+/* Ekstensi file asli per bahasa — dipakai tombol Download di tiap kartu kode */
+const KYY_LANG_EXTENSION = {
+  javascript:'js', jsx:'jsx', typescript:'ts', tsx:'tsx', html:'html', css:'css',
+  python:'py', json:'json', bash:'sh', sql:'sql', java:'java', c:'c', cpp:'cpp',
+  csharp:'cs', php:'php', ruby:'rb', go:'go', rust:'rs', swift:'swift', kotlin:'kt',
+  yaml:'yaml', markdown:'md', dart:'dart', xml:'xml', text:'txt',
+  perl:'pl', lua:'lua', assembly:'asm', elixir:'ex', erlang:'erl', haskell:'hs',
+  scala:'scala', r:'r', matlab:'m', groovy:'groovy', objectivec:'m', powershell:'ps1',
+  clojure:'clj', fsharp:'fs', ocaml:'ml', julia:'jl', crystal:'cr', nim:'nim', zig:'zig',
+  solidity:'sol', graphql:'graphql', dockerfile:'dockerfile', terraform:'tf', vim:'vim',
+  latex:'tex', coffeescript:'coffee', elm:'elm', sass:'scss', less:'less', ini:'ini',
+  toml:'toml', cmake:'cmake', makefile:'mk', verilog:'v', vhdl:'vhdl', prolog:'pro',
+  scheme:'scm', lisp:'lisp', fortran:'f90', cobol:'cob', ada:'adb', pascal:'pas',
+  visualbasic:'vb', actionscript:'as', arduino:'ino', svelte:'svelte', vue:'vue',
+  gdscript:'gd', protobuf:'proto', nginx:'conf', webassembly:'wat'
+};
+
+function kyyDownloadArtifact(id){
+  const item = kyyArtifactStore[id];
+  if(!item) return;
+  const ext = KYY_LANG_EXTENSION[item.lang] || 'txt';
+  const blob = new Blob([item.code], { type:'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `kyy-code.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* Bungkus tiap <table> hasil markdown biar bisa discroll horizontal di HP tanpa merusak layout */
+function enhanceTables(bubble){
+  bubble.querySelectorAll('table').forEach(table => {
+    if (table.parentElement.classList.contains('table-scroll')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-scroll';
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
+  });
+}
+
 /* Deteksi kode React yang ditulis dengan fence "javascript/typescript" biasa
    (bukan cuma "jsx"/"tsx") supaya tetap kebaca sebagai artifact yang bisa di-preview */
 function kyyLooksLikeReact(code){
@@ -1542,6 +1652,7 @@ function enhanceCodeBlocks(bubble, groupId){
       </div>
       <div class="artifact-actions">
         <button type="button" onclick="copyArtifactCode('${id}', this)" title="Salin">${kyyIcon('copy',15)}</button>
+        <button type="button" onclick="kyyDownloadArtifact('${id}')" title="Download">${kyyIcon('download',15)}</button>
         <button type="button" onclick="expandArtifact('${id}')" title="Perbesar">${kyyIcon('maximize-2',15)}</button>
       </div>
     `;
@@ -1598,6 +1709,7 @@ function expandArtifact(id){
   renderArtifactPanelBody();
 
   document.getElementById('artifactModalCopyBtn').style.display = '';
+  document.getElementById('artifactModalDownloadBtn').style.display = '';
   document.getElementById('artifactModal').classList.add('show');
 }
 
@@ -1667,6 +1779,10 @@ function copyArtifactModalCode(){
   copyArtifactCode(kyyPanelActiveId, document.getElementById('artifactModalCopyBtn'));
 }
 
+function downloadArtifactModalCode(){
+  kyyDownloadArtifact(kyyPanelActiveId);
+}
+
 function closeArtifactModal(e){
   if(e && e.target !== e.currentTarget) return;
   document.getElementById('artifactModal').classList.remove('show');
@@ -1681,6 +1797,7 @@ function expandAttachmentImage(url, name){
   const body = document.getElementById('artifactModalBody');
   title.innerHTML = `<span>${escapeHtml(name || 'Lampiran')}</span>`;
   document.getElementById('artifactModalCopyBtn').style.display = 'none';
+  document.getElementById('artifactModalDownloadBtn').style.display = 'none';
   body.innerHTML = `<img src="${url}" alt="${escapeHtml(name || '')}">`;
   document.getElementById('artifactModal').classList.add('show');
 }
@@ -2452,6 +2569,7 @@ function renderMessages(){
         hljs.highlightElement(block);
       });
       enhanceCodeBlocks(bubble, 'msg_' + mIdx);
+      enhanceTables(bubble);
       col.appendChild(bubble);
 
       const actions = document.createElement('div');
@@ -2614,28 +2732,13 @@ function scrollDown(){
 function toggleCustomConfigAccordion(){
   const body = document.getElementById('accordionBody');
   const arrow = document.getElementById('accordionArrow');
-
+  
   if(body.classList.contains('open')){
-    // Tutup: turunkan dari tinggi asli ke 0 biar transisinya smooth
-    body.style.overflow = 'hidden';
-    body.style.maxHeight = body.scrollHeight + 'px';
-    body.offsetHeight; // reflow paksa
-    body.style.maxHeight = '0px';
     body.classList.remove('open');
     arrow.classList.remove('active');
   } else {
-    // Buka: set max-height sesuai tinggi konten asli (bukan angka fix 500px)
     body.classList.add('open');
     arrow.classList.add('active');
-    body.style.maxHeight = body.scrollHeight + 'px';
-    // Setelah transisi selesai, lepas batas biar konten baru (mis. hasil ganti provider) tidak pernah kepotong
-    body.addEventListener('transitionend', function handler(e){
-      if(e.propertyName === 'max-height' && body.classList.contains('open')){
-        body.style.maxHeight = 'none';
-        body.style.overflow = 'visible';
-      }
-      body.removeEventListener('transitionend', handler);
-    });
   }
 }
 

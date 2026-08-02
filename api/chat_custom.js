@@ -1,3 +1,12 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Pakai SERVICE_ROLE key (bukan anon key) — cuma ada di server, bypass RLS,
+// biar backend bisa kurangi/cek credit user tanpa lewat client.
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 /* ================= HELPER: PANGGIL LLM (Gemini / OpenRouter) ================= */
 async function callGemini({ key, model, systemPrompt, contents }) {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
@@ -92,6 +101,30 @@ async function performDeepSearch(query) {
     }
 }
 
+/* ================= HELPER: CEK & KURANGI CREDIT DEEP SEARCH ================= */
+// return { boleh: true, sisa: <integer> }  -> lanjut search, credit sudah dikurangi 1
+// return { boleh: false, alasan: '...' }   -> tolak, JANGAN panggil Serper
+async function pakaiCreditDeepSearch(userId) {
+    if (!userId) {
+        return { boleh: false, alasan: 'Kamu harus login dulu buat pakai Deep Search.' };
+    }
+
+    const { data, error } = await supabaseAdmin.rpc('consume_deepsearch_credit', {
+        p_user_id: userId
+    });
+
+    if (error) {
+        console.error('Gagal cek credit deepsearch:', error);
+        return { boleh: false, alasan: 'Gagal mengecek kredit Deep Search, coba lagi.' };
+    }
+
+    if (data === null) {
+        return { boleh: false, alasan: 'Kredit Deep Search kamu sudah habis. Upgrade VIP untuk menambah kuota.' };
+    }
+
+    return { boleh: true, sisa: data };
+}
+
 /* ================= HANDLER UTAMA ================= */
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -103,7 +136,7 @@ export default async function handler(req, res) {
             pesan, gambarData, gambarType, gambarList, riwayat,
             customProvider, customApiKey, customGeminiModel,
             customOpenRouterKey, customOpenRouterModel, customPrompt,
-            thinkMode, deepSearchMode
+            thinkMode, deepSearchMode, userId
         } = req.body;
 
         // Normalisasi gambar: gambarList (array, banyak gambar) > gambarData/gambarType tunggal (kompatibel lama)
@@ -165,9 +198,22 @@ export default async function handler(req, res) {
 
         // 3. DEEP SEARCH (kalau aktif) — hasil pencarian ditempel di depan pesan user
         let pesanEfektif = pesan || '';
+        let creditDitolak = null; // dipakai buat kasih tahu user kalau kredit habis/belum login
+        let sisaKreditDeepSearch = null; // dikirim balik ke frontend biar tracker langsung update
+
         if (deepSearchMode) {
-            const searchContext = await performDeepSearch(pesanEfektif);
-            pesanEfektif = searchContext + '---\n\nPertanyaan user: ' + pesanEfektif;
+            const cekCredit = await pakaiCreditDeepSearch(userId);
+
+            if (cekCredit.boleh) {
+                sisaKreditDeepSearch = cekCredit.sisa;
+                // credit sudah dikurangi 1 di sisi Supabase, baru sekarang panggil Serper
+                const searchContext = await performDeepSearch(pesanEfektif);
+                pesanEfektif = searchContext + '---\n\nPertanyaan user: ' + pesanEfektif;
+            } else {
+                // TIDAK memanggil Serper sama sekali kalau credit habis/gak login
+                creditDitolak = cekCredit.alasan;
+                pesanEfektif = `[CATATAN SISTEM: Deep Search TIDAK dijalankan — ${cekCredit.alasan} Jawab pertanyaan user seperti biasa tanpa pencarian internet, dan beri tahu secara singkat kalau Deep Search-nya dilewati.]\n\n---\n\nPertanyaan user: ${pesanEfektif}`;
+            }
         }
 
         // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
@@ -257,7 +303,11 @@ export default async function handler(req, res) {
             }
         }
 
-        return res.status(200).json({ balasan: finalText });
+        return res.status(200).json({
+            balasan: finalText,
+            deepSearchDitolak: creditDitolak, // null kalau normal/gak pakai deepsearch, string kalau ditolak
+            deepSearchSisaKredit: sisaKreditDeepSearch // integer kalau baru dipakai, null kalau tidak
+        });
 
     } catch (error) {
         console.error("Error Custom CS Server:", error);

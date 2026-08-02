@@ -1,3 +1,98 @@
+/* ================= HELPER: PANGGIL LLM (Gemini / OpenRouter) ================= */
+async function callGemini({ key, model, systemPrompt, contents }) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents,
+            safetySettings: [
+                { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ]
+        })
+    });
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API Gemini gagal (Status ${res.status}). Periksa Custom API Key / nama model kamu.`);
+    }
+
+    const data = await res.json();
+    if (data.candidates && data.candidates.length > 0) {
+        const text = data.candidates[0].content?.parts?.[0]?.text;
+        if (text) return text;
+        throw new Error(`Respons kosong dari Gemini. Alasan: ${data.candidates[0].finishReason}`);
+    }
+    throw new Error(data.error?.message || 'Perintah ditolak oleh Gemini (Unknown Error)');
+}
+
+async function callOpenRouter({ key, model, messages }) {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+            'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'https://dashboard.vercel.app',
+            'X-Title': 'JRxREZKYY Assistant'
+        },
+        body: JSON.stringify({ model, messages })
+    });
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API OpenRouter gagal (Status ${res.status}). Periksa Custom OpenRouter Key / nama model kamu.`);
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content;
+    if (text) return text;
+    throw new Error(`Respons kosong dari OpenRouter. Alasan: ${data.choices?.[0]?.finish_reason || data.error?.message || 'Unknown Error'}`);
+}
+
+/* ================= HELPER: DEEP SEARCH (pencarian internet beneran via Serper.dev) ================= */
+async function performDeepSearch(query) {
+    const serperKey = process.env.SERPER_API_KEY;
+    if (!serperKey) {
+        return '[CATATAN SISTEM: Mode Deep Search aktif, tapi SERPER_API_KEY belum di-set di Environment Variables Vercel — pencarian internet DILEWATI. Beri tahu user soal ini secara jujur di jawabanmu, jangan berpura-pura sudah mencari.]\n\n';
+    }
+
+    try {
+        const res = await fetch('https://google.serper.dev/search', {
+            method: 'POST',
+            headers: { 'X-API-KEY': serperKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ q: query, num: 6 })
+        });
+
+        if (!res.ok) throw new Error('Status ' + res.status);
+        const data = await res.json();
+        const organic = data.organic || [];
+
+        if (organic.length === 0) {
+            return '[Pencarian internet dijalankan tapi tidak menemukan hasil relevan untuk query ini.]\n\n';
+        }
+
+        let formatted = 'HASIL PENCARIAN INTERNET TERBARU (pakai ini sebagai referensi utama untuk menjawab, dan sebutkan sumbernya di jawaban):\n\n';
+
+        if (data.answerBox) {
+            formatted += `Ringkasan langsung: ${data.answerBox.answer || data.answerBox.snippet || ''}\n\n`;
+        }
+
+        organic.slice(0, 6).forEach((item, i) => {
+            formatted += `${i + 1}. ${item.title}\n${item.snippet || ''}\nSumber: ${item.link}\n\n`;
+        });
+
+        return formatted;
+    } catch (err) {
+        console.error('Deep Search gagal:', err);
+        return `[CATATAN SISTEM: Pencarian internet gagal dijalankan (${err.message}). Jawab pakai pengetahuan sendiri, dan beri tahu user kalau pencarian gagal — jangan berpura-pura berhasil.]\n\n`;
+    }
+}
+
+/* ================= HANDLER UTAMA ================= */
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method tidak diizinkan' });
@@ -5,13 +100,18 @@ export default async function handler(req, res) {
 
     try {
         const {
-            pesan, gambarData, gambarType, riwayat,
+            pesan, gambarData, gambarType, gambarList, riwayat,
             customProvider, customApiKey, customGeminiModel,
-            customOpenRouterKey, customOpenRouterModel, customPrompt
+            customOpenRouterKey, customOpenRouterModel, customPrompt,
+            thinkMode, deepSearchMode
         } = req.body;
 
-        // 1. TENTUKAN PROVIDER: pakai pilihan eksplisit dari toggle di frontend.
-        //    Kalau field-nya nggak ada (request lama/luar app), fallback ke tebakan berbasis key yang tersedia.
+        // Normalisasi gambar: gambarList (array, banyak gambar) > gambarData/gambarType tunggal (kompatibel lama)
+        const daftarGambar = Array.isArray(gambarList) && gambarList.length > 0
+            ? gambarList
+            : (gambarData && gambarType ? [{ data: gambarData, mimeType: gambarType }] : []);
+
+        // 1. TENTUKAN PROVIDER
         const openrouterKey = customOpenRouterKey ? customOpenRouterKey.trim() : null;
         const geminiKeyUser = customApiKey ? customApiKey.trim() : null;
 
@@ -46,12 +146,33 @@ export default async function handler(req, res) {
             }
         }
 
-        // 2. SYSTEM PROMPT: Gunakan prompt bawaan user jika diisi, jika kosong pakai default asisten luwes
-        const systemPrompt = (customPrompt && customPrompt.trim() !== '')
+        const modelGemini = (customGeminiModel && customGeminiModel.trim() !== '')
+            ? customGeminiModel.trim()
+            : (process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite');
+
+        const modelOpenRouter = (customOpenRouterModel && customOpenRouterModel.trim() !== '')
+            ? customOpenRouterModel.trim()
+            : (process.env.OPENROUTER_MODEL || 'openrouter/auto');
+
+        // 2. SYSTEM PROMPT (+ instruksi Think Mode kalau aktif)
+        let systemPrompt = (customPrompt && customPrompt.trim() !== '')
             ? customPrompt.trim()
             : `Kamu adalah Asisten AI kustom yang membantu pengguna secara ramah, cerdas, dan solutif.`;
 
-        // ================= JALUR OPENROUTER =================
+        if (thinkMode) {
+            systemPrompt += `\n\nMODE THINK AKTIF: Sebelum menjawab, analisis pertanyaan user secara mendalam dan terstruktur — pertimbangkan beberapa sudut pandang, cek konsistensi logika dan fakta, baru susun jawaban akhir yang jelas dan akurat.`;
+        }
+
+        // 3. DEEP SEARCH (kalau aktif) — hasil pencarian ditempel di depan pesan user
+        let pesanEfektif = pesan || '';
+        if (deepSearchMode) {
+            const searchContext = await performDeepSearch(pesanEfektif);
+            pesanEfektif = searchContext + '---\n\nPertanyaan user: ' + pesanEfektif;
+        }
+
+        // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
+        let draftText;
+
         if (provider === 'openrouter') {
             const messages = [{ role: 'system', content: systemPrompt }];
 
@@ -62,126 +183,84 @@ export default async function handler(req, res) {
                 });
             }
 
-            if (gambarData && gambarType) {
-                const cleanBase64 = gambarData.includes(',') ? gambarData.split(',')[1] : gambarData;
-                messages.push({
-                    role: 'user',
-                    content: [
-                        { type: 'text', text: pesan || '' },
-                        { type: 'image_url', image_url: { url: `data:${gambarType};base64,${cleanBase64}` } }
-                    ]
+            if (daftarGambar.length > 0) {
+                const contentParts = [{ type: 'text', text: pesanEfektif }];
+                daftarGambar.forEach(img => {
+                    const cleanBase64 = img.data.includes(',') ? img.data.split(',')[1] : img.data;
+                    contentParts.push({ type: 'image_url', image_url: { url: `data:${img.mimeType};base64,${cleanBase64}` } });
                 });
+                messages.push({ role: 'user', content: contentParts });
             } else {
-                messages.push({ role: 'user', content: pesan || '' });
+                messages.push({ role: 'user', content: pesanEfektif });
             }
 
-            // Prioritas model: model yang diisi user di kolom "Model (OpenRouter)" >
-            // Environment Variable OPENROUTER_MODEL di Vercel > "openrouter/auto"
-            // ("openrouter/auto" itu fitur resmi OpenRouter buat milih model terbaik otomatis).
-            const modelOpenRouter = (customOpenRouterModel && customOpenRouterModel.trim() !== '')
-                ? customOpenRouterModel.trim()
-                : (process.env.OPENROUTER_MODEL || 'openrouter/auto');
-
-            const responseOR = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${keyTerpilih}`,
-                    // OpenRouter minta header ini buat identifikasi aplikasi (opsional tapi disarankan)
-                    'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'https://dashboard.vercel.app',
-                    'X-Title': 'JRxREZKYY Assistant'
-                },
-                body: JSON.stringify({
-                    model: modelOpenRouter,
-                    messages: messages
-                })
-            });
-
-            if (!responseOR.ok) {
-                const errorText = await responseOR.text();
-                console.error('Detail Eror OpenRouter:', errorText);
-                return res.status(200).json({ balasan: `⚠️ OpenRouter gagal merespons (Status ${responseOR.status}). Periksa Custom OpenRouter Key / nama model kamu.` });
-            }
-
-            const dataOR = await responseOR.json();
-
-            const teksBalasanOR = dataOR.choices?.[0]?.message?.content;
-            if (teksBalasanOR) {
-                return res.status(200).json({ balasan: teksBalasanOR });
-            } else {
-                const finishReason = dataOR.choices?.[0]?.finish_reason;
-                return res.status(200).json({ balasan: `⚠️ Respons kosong dari OpenRouter. Alasan: ${finishReason || dataOR.error?.message || 'Unknown Error'}` });
-            }
-        }
-
-        // ================= JALUR GEMINI (sama seperti sebelumnya) =================
-        const contents = [];
-
-        if (Array.isArray(riwayat) && riwayat.length > 0) {
-            riwayat.forEach(item => {
-                const roleFormatted = (item.role === 'assistant' || item.role === 'model') ? 'model' : 'user';
-                contents.push({
-                    role: roleFormatted,
-                    parts: [{ text: item.content || item.text || '' }]
-                });
-            });
-        }
-
-        const userParts = [{ text: pesan || '' }];
-        if (gambarData && gambarType) {
-            const cleanBase64 = gambarData.includes(',') ? gambarData.split(',')[1] : gambarData;
-            userParts.push({ inlineData: { mimeType: gambarType, data: cleanBase64 } });
-        }
-
-        contents.push({
-            role: 'user',
-            parts: userParts
-        });
-
-        // Prioritas model: model yang diisi user di kolom "Model (Gemini)" >
-        // Environment Variable GEMINI_MODEL di Vercel > default gemini-3.1-flash-lite
-        const modelGemini = (customGeminiModel && customGeminiModel.trim() !== '')
-            ? customGeminiModel.trim()
-            : (process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite');
-
-        const url_api = `https://generativelanguage.googleapis.com/v1beta/models/${modelGemini}:generateContent?key=${keyTerpilih}`;
-
-        const responseAIdirect = await fetch(url_api, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
-                contents: contents,
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                ]
-            })
-        });
-
-        if (!responseAIdirect.ok) {
-            const errorText = await responseAIdirect.text();
-            console.error("Detail Eror Custom Mode:", errorText);
-            return res.status(200).json({ balasan: `⚠️ API gagal merespons (Status ${responseAIdirect.status}). Periksa Custom API Key kamu.` });
-        }
-
-        const dataAI = await responseAIdirect.json();
-
-        if (dataAI.candidates && dataAI.candidates.length > 0) {
-            const teksBalasan = dataAI.candidates[0].content?.parts?.[0]?.text;
-            if (teksBalasan) {
-                return res.status(200).json({ balasan: teksBalasan });
-            } else {
-                return res.status(200).json({ balasan: `⚠️ Respons kosong. Alasan API: ${dataAI.candidates[0].finishReason}` });
+            try {
+                draftText = await callOpenRouter({ key: keyTerpilih, model: modelOpenRouter, messages });
+            } catch (err) {
+                return res.status(200).json({ balasan: `⚠️ ${err.message}` });
             }
         } else {
-            return res.status(200).json({ balasan: `⚠️ Perintah ditolak. Alasan: ${dataAI.error?.message || 'Unknown Error'}` });
+            const contents = [];
+
+            if (Array.isArray(riwayat) && riwayat.length > 0) {
+                riwayat.forEach(item => {
+                    const roleFormatted = (item.role === 'assistant' || item.role === 'model') ? 'model' : 'user';
+                    contents.push({
+                        role: roleFormatted,
+                        parts: [{ text: item.content || item.text || '' }]
+                    });
+                });
+            }
+
+            const userParts = [{ text: pesanEfektif }];
+            daftarGambar.forEach(img => {
+                const cleanBase64 = img.data.includes(',') ? img.data.split(',')[1] : img.data;
+                userParts.push({ inlineData: { mimeType: img.mimeType, data: cleanBase64 } });
+            });
+
+            contents.push({ role: 'user', parts: userParts });
+
+            try {
+                draftText = await callGemini({ key: keyTerpilih, model: modelGemini, systemPrompt, contents });
+            } catch (err) {
+                return res.status(200).json({ balasan: `⚠️ ${err.message}` });
+            }
         }
+
+        // 5. THINK MODE PASS KE-2: review & perbaiki draft jawaban sendiri sebelum dikirim ke user
+        let finalText = draftText;
+
+        if (thinkMode) {
+            const refinePrompt = `Ini pertanyaan asli dari user:\n"${pesan}"\n\nIni jawaban draft yang sudah kamu susun:\n"""\n${draftText}\n"""\n\nTinjau ulang draft ini dengan teliti: cek akurasi fakta, kelengkapan, dan kejelasan penjelasannya. Perbaiki kalau ada yang kurang tepat atau kurang lengkap. Balas HANYA dengan versi final yang sudah diperbaiki (jangan tambahkan komentar soal proses reviewnya, jangan bilang "berikut versi revisi", langsung jawaban akhirnya saja).`;
+
+            try {
+                if (provider === 'openrouter') {
+                    finalText = await callOpenRouter({
+                        key: keyTerpilih,
+                        model: modelOpenRouter,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: refinePrompt }
+                        ]
+                    });
+                } else {
+                    finalText = await callGemini({
+                        key: keyTerpilih,
+                        model: modelGemini,
+                        systemPrompt,
+                        contents: [{ role: 'user', parts: [{ text: refinePrompt }] }]
+                    });
+                }
+            } catch (err) {
+                console.error('Think Mode: pass review gagal, pakai draft awal:', err);
+                finalText = draftText; // fallback aman — tetap kasih jawaban draft kalau review-nya gagal
+            }
+        }
+
+        return res.status(200).json({ balasan: finalText });
 
     } catch (error) {
         console.error("Error Custom CS Server:", error);
         return res.status(200).json({ balasan: `⚠️ Backend Custom Mode crash: ${error.message}` });
     }
-            }
+}

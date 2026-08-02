@@ -2,10 +2,18 @@ import { createClient } from '@supabase/supabase-js';
 
 // Pakai SERVICE_ROLE key (bukan anon key) — cuma ada di server, bypass RLS,
 // biar backend bisa kurangi/cek credit user tanpa lewat client.
-const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// Dibuat LAZY (bukan langsung dieksekusi di top-level) supaya kalau env var
+// belum di-set di Vercel, yang error cuma pas Deep Search dipakai —
+// bukan bikin SELURUH backend (termasuk Gemini/OpenRouter) ikut crash.
+let supabaseAdmin = null;
+function getSupabaseAdmin() {
+    if (supabaseAdmin) return supabaseAdmin;
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        return null;
+    }
+    supabaseAdmin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    return supabaseAdmin;
+}
 
 /* ================= HELPER: PANGGIL LLM (Gemini / OpenRouter) ================= */
 async function callGemini({ key, model, systemPrompt, contents }) {
@@ -91,8 +99,12 @@ async function performDeepSearch(query) {
         }
 
         organic.slice(0, 6).forEach((item, i) => {
-            formatted += `${i + 1}. ${item.title}\n${item.snippet || ''}\nSumber: ${item.link}\n\n`;
+            let namaDomain = item.link;
+            try { namaDomain = new URL(item.link).hostname.replace(/^www\./, ''); } catch(e) {}
+            formatted += `${i + 1}. ${item.title}\n${item.snippet || ''}\nSumber: [${namaDomain}](${item.link})\n\n`;
         });
+
+        formatted += 'PENTING: saat kamu sebutkan sumber di jawabanmu, tulis dalam format markdown link seperti [nama-domain](url) di atas — JANGAN cuma nulis nama sumbernya sebagai teks polos, biar bisa diklik user.\n\n';
 
         return formatted;
     } catch (err) {
@@ -109,7 +121,13 @@ async function pakaiCreditDeepSearch(userId) {
         return { boleh: false, alasan: 'Kamu harus login dulu buat pakai Deep Search.' };
     }
 
-    const { data, error } = await supabaseAdmin.rpc('consume_deepsearch_credit', {
+    const admin = getSupabaseAdmin();
+    if (!admin) {
+        console.error('SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY belum di-set di Environment Variables Vercel.');
+        return { boleh: false, alasan: 'Fitur Deep Search belum dikonfigurasi di server.' };
+    }
+
+    const { data, error } = await admin.rpc('consume_deepsearch_credit', {
         p_user_id: userId
     });
 
@@ -313,4 +331,5 @@ export default async function handler(req, res) {
         console.error("Error Custom CS Server:", error);
         return res.status(200).json({ balasan: `⚠️ Backend Custom Mode crash: ${error.message}` });
     }
-}
+                                      }
+                    

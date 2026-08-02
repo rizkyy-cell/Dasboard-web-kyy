@@ -1246,7 +1246,7 @@
     <div style="border-top: 1px solid var(--border);">
       <div class="accordion-header" onclick="toggleCustomConfigAccordion()">
         <span class="accordion-header-title">Custom Config</span>
-        <span class="accordion-arrow" id="accordionArrow">^</span>
+        <span class="accordion-arrow" id="accordionArrow">V</span>
       </div>
 
       <div class="accordion-body" id="accordionBody">
@@ -1971,6 +1971,18 @@ function enhanceCodeBlocks(bubble, groupId){
     const langClass = [...codeEl.classList].find(c => c.startsWith('language-'));
     const rawLang = langClass ? langClass.replace('language-','') : '';
     const meta = kyyLangMeta(rawLang);
+
+    // Kalau gak ada bahasa spesifik (AI cuma bungkus jawaban teks biasa pakai ``` tanpa
+    // label bahasa), JANGAN dijadiin kartu artifact "Text" — itu bikin jawaban normal
+    // keliatan patah jadi kotak terpisah. Lepas fence-nya, tampilkan sebagai teks biasa.
+    if(!rawLang || meta.key === 'text' || meta.key === 'plaintext' || meta.key === 'plain'){
+      const plain = document.createElement('div');
+      plain.style.cssText = 'white-space:pre-wrap; word-break:break-word;';
+      plain.textContent = codeEl.innerText;
+      pre.replaceWith(plain);
+      return;
+    }
+
     const rawCode = codeEl.innerText;
     const previewable = kyyIsPreviewable(meta, rawCode);
 

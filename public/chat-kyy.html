@@ -1219,7 +1219,21 @@
       <button class="btn-back-glass" onclick="closeSettingsPopup()" title="Kembali">«</button>
       <div class="panel-title-text" id="panelTitleText">Settings</div>
     </div>
-    
+
+    <!-- TRACKER USAGE DEEP SEARCH -->
+    <div class="setting-row" style="flex-direction:column; align-items:stretch; gap:8px; padding:14px 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="setting-label" style="font-weight:600;">Deep Search</span>
+        <span id="deepSearchVipBadge" style="font-size:11px; padding:2px 8px; border-radius:10px; background:var(--tg-accent); color:#fff; display:none;">VIP</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline;">
+        <span style="font-size:13px; opacity:.75;">Sisa kuota</span>
+        <span id="deepSearchSisaKuota" style="font-size:15px; font-weight:600;">-</span>
+      </div>
+      <div style="font-size:11px; opacity:.55;" id="deepSearchHargaInfo">Rp250 / pemakaian</div>
+      <button class="btn-save-config" style="margin-top:2px;" onclick="bukaUpgradeVip()">Upgrade VIP</button>
+    </div>
+
     <div class="setting-row">
       <span class="setting-label">Tema Terang</span>
       <label class="switch">
@@ -2151,10 +2165,29 @@ function toggleThinkMode(){
   document.getElementById('thinkModeBtn').classList.toggle('active', kyyThinkMode);
 }
 function toggleDeepSearchMode(){
+  if(!kyyDeepSearchMode && !currentUser){
+    tampilkanNotifDeepSearch('Kamu harus login dulu buat pakai Deep Search.');
+    return;
+  }
   kyyDeepSearchMode = !kyyDeepSearchMode;
   localStorage.setItem('kyy_deepsearch_mode', kyyDeepSearchMode ? 'true' : 'false');
   document.getElementById('deepSearchBtn').classList.toggle('active', kyyDeepSearchMode);
 }
+// Notif kecil di atas composer, dipakai kalau Deep Search ditolak (belum login / kredit habis)
+function tampilkanNotifDeepSearch(pesan){
+  let el = document.getElementById('deepSearchNotif');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'deepSearchNotif';
+    el.style.cssText = 'font-size:12px;color:#f0a020;padding:6px 10px;text-align:center;';
+    const toolbar = document.querySelector('.composer-toolbar');
+    toolbar?.parentNode.insertBefore(el, toolbar);
+  }
+  el.textContent = pesan;
+  clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => { el.remove(); }, 4000);
+}
+
 function kyyInitComposerToggles(){
   const thinkBtn = document.getElementById('thinkModeBtn');
   const searchBtn = document.getElementById('deepSearchBtn');
@@ -2685,6 +2718,44 @@ function openSettingsPopup(){
   requestAnimationFrame(()=>{
     el.classList.add('visible');
   });
+  renderDeepSearchUsageTracker();
+}
+
+/* ================= TRACKER USAGE DEEP SEARCH ================= */
+async function renderDeepSearchUsageTracker(){
+  const elSisa = document.getElementById('deepSearchSisaKuota');
+  const elBadge = document.getElementById('deepSearchVipBadge');
+  if(!elSisa) return;
+
+  if(!currentUser){
+    elSisa.textContent = 'Login untuk cek kuota';
+    elBadge.style.display = 'none';
+    return;
+  }
+
+  elSisa.textContent = 'Memuat...';
+  try{
+    const { data, error } = await supabaseClient
+      .from('user_credits')
+      .select('deepsearch_credit, is_vip')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    if(error || !data){
+      elSisa.textContent = '-';
+      return;
+    }
+
+    elSisa.textContent = `${data.deepsearch_credit}x`;
+    elBadge.style.display = data.is_vip ? 'inline-block' : 'none';
+  }catch(err){
+    elSisa.textContent = '-';
+  }
+}
+
+function bukaUpgradeVip(){
+  // TODO: arahkan ke halaman/flow pembelian VIP kamu (mis. buka modal paket atau redirect ke link pembayaran)
+  alert('Halaman upgrade VIP belum terhubung. Sambungkan tombol ini ke flow pembayaranmu.');
 }
 
 function closeSettingsPopup(e){
@@ -2835,6 +2906,7 @@ async function sendMessage(){
       mode: currentMode,
       thinkMode: kyyThinkMode,
       deepSearchMode: kyyDeepSearchMode,
+      userId: currentUser ? currentUser.id : null,
       ...kyyGetCustomPayloadFields()
     };
 
@@ -2857,6 +2929,19 @@ async function sendMessage(){
     document.getElementById('typingRow')?.remove();
 
     replyText = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons)');
+
+    // Kalau Deep Search ditolak (belum login / kredit habis), matikan toggle-nya
+    // dan kasih tahu user secara jelas lewat notifikasi kecil di atas tombol.
+    if(data.deepSearchDitolak){
+      kyyDeepSearchMode = false;
+      localStorage.setItem('kyy_deepsearch_mode', 'false');
+      document.getElementById('deepSearchBtn')?.classList.remove('active');
+      tampilkanNotifDeepSearch(data.deepSearchDitolak);
+    }
+    if(typeof data.deepSearchSisaKredit === 'number'){
+      const elSisa = document.getElementById('deepSearchSisaKuota');
+      if(elSisa) elSisa.textContent = `${data.deepSearchSisaKredit}x`;
+    }
   } catch(err){
     document.getElementById('typingRow')?.remove();
     replyText = '**Error koneksi:** ' + err.message;
@@ -3061,6 +3146,7 @@ async function regenerateMessage(idx){
       mode: currentMode,
       thinkMode: kyyThinkMode,
       deepSearchMode: kyyDeepSearchMode,
+      userId: currentUser ? currentUser.id : null,
       ...kyyGetCustomPayloadFields()
     };
 
@@ -3071,6 +3157,17 @@ async function regenerateMessage(idx){
     });
     const data = await res.json();
     messages[idx].content = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons)');
+
+    if(data.deepSearchDitolak){
+      kyyDeepSearchMode = false;
+      localStorage.setItem('kyy_deepsearch_mode', 'false');
+      document.getElementById('deepSearchBtn')?.classList.remove('active');
+      tampilkanNotifDeepSearch(data.deepSearchDitolak);
+    }
+    if(typeof data.deepSearchSisaKredit === 'number'){
+      const elSisa = document.getElementById('deepSearchSisaKuota');
+      if(elSisa) elSisa.textContent = `${data.deepSearchSisaKredit}x`;
+    }
   }catch(err){
     messages[idx].content = '**Error koneksi:** ' + err.message;
   }

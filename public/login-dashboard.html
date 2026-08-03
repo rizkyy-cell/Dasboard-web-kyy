@@ -2,9 +2,10 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <title>Verification - login - Dashboard</title>
+  <title>Login - KYY Dashboard</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
   <style>
 
@@ -186,6 +187,55 @@ body {
   font-weight: 600;
 }
 
+.loginBx p.subtitle {
+  color: #ccc;
+  font-size: 0.75em;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: #fff;
+  color: #222;
+  border: none;
+  border-radius: 30px;
+  font-size: 0.95em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-google:hover {
+  box-shadow: 0 0 10px #45f3ff, 0 0 40px #45f3ff;
+  transform: translateY(-1px);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-google i.fa-google {
+  color: #4285F4;
+  font-size: 1.1em;
+}
+
+.status-text {
+  color: #45f3ff;
+  font-size: 0.75em;
+  letter-spacing: 0.05em;
+  text-align: center;
+  min-height: 16px;
+}
+
 </style>
 <body>
 
@@ -197,16 +247,48 @@ body {
           Login
         <i class="fa-solid fa-heart"></i>
       </h2>
-      <input type="text" placeholder="Username">
-      <input type="password" placeholder="Password">
-      <input type="submit" value="Sign in" />
-      <div class="group">
-        <a href="#">Forgot Password</a>
-        <a href="#">Sign up</a>
-      </div>
+      <p class="subtitle">Masuk pakai akun Google kamu</p>
+      <button type="button" class="btn-google" id="btnGoogleLogin" onclick="loginWithGoogle()">
+        <i class="fa-brands fa-google"></i> Login With Google
+      </button>
+      <p class="status-text" id="statusText"></p>
     </div>
   </div>
 </div>
-  
+
+<script>
+  const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9";
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const REDIRECT_URL = "https://jrxrezkyy-dashboard.vercel.app/index.html";
+
+  async function checkExistingSession() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      // Sudah login, langsung balik ke halaman utama
+      window.location.href = REDIRECT_URL;
+    }
+  }
+  checkExistingSession();
+
+  async function loginWithGoogle() {
+    const btn = document.getElementById('btnGoogleLogin');
+    const status = document.getElementById('statusText');
+    btn.disabled = true;
+    status.textContent = 'Membuka halaman login Google...';
+
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: REDIRECT_URL }
+    });
+
+    if (error) {
+      status.textContent = 'Gagal membuka login: ' + error.message;
+      btn.disabled = false;
+    }
+  }
+</script>
+
 </body>
 </html>

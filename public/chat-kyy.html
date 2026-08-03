@@ -2217,6 +2217,7 @@ function kyyInitComposerToggles(){
 
 let attachSeq = 0;
 const MAX_ATTACHMENT_MB = 8;   
+const MAX_VIDEO_MB = 25;   // limit lebih besar khusus video, karena Gemini butuh baca isi frame+audio-nya
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
@@ -2425,12 +2426,23 @@ function formatFileSize(bytes){
 }
 
 async function addAttachment(file){
-  if(file.size > MAX_ATTACHMENT_MB * 1024 * 1024){
-    alert(`File "${file.name}" terlalu besar (maks ${MAX_ATTACHMENT_MB}MB).`);
+  const category = categorizeFile(file);
+  const limitMB = category === 'video' ? MAX_VIDEO_MB : MAX_ATTACHMENT_MB;
+
+  if(file.size > limitMB * 1024 * 1024){
+    alert(`File "${file.name}" terlalu besar (maks ${limitMB}MB${category === 'video' ? ' untuk video' : ''}).`);
     return;
   }
 
-  const category = categorizeFile(file);
+  // Video cuma beneran kebaca kalau provider aktif Gemini (Custom Mode). Di mode lain
+  // atau pas provider OpenRouter, video tetap bisa dilampirkan tapi kasih tau user dulu.
+  if(category === 'video'){
+    const providerAktif = localStorage.getItem('kyy_custom_provider') || 'gemini';
+    if(currentMode !== 'custom' || providerAktif === 'openrouter'){
+      kyyToast('Video cuma bisa dibaca AI kalau Custom Mode + provider Gemini aktif.', 'video', true);
+    }
+  }
+
   const att = {
     id: 'att_' + (++attachSeq) + '_' + Date.now(),
     file,
@@ -2456,6 +2468,10 @@ async function addAttachment(file){
       att.mime = hasil.mimeType; 
     } else if(category === 'text'){
       att.textContent = await fileToText(file);
+    } else if(category === 'video'){
+      const dataUrl = await fileToDataURL(file);
+      att.base64 = dataUrl.split(',')[1];
+      att.previewUrl = dataUrl; // dipakai buat <video> preview thumbnail di renderAttachmentPreview
     }
   }catch(err){
     console.warn('Gagal membaca file lampiran:', err);
@@ -2864,11 +2880,15 @@ async function sendMessage(){
   // 2. TAG DAN BACA FILE LAMPIRAN
   const imageAtts = pendingAttachments.filter(a => a.category === 'image' && a.base64);
   const textAtts = pendingAttachments.filter(a => a.category === 'text');
-  const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text');
+  const videoAtts = pendingAttachments.filter(a => a.category === 'video' && a.base64);
+  const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text' && a.category !== 'video');
 
   let pesanUntukAI = text;
   textAtts.forEach(att => {
     pesanUntukAI += (pesanUntukAI ? '\n\n' : '') + `[Isi File ${att.name}]:\n${att.textContent || '(gagal dibaca)'}`;
+  });
+  videoAtts.forEach(att => {
+    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Lampiran Video ${att.name} (${att.mime})]`;
   });
   otherAtts.forEach(att => {
     pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Lampiran File ${att.name} (${att.mime})]`;
@@ -2951,6 +2971,13 @@ async function sendMessage(){
       payloadKirim.gambarType = imageAtts[0].mime;
       // field baru: SEMUA gambar, dipakai backend yang sudah support multi-gambar
       payloadKirim.gambarList = imageAtts.map(a => ({ data: a.base64, mimeType: a.mime }));
+    }
+
+    if(videoAtts.length > 0){
+      // videoList cuma dipakai backend chat_custom.js (Custom Mode) — backend yang
+      // nentuin: kalau provider aktifnya Gemini, video ikut dibaca; kalau OpenRouter,
+      // video di-skip otomatis dan AI dikasih tau lewat catatan sistem, bukan diam-diam.
+      payloadKirim.videoList = videoAtts.map(a => ({ data: a.base64, mimeType: a.mime }));
     }
 
     const res = await fetch(targetEndpoint, {

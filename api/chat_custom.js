@@ -70,6 +70,37 @@ async function callOpenRouter({ key, model, messages }) {
     throw new Error(`Respons kosong dari OpenRouter. Alasan: ${data.choices?.[0]?.finish_reason || data.error?.message || 'Unknown Error'}`);
 }
 
+/* ================= HELPER: JANA GAMBAR (Gemini 2.5 Flash Image) ================= */
+async function callGeminiImage({ key, prompt }) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`;
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"]
+            }
+        })
+    });
+
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`API Gambar Gemini gagal (Status ${res.status}). Detail: ${errText}`);
+    }
+
+    const data = await res.json();
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
+
+    if (imagePart) {
+        return imagePart.inlineData.data;
+    }
+
+    throw new Error('Gagal mendapatkan gambar dari Gemini (Respons kosong atau ditolak).');
+}
+
 /* ================= HELPER: DEEP SEARCH (pencarian internet beneran via Serper.dev) ================= */
 async function performDeepSearch(query) {
     const serperKey = process.env.SERPER_API_KEY;
@@ -151,7 +182,7 @@ export default async function handler(req, res) {
 
     try {
         const {
-            pesan, gambarData, gambarType, gambarList, riwayat,
+            pesan, gambarData, gambarType, gambarList, videoList, riwayat,
             customProvider, customApiKey, customGeminiModel,
             customOpenRouterKey, customOpenRouterModel, customPrompt,
             thinkMode, deepSearchMode, userId
@@ -161,6 +192,9 @@ export default async function handler(req, res) {
         const daftarGambar = Array.isArray(gambarList) && gambarList.length > 0
             ? gambarList
             : (gambarData && gambarType ? [{ data: gambarData, mimeType: gambarType }] : []);
+
+        // Video: cuma Gemini yang beneran bisa "nonton" video (analisa frame + audio).
+        const daftarVideo = Array.isArray(videoList) ? videoList : [];
 
         // 1. TENTUKAN PROVIDER
         const openrouterKey = customOpenRouterKey ? customOpenRouterKey.trim() : null;
@@ -205,6 +239,31 @@ export default async function handler(req, res) {
             ? customOpenRouterModel.trim()
             : (process.env.OPENROUTER_MODEL || 'openrouter/auto');
 
+        // ================= LOGIKA DETEKSI PERINTAH GAMBAR =================
+        if (pesan && pesan.trim().startsWith('/gambar ')) {
+            const promptGambar = pesan.replace('/gambar ', '').trim();
+
+            // Gambar hanya bisa dibuat menggunakan provider Gemini
+            if (provider === 'openrouter') {
+                return res.status(200).json({
+                    balasan: '⚠️ Pembuatan gambar saat ini hanya mendukung provider Gemini. Silakan ganti provider Anda.'
+                });
+            }
+
+            try {
+                const base64Data = await callGeminiImage({ key: keyTerpilih, prompt: promptGambar });
+
+                return res.status(200).json({
+                    balasan: `Berikut adalah gambar untuk "${promptGambar}":\n\n![Gambar Hasil AI](data:image/png;base64,${base64Data})`,
+                    deepSearchDitolak: null,
+                    deepSearchSisaKredit: null
+                });
+            } catch (err) {
+                return res.status(200).json({ balasan: `⚠️ Gagal membuat gambar: ${err.message}` });
+            }
+        }
+        // =================================================================
+
         // 2. SYSTEM PROMPT (+ instruksi Think Mode kalau aktif)
         let systemPrompt = (customPrompt && customPrompt.trim() !== '')
             ? customPrompt.trim()
@@ -232,6 +291,13 @@ export default async function handler(req, res) {
                 creditDitolak = cekCredit.alasan;
                 pesanEfektif = `[CATATAN SISTEM: Deep Search TIDAK dijalankan — ${cekCredit.alasan} Jawab pertanyaan user seperti biasa tanpa pencarian internet, dan beri tahu secara singkat kalau Deep Search-nya dilewati.]\n\n---\n\nPertanyaan user: ${pesanEfektif}`;
             }
+        }
+
+        // 3.5 VIDEO cuma didukung Gemini — kalau provider-nya OpenRouter, video nggak
+        //     dilampirkan ke request (kebanyakan model OpenRouter nggak bisa baca video),
+        //     tapi AI-nya tetap dikasih tau biar jujur ke user, bukan diam-diam diabaikan.
+        if (daftarVideo.length > 0 && provider === 'openrouter') {
+            pesanEfektif = `[CATATAN SISTEM: User melampirkan video, tapi provider OpenRouter yang sedang dipakai tidak mendukung pembacaan video. Video TIDAK ikut dibaca. Beri tahu user soal ini di jawabanmu, sarankan pindah ke provider Gemini kalau mau video-nya dianalisis.]\n\n---\n\n${pesanEfektif}`;
         }
 
         // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
@@ -280,6 +346,10 @@ export default async function handler(req, res) {
             daftarGambar.forEach(img => {
                 const cleanBase64 = img.data.includes(',') ? img.data.split(',')[1] : img.data;
                 userParts.push({ inlineData: { mimeType: img.mimeType, data: cleanBase64 } });
+            });
+            daftarVideo.forEach(vid => {
+                const cleanBase64 = vid.data.includes(',') ? vid.data.split(',')[1] : vid.data;
+                userParts.push({ inlineData: { mimeType: vid.mimeType, data: cleanBase64 } });
             });
 
             contents.push({ role: 'user', parts: userParts });
@@ -332,4 +402,4 @@ export default async function handler(req, res) {
         return res.status(200).json({ balasan: `⚠️ Backend Custom Mode crash: ${error.message}` });
     }
                                       }
-                    
+

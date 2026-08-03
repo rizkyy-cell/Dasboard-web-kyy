@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - KYY Dashboard</title>
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -24,6 +25,7 @@ body {
   align-items: center;
   min-height: 100vh;
   background: #252432;
+  padding: 40px 20px;
 }
 
 @property --a {
@@ -53,9 +55,10 @@ body {
   transition: 0.5s;
 }
 
+.box.active,
 .box:hover {
   width: 450px;
-  height: 500px;
+  height: 620px;
 }
 
 @keyframes rotating {
@@ -99,7 +102,7 @@ body {
   position: absolute;
   inset: 60px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   border-radius: 10px;
   flex-direction: column;
@@ -110,10 +113,12 @@ body {
   transition: 0.5s;
   color: #fff;
   overflow: hidden;
+  padding: 20px 0;
 }
 
+.box.active .login,
 .box:hover .login {
-  inset: 40px;
+  inset: 30px;
 }
 
 .loginBx {
@@ -123,19 +128,21 @@ body {
   align-items: center;
   flex-direction: column;
   transform: translateY(126px);
-  gap: 20px;
-  width: 70%;
+  gap: 14px;
+  width: 78%;
   transition: 0.5s;
 }
 
+.box.active .loginBx,
 .box:hover .loginBx {
   transform: translateY(0px);
 }
 
 .loginBx h2 {
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   font-weight: 600;
+  font-size: 1.1em;
 }
 
 .loginBx h2 i {
@@ -147,7 +154,7 @@ body {
   width: 100%;
   padding: 10px 20px;
   outline: none;
-  font-size: 1em;
+  font-size: 0.95em;
   color: #fff;
   background: rgba(0, 0, 0, 0.1);
   border: 2px solid #fff;
@@ -158,17 +165,29 @@ body {
   color: #999;
 }
 
-.loginBx input[type="submit"] {
+.loginBx input[type="submit"],
+.btn-primary {
   background: #45f3ff;
   border: none;
-  font-weight: 500;
+  font-weight: 600;
   color: #111;
   cursor: pointer;
   transition: 0.5s;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.95em;
 }
 
-.loginBx input[type="submit"]:hover {
+.loginBx input[type="submit"]:hover,
+.btn-primary:hover {
   box-shadow: 0 0 10px #45f3ff, 0 0 60px #45f3ff;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .group {
@@ -180,18 +199,39 @@ body {
 .group a {
   color: #fff;
   text-decoration: none;
+  font-size: 0.85em;
+  cursor: pointer;
 }
 
-.group a:nth-child(2) {
+.group a.link-accent {
   color: #ff2770;
   font-weight: 600;
 }
 
 .loginBx p.subtitle {
   color: #ccc;
-  font-size: 0.75em;
+  font-size: 0.72em;
   text-align: center;
   letter-spacing: 0.05em;
+}
+
+.divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #999;
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .btn-google {
@@ -200,12 +240,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px 20px;
+  padding: 10px 20px;
   background: #fff;
   color: #222;
   border: none;
   border-radius: 30px;
-  font-size: 0.95em;
+  font-size: 0.9em;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s;
@@ -230,29 +270,90 @@ body {
 
 .status-text {
   color: #45f3ff;
-  font-size: 0.75em;
-  letter-spacing: 0.05em;
+  font-size: 0.72em;
+  letter-spacing: 0.03em;
   text-align: center;
   min-height: 16px;
+}
+
+.status-text.error {
+  color: #ff5477;
+}
+
+.otp-input {
+  letter-spacing: 0.5em;
+  text-align: center;
+  font-size: 1.2em !important;
+}
+
+.hidden {
+  display: none !important;
 }
 
 </style>
 <body>
 
-<div class="box">
+<div class="box" id="loginBox">
   <div class="login">
-    <div class="loginBx">
+
+    <!-- ==== MASUK ==== -->
+    <div class="loginBx" id="viewLogin">
       <h2>
         <i class="fa-solid fa-right-to-bracket"></i>
-          Login
+          Masuk
         <i class="fa-solid fa-heart"></i>
       </h2>
-      <p class="subtitle">Masuk pakai akun Google kamu</p>
+      <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <button type="button" class="btn-primary" id="btnLogin" onclick="loginWithPassword()">Masuk</button>
+      <p class="status-text" id="statusLogin"></p>
+
+      <div class="divider">atau</div>
+
       <button type="button" class="btn-google" id="btnGoogleLogin" onclick="loginWithGoogle()">
         <i class="fa-brands fa-google"></i> Login With Google
       </button>
-      <p class="status-text" id="statusText"></p>
+
+      <div class="group">
+        <a class="link-accent" onclick="showView('signup')">Belum punya akun? Daftar</a>
+      </div>
     </div>
+
+    <!-- ==== DAFTAR ==== -->
+    <div class="loginBx hidden" id="viewSignup">
+      <h2>
+        <i class="fa-solid fa-user-plus"></i>
+          Daftar
+        <i class="fa-solid fa-heart"></i>
+      </h2>
+      <input type="email" id="signupEmail" placeholder="Email" autocomplete="email">
+      <input type="password" id="signupPassword" placeholder="Password (min. 6 karakter)" autocomplete="new-password">
+      <input type="password" id="signupPasswordConfirm" placeholder="Ulangi Password" autocomplete="new-password">
+      <button type="button" class="btn-primary" id="btnSignup" onclick="signUp()">Daftar</button>
+      <p class="status-text" id="statusSignup"></p>
+
+      <div class="group">
+        <a class="link-accent" onclick="showView('login')">Sudah punya akun? Masuk</a>
+      </div>
+    </div>
+
+    <!-- ==== VERIFIKASI OTP ==== -->
+    <div class="loginBx hidden" id="viewOtp">
+      <h2>
+        <i class="fa-solid fa-shield-halved"></i>
+          Verifikasi
+      </h2>
+      <p class="subtitle" id="otpSubtitle">Masukkan 6 digit kode yang dikirim ke emailmu</p>
+      <input type="text" id="otpCode" class="otp-input" placeholder="000000" maxlength="6" inputmode="numeric">
+      <button type="button" class="btn-primary" id="btnVerifyOtp" onclick="verifyOtp()">Verifikasi</button>
+      <p class="status-text" id="statusOtp"></p>
+
+      <div class="group">
+        <a onclick="showView('login')">Batal</a>
+        <a class="link-accent" onclick="resendOtp()">Kirim ulang kode</a>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -263,20 +364,45 @@ body {
 
   const REDIRECT_URL = "https://jrxrezkyy-dashboard.vercel.app/index.html";
 
+  let pendingEmail = "";
+  const box = document.getElementById('loginBox');
+
+  function showView(name) {
+    document.getElementById('viewLogin').classList.add('hidden');
+    document.getElementById('viewSignup').classList.add('hidden');
+    document.getElementById('viewOtp').classList.add('hidden');
+    document.getElementById('view' + name.charAt(0).toUpperCase() + name.slice(1)).classList.remove('hidden');
+    box.classList.add('active');
+    clearStatus();
+  }
+
+  function clearStatus() {
+    ['statusLogin', 'statusSignup', 'statusOtp'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '';
+      el.classList.remove('error');
+    });
+  }
+
+  function setStatus(id, msg, isError) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.toggle('error', !!isError);
+  }
+
   async function checkExistingSession() {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session) {
-      // Sudah login, langsung balik ke halaman utama
       window.location.href = REDIRECT_URL;
     }
   }
   checkExistingSession();
 
+  // ===== LOGIN GOOGLE =====
   async function loginWithGoogle() {
     const btn = document.getElementById('btnGoogleLogin');
-    const status = document.getElementById('statusText');
     btn.disabled = true;
-    status.textContent = 'Membuka halaman login Google...';
+    setStatus('statusLogin', 'Membuka halaman login Google...');
 
     const { error } = await supabaseClient.auth.signInWithOAuth({
       provider: 'google',
@@ -284,8 +410,131 @@ body {
     });
 
     if (error) {
-      status.textContent = 'Gagal membuka login: ' + error.message;
+      setStatus('statusLogin', 'Gagal membuka login: ' + error.message, true);
       btn.disabled = false;
+    }
+  }
+
+  // ===== LOGIN EMAIL + PASSWORD =====
+  async function loginWithPassword() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('btnLogin');
+
+    if (!email || !password) {
+      setStatus('statusLogin', 'Email dan password wajib diisi.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    setStatus('statusLogin', 'Memproses...');
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      btn.disabled = false;
+      if (error.message.toLowerCase().includes('confirm')) {
+        pendingEmail = email;
+        setStatus('statusLogin', 'Email belum diverifikasi, cek kode OTP kamu.', true);
+        document.getElementById('otpSubtitle').textContent = 'Masukkan 6 digit kode yang dikirim ke ' + email;
+        showView('otp');
+        resendOtp(true);
+      } else {
+        setStatus('statusLogin', 'Login gagal: ' + error.message, true);
+      }
+      return;
+    }
+
+    setStatus('statusLogin', 'Berhasil, mengalihkan...');
+    window.location.href = REDIRECT_URL;
+  }
+
+  // ===== DAFTAR =====
+  async function signUp() {
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirm = document.getElementById('signupPasswordConfirm').value;
+    const btn = document.getElementById('btnSignup');
+
+    if (!email || !password || !confirm) {
+      setStatus('statusSignup', 'Semua kolom wajib diisi.', true);
+      return;
+    }
+    if (password.length < 6) {
+      setStatus('statusSignup', 'Password minimal 6 karakter.', true);
+      return;
+    }
+    if (password !== confirm) {
+      setStatus('statusSignup', 'Konfirmasi password tidak cocok.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    setStatus('statusSignup', 'Mendaftarkan akun...');
+
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+
+    btn.disabled = false;
+
+    if (error) {
+      setStatus('statusSignup', 'Gagal daftar: ' + error.message, true);
+      return;
+    }
+
+    pendingEmail = email;
+    document.getElementById('otpSubtitle').textContent = 'Masukkan 6 digit kode yang dikirim ke ' + email;
+    showView('otp');
+    setStatus('statusOtp', 'Kode verifikasi sudah dikirim ke emailmu.');
+  }
+
+  // ===== VERIFIKASI OTP =====
+  async function verifyOtp() {
+    const code = document.getElementById('otpCode').value.trim();
+    const btn = document.getElementById('btnVerifyOtp');
+
+    if (!pendingEmail) {
+      setStatus('statusOtp', 'Sesi tidak valid, ulangi dari awal.', true);
+      showView('login');
+      return;
+    }
+    if (!code || code.length !== 6) {
+      setStatus('statusOtp', 'Kode harus 6 digit.', true);
+      return;
+    }
+
+    btn.disabled = true;
+    setStatus('statusOtp', 'Memverifikasi...');
+
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      email: pendingEmail,
+      token: code,
+      type: 'signup'
+    });
+
+    btn.disabled = false;
+
+    if (error) {
+      setStatus('statusOtp', 'Verifikasi gagal: ' + error.message, true);
+      return;
+    }
+
+    setStatus('statusOtp', 'Berhasil, mengalihkan...');
+    window.location.href = REDIRECT_URL;
+  }
+
+  async function resendOtp(silent) {
+    if (!pendingEmail) return;
+    if (!silent) setStatus('statusOtp', 'Mengirim ulang kode...');
+
+    const { error } = await supabaseClient.auth.resend({
+      type: 'signup',
+      email: pendingEmail
+    });
+
+    if (error) {
+      setStatus('statusOtp', 'Gagal kirim ulang: ' + error.message, true);
+    } else if (!silent) {
+      setStatus('statusOtp', 'Kode baru sudah dikirim.');
     }
   }
 </script>

@@ -171,6 +171,13 @@
     .btn-social { width: 50px; height: 50px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: white; transition: transform 0.2s; }
     .btn-social svg { width: 22px; height: 22px; fill: #ffffff; }
 
+    /* ==== PROFILE INFO: GROUPED LIST ALA iOS SETTINGS ==== */
+    .info-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.07); transition: background 0.15s ease; }
+    .info-row:active { background: rgba(255,255,255,0.04); }
+    .info-row-left { display: flex; align-items: center; gap: 10px; color: var(--tg-text-muted); font-size: 12px; flex-shrink: 0; }
+    .info-row-icon { width: 16px; text-align: center; color: var(--tg-accent); font-size: 13px; }
+    .info-row-value { font-size: 13px; color: #fff; text-align: right; max-width: 58%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
     /* POP-UP GLASSMORPHISM */
     .glass-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.3s ease; }
     .glass-popup-overlay.hidden { display: none !important; opacity: 0; }
@@ -981,11 +988,26 @@ html, body {
           </p>
         </div>
 
-        <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none; text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; padding:14px; font-size:13px; color:#fff; flex-direction:column; gap:10px;">
-          <div><span style="color:var(--tg-text-muted); font-size:11px;">Username</span><br><b id="infoUsername">-</b></div>
-          <div><span style="color:var(--tg-text-muted); font-size:11px;">Name Display</span><br><b id="infoDisplayName">-</b></div>
-          <div><span style="color:var(--tg-text-muted); font-size:11px;"> Your ID</span><br><b id="infoPermanentId">-</b></div>
-          <div><span style="color:var(--tg-text-muted); font-size:11px;">Device Login</span><br><b id="infoDevice">-</b></div>
+        <div id="profileInfoArea" style="margin-top:12px; width:100%; display:none; text-align:left; background:rgba(0,0,0,0.2); border-radius:16px; overflow:hidden; font-size:13px; color:#fff; flex-direction:column;">
+          <div class="info-row">
+            <div class="info-row-left"><i class="fas fa-at info-row-icon"></i><span>Username</span></div>
+            <b id="infoUsername" class="info-row-value">-</b>
+          </div>
+          <div class="info-row">
+            <div class="info-row-left"><i class="fas fa-user info-row-icon"></i><span>Nama Display</span></div>
+            <b id="infoDisplayName" class="info-row-value">-</b>
+          </div>
+          <div class="info-row" id="infoPermanentIdRow" onclick="salinPermanentId()" style="cursor:pointer;">
+            <div class="info-row-left"><i class="fas fa-id-badge info-row-icon"></i><span>ID Kamu</span></div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <b id="infoPermanentId" class="info-row-value">-</b>
+              <i class="fas fa-copy" style="font-size:11px; color:var(--tg-text-muted);"></i>
+            </div>
+          </div>
+          <div class="info-row" style="border-bottom:none;">
+            <div class="info-row-left"><i class="fas fa-mobile-screen-button info-row-icon"></i><span>Device Login</span></div>
+            <b id="infoDevice" class="info-row-value">-</b>
+          </div>
         </div>
       </div>
     </div>
@@ -1559,6 +1581,24 @@ function salinLinkShareMod(appId, namaApp) {
         }
     }).catch(err => {
         console.error("Gagal menyalin link share: ", err);
+    });
+}
+
+// FUNGSI SALIN ID PERMANEN DARI TAB PROFILE
+function salinPermanentId() {
+    const idEl = document.getElementById('infoPermanentId');
+    if (!idEl || !idEl.textContent || idEl.textContent === '-') return;
+
+    navigator.clipboard.writeText(idEl.textContent).then(() => {
+        const toast = document.getElementById('custom-toast');
+        const toastMsg = document.getElementById('toast-message');
+        if (toast && toastMsg) {
+            toastMsg.innerText = "ID Berhasil Disalin!";
+            toast.style.top = "20px";
+            setTimeout(() => { toast.style.top = "-100px"; }, 2000);
+        }
+    }).catch(err => {
+        console.error("Gagal menyalin ID: ", err);
     });
 }
 

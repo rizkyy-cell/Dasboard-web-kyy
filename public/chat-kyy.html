@@ -538,6 +538,7 @@
     flex-shrink:0;
   }
   .msg-attach-card img{width:100%;height:100%;object-fit:cover;display:block;}
+  .msg-attach-card video{width:100%;height:100%;object-fit:cover;display:block;}
   .msg-attach-card .msg-attach-icon{
     width:100%;height:100%;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -2161,6 +2162,19 @@ function expandAttachmentImage(url, name){
   document.getElementById('artifactModal').classList.add('show');
 }
 
+function expandAttachmentVideo(url, name){
+  kyyPanelActiveId = null;
+  document.getElementById('artifactGroupTabs').style.display = 'none';
+  document.getElementById('artifactViewToggle').style.display = 'none';
+  const title = document.getElementById('artifactModalTitle');
+  const body = document.getElementById('artifactModalBody');
+  title.innerHTML = `<span>${escapeHtml(name || 'Lampiran')}</span>`;
+  document.getElementById('artifactModalCopyBtn').style.display = 'none';
+  document.getElementById('artifactModalDownloadBtn').style.display = 'none';
+  body.innerHTML = `<video src="${url}" controls autoplay style="width:100%;display:block;background:#000"></video>`;
+  document.getElementById('artifactModal').classList.add('show');
+}
+
 
 /* ================= SUPABASE ================= */
 const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
@@ -2217,7 +2231,67 @@ function kyyInitComposerToggles(){
 
 let attachSeq = 0;
 const MAX_ATTACHMENT_MB = 8;   
-const MAX_VIDEO_MB = 25;   // limit lebih besar khusus video, karena Gemini butuh baca isi frame+audio-nya
+// Vercel serverless function (Node runtime) punya HARD LIMIT ~4.5MB per request body —
+// ini batasan platform, BUKAN sesuatu yang bisa dinaikin lewat config apapun. Base64 encode
+// juga nambah ±33% ukuran. Jadi ngirim video lewat backend kita sendiri (inline base64)
+// cuma masuk akal buat video super pendek (~3MB), nggak cukup buat video beneran.
+//
+// Solusinya: video di-upload LANGSUNG dari browser ke Gemini File API milik Google
+// (bukan lewat backend kita), baru URI hasil upload itu yang dikirim ke backend.
+// Ini artinya video CUMA bisa dibaca AI kalau: mode Custom Mode + provider Gemini +
+// user isi API key Gemini-nya SENDIRI (bukan pakai key gabungan server, karena key
+// gabungan itu nggak boleh diekspos ke browser).
+const MAX_VIDEO_MB = 100;
+
+async function uploadVideoToGemini(file, apiKey){
+  // 1) Mulai sesi upload resumable
+  const startRes = await fetch(`https://generativelanguage.googleapis.com/upload/v1beta/files?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'X-Goog-Upload-Protocol': 'resumable',
+      'X-Goog-Upload-Command': 'start',
+      'X-Goog-Upload-Header-Content-Length': String(file.size),
+      'X-Goog-Upload-Header-Content-Type': file.type || 'video/mp4',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ file: { display_name: file.name } })
+  });
+  if(!startRes.ok) throw new Error(`Gagal mulai upload video ke Gemini (Status ${startRes.status})`);
+
+  const uploadUrl = startRes.headers.get('X-Goog-Upload-URL');
+  if(!uploadUrl) throw new Error('Gemini tidak memberi upload URL.');
+
+  // 2) Upload isi filenya (biarkan browser yang ngatur Content-Length otomatis)
+  const uploadRes = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'X-Goog-Upload-Offset': '0',
+      'X-Goog-Upload-Command': 'upload, finalize'
+    },
+    body: file
+  });
+  if(!uploadRes.ok) throw new Error(`Gagal upload isi video (Status ${uploadRes.status})`);
+
+  const uploadData = await uploadRes.json();
+  let fileInfo = uploadData.file;
+  if(!fileInfo) throw new Error('Respons upload dari Gemini nggak lengkap.');
+
+  // 3) Video butuh diproses server-side sama Gemini dulu sebelum bisa dibaca —
+  //    poll status-nya sampai ACTIVE (atau gagal/timeout)
+  let attempts = 0;
+  while(fileInfo.state === 'PROCESSING' && attempts < 45){
+    await new Promise(r => setTimeout(r, 2000));
+    const checkRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${fileInfo.name}?key=${apiKey}`);
+    if(checkRes.ok) fileInfo = await checkRes.json();
+    attempts++;
+  }
+
+  if(fileInfo.state !== 'ACTIVE'){
+    throw new Error(`Video gagal diproses Gemini (status: ${fileInfo.state || 'unknown'})`);
+  }
+
+  return { uri: fileInfo.uri, mimeType: fileInfo.mimeType };
+}
 
 const GUEST_KEY = 'kyy_guest_chat_sessions';
 
@@ -2434,13 +2508,19 @@ async function addAttachment(file){
     return;
   }
 
-  // Video cuma beneran kebaca kalau provider aktif Gemini (Custom Mode). Di mode lain
-  // atau pas provider OpenRouter, video tetap bisa dilampirkan tapi kasih tau user dulu.
-  if(category === 'video'){
-    const providerAktif = localStorage.getItem('kyy_custom_provider') || 'gemini';
-    if(currentMode !== 'custom' || providerAktif === 'openrouter'){
-      kyyToast('Video cuma bisa dibaca AI kalau Custom Mode + provider Gemini aktif.', 'video', true);
-    }
+  // Video cuma bisa beneran dibaca AI kalau: Custom Mode + provider Gemini + user
+  // isi API key Gemini MILIK SENDIRI (bukan key gabungan server, itu nggak boleh
+  // dikirim ke browser). Kalau syaratnya nggak lengkap, video tetap bisa dilampirkan
+  // buat referensi visual doang, tapi jujur dikasih tau nggak akan terbaca AI.
+  const geminiKeySendiri = (document.getElementById('customApiKeyInput')?.value || '').trim();
+  const providerAktif = localStorage.getItem('kyy_custom_provider') || 'gemini';
+  const videoBisaDibaca = category === 'video'
+    && currentMode === 'custom'
+    && providerAktif === 'gemini'
+    && geminiKeySendiri !== '';
+
+  if(category === 'video' && !videoBisaDibaca){
+    kyyToast('Video dilampirkan tapi TIDAK akan dibaca AI — butuh Custom Mode + provider Gemini + API key Gemini kamu sendiri.', 'video', true);
   }
 
   const att = {
@@ -2453,6 +2533,8 @@ async function addAttachment(file){
     previewUrl: null,    
     base64: null,
     textContent: null,   
+    fileUri: null,        // dipakai video: URI hasil upload ke Gemini File API
+    videoStatus: null,    // null | 'uploading' | 'processing' | 'ready' | 'failed' | 'unsupported'
     loading: true         
   };
 
@@ -2469,9 +2551,24 @@ async function addAttachment(file){
     } else if(category === 'text'){
       att.textContent = await fileToText(file);
     } else if(category === 'video'){
-      const dataUrl = await fileToDataURL(file);
-      att.base64 = dataUrl.split(',')[1];
-      att.previewUrl = dataUrl; // dipakai buat <video> preview thumbnail di renderAttachmentPreview
+      att.previewUrl = URL.createObjectURL(file); // buat preview <video> lokal, nggak nunggu upload
+
+      if(videoBisaDibaca){
+        att.videoStatus = 'uploading';
+        renderAttachmentPreview();
+        try{
+          const hasil = await uploadVideoToGemini(file, geminiKeySendiri);
+          att.fileUri = hasil.uri;
+          att.mime = hasil.mimeType;
+          att.videoStatus = 'ready';
+        }catch(uploadErr){
+          console.warn('Upload video ke Gemini gagal:', uploadErr);
+          att.videoStatus = 'failed';
+          kyyToast(`Upload video gagal: ${uploadErr.message}`, 'video', true);
+        }
+      } else {
+        att.videoStatus = 'unsupported';
+      }
     }
   }catch(err){
     console.warn('Gagal membaca file lampiran:', err);
@@ -2510,8 +2607,21 @@ function renderAttachmentPreview(){
   bar.innerHTML = pendingAttachments.map(att => {
     const thumb = (att.category === 'image' && att.previewUrl)
       ? `<img class="attach-thumb" src="${att.previewUrl}" alt="${escapeHtml(att.name)}">`
-      : `<div class="attach-icon">${fileIconFor(att.category)}</div>`;
-    const metaText = att.loading ? 'Memuat...' : formatFileSize(att.size);
+      : (att.category === 'video' && att.previewUrl)
+        ? `<video class="attach-thumb" src="${att.previewUrl}" muted></video>`
+        : `<div class="attach-icon">${fileIconFor(att.category)}</div>`;
+
+    let metaText = formatFileSize(att.size);
+    if(att.category === 'video'){
+      if(att.videoStatus === 'uploading') metaText = 'Mengupload video ke Gemini...';
+      else if(att.videoStatus === 'processing') metaText = 'Gemini memproses video...';
+      else if(att.videoStatus === 'ready') metaText = `✓ Video siap dibaca AI — ${formatFileSize(att.size)}`;
+      else if(att.videoStatus === 'failed') metaText = '⚠️ Upload video gagal';
+      else if(att.videoStatus === 'unsupported') metaText = 'Video nggak akan dibaca AI (lihat catatan di atas)';
+    } else if(att.loading){
+      metaText = 'Memuat...';
+    }
+
     return `
       <div class="attach-chip${att.loading ? ' loading' : ''}" data-id="${att.id}">
         ${thumb}
@@ -2880,15 +2990,19 @@ async function sendMessage(){
   // 2. TAG DAN BACA FILE LAMPIRAN
   const imageAtts = pendingAttachments.filter(a => a.category === 'image' && a.base64);
   const textAtts = pendingAttachments.filter(a => a.category === 'text');
-  const videoAtts = pendingAttachments.filter(a => a.category === 'video' && a.base64);
+  const videoReadyAtts = pendingAttachments.filter(a => a.category === 'video' && a.fileUri);
+  const videoUnreadAtts = pendingAttachments.filter(a => a.category === 'video' && !a.fileUri);
   const otherAtts = pendingAttachments.filter(a => a.category !== 'image' && a.category !== 'text' && a.category !== 'video');
 
   let pesanUntukAI = text;
   textAtts.forEach(att => {
     pesanUntukAI += (pesanUntukAI ? '\n\n' : '') + `[Isi File ${att.name}]:\n${att.textContent || '(gagal dibaca)'}`;
   });
-  videoAtts.forEach(att => {
-    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Lampiran Video ${att.name} (${att.mime})]`;
+  videoReadyAtts.forEach(att => {
+    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Video "${att.name}" terlampir dan BISA kamu analisa langsung isi frame + audionya]`;
+  });
+  videoUnreadAtts.forEach(att => {
+    pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[User melampirkan video "${att.name}" tapi videonya TIDAK terbaca olehmu — kasih tahu user secara jujur kalau kamu nggak bisa lihat isi video ini]`;
   });
   otherAtts.forEach(att => {
     pesanUntukAI += (pesanUntukAI ? '\n' : '') + `[Lampiran File ${att.name} (${att.mime})]`;
@@ -2904,7 +3018,7 @@ async function sendMessage(){
   const attachSnapshot = pendingAttachments.map(a => ({
     name: a.name,
     category: a.category,
-    previewUrl: a.category === 'image' ? a.previewUrl : null
+    previewUrl: (a.category === 'image' || a.category === 'video') ? a.previewUrl : null
   }));
   messages.push({ role: 'user', content: finalTextUI, rawText: text, attachments: attachSnapshot });
   input.value = '';
@@ -2973,11 +3087,11 @@ async function sendMessage(){
       payloadKirim.gambarList = imageAtts.map(a => ({ data: a.base64, mimeType: a.mime }));
     }
 
-    if(videoAtts.length > 0){
-      // videoList cuma dipakai backend chat_custom.js (Custom Mode) — backend yang
-      // nentuin: kalau provider aktifnya Gemini, video ikut dibaca; kalau OpenRouter,
-      // video di-skip otomatis dan AI dikasih tau lewat catatan sistem, bukan diam-diam.
-      payloadKirim.videoList = videoAtts.map(a => ({ data: a.base64, mimeType: a.mime }));
+    if(videoReadyAtts.length > 0){
+      // videoFileList cuma dipakai backend chat_custom.js (Custom Mode + provider Gemini).
+      // Isinya URI hasil upload video ke Gemini File API (bukan base64 mentah), karena
+      // ngirim video lewat body request backend kita sendiri kena limit 4.5MB Vercel.
+      payloadKirim.videoFileList = videoReadyAtts.map(a => ({ uri: a.fileUri, mimeType: a.mime }));
     }
 
     const res = await fetch(targetEndpoint, {
@@ -3051,6 +3165,9 @@ function renderMessages(){
           if(att.category === 'image' && att.previewUrl){
             card.innerHTML = `<img src="${att.previewUrl}" alt="${escapeHtml(att.name)}"><div class="msg-attach-name">${escapeHtml(att.name)}</div>`;
             card.onclick = () => expandAttachmentImage(att.previewUrl, att.name);
+          } else if(att.category === 'video' && att.previewUrl){
+            card.innerHTML = `<video src="${att.previewUrl}" muted></video><div class="msg-attach-name">${escapeHtml(att.name)}</div>`;
+            card.onclick = () => expandAttachmentVideo(att.previewUrl, att.name);
           } else {
             card.innerHTML = `<div class="msg-attach-icon">${fileIconFor(att.category)}</div><div class="msg-attach-name">${escapeHtml(att.name)}</div>`;
           }

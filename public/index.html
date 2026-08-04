@@ -1091,6 +1091,10 @@ html, body {
           </div>
         </div>
 
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:4px 0 16px 0;"></div>
+
+        <button onclick="logoutUser()" class="ios-btn" style="width:100%; padding:12px; margin-bottom:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-right-from-bracket"></i> LOGOUT </button>
+
         <button onclick="tutupSettingsPopup()" class="ios-btn" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
       </div>
     </div>
@@ -1198,6 +1202,28 @@ html, body {
       modal.style.opacity = '0';
       document.getElementById('settingsPopupBox').style.transform = 'scale(0.85)';
       setTimeout(() => modal.style.display = 'none', 300);
+    }
+
+    // FUNGSI LOGOUT DARI POPUP SETTINGS
+    async function logoutUser() {
+      const konfirmasi = confirm("Yakin mau keluar dari akun?");
+      if (!konfirmasi) return;
+
+      try {
+        await supabaseClient.auth.signOut();
+        tutupSettingsPopup();
+
+        const toast = document.getElementById('custom-toast');
+        const toastMsg = document.getElementById('toast-message');
+        if (toast && toastMsg) {
+          toastMsg.innerText = "Berhasil Keluar!";
+          toast.style.top = "20px";
+          setTimeout(() => { toast.style.top = "-100px"; }, 2000);
+        }
+      } catch (error) {
+        console.error("Gagal logout: ", error);
+        alert("Gagal logout, coba lagi.");
+      }
     }
 
     async function simpanNamaBaru() {

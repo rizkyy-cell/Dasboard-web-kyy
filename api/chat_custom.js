@@ -70,37 +70,6 @@ async function callOpenRouter({ key, model, messages }) {
     throw new Error(`Respons kosong dari OpenRouter. Alasan: ${data.choices?.[0]?.finish_reason || data.error?.message || 'Unknown Error'}`);
 }
 
-/* ================= HELPER: JANA GAMBAR (Gemini 2.5 Flash Image) ================= */
-async function callGeminiImage({ key, prompt }) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${key}`;
-
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-                responseModalities: ["TEXT", "IMAGE"]
-            }
-        })
-    });
-
-    if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`API Gambar Gemini gagal (Status ${res.status}). Detail: ${errText}`);
-    }
-
-    const data = await res.json();
-    const parts = data.candidates?.[0]?.content?.parts || [];
-    const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
-
-    if (imagePart) {
-        return imagePart.inlineData.data;
-    }
-
-    throw new Error('Gagal mendapatkan gambar dari Gemini (Respons kosong atau ditolak).');
-}
-
 /* ================= HELPER: DEEP SEARCH (pencarian internet beneran via Serper.dev) ================= */
 async function performDeepSearch(query) {
     const serperKey = process.env.SERPER_API_KEY;
@@ -182,7 +151,7 @@ export default async function handler(req, res) {
 
     try {
         const {
-            pesan, gambarData, gambarType, gambarList, videoList, riwayat,
+            pesan, gambarData, gambarType, gambarList, videoFileList, riwayat,
             customProvider, customApiKey, customGeminiModel,
             customOpenRouterKey, customOpenRouterModel, customPrompt,
             thinkMode, deepSearchMode, userId
@@ -193,8 +162,9 @@ export default async function handler(req, res) {
             ? gambarList
             : (gambarData && gambarType ? [{ data: gambarData, mimeType: gambarType }] : []);
 
-        // Video: cuma Gemini yang beneran bisa "nonton" video (analisa frame + audio).
-        const daftarVideo = Array.isArray(videoList) ? videoList : [];
+        // Video: dikirim sebagai URI hasil upload ke Gemini File API (BUKAN base64 mentah —
+        // itu bakal kena limit 4.5MB body request Vercel). Cuma Gemini yang bisa pakai URI ini.
+        const daftarVideo = Array.isArray(videoFileList) ? videoFileList : [];
 
         // 1. TENTUKAN PROVIDER
         const openrouterKey = customOpenRouterKey ? customOpenRouterKey.trim() : null;
@@ -238,31 +208,6 @@ export default async function handler(req, res) {
         const modelOpenRouter = (customOpenRouterModel && customOpenRouterModel.trim() !== '')
             ? customOpenRouterModel.trim()
             : (process.env.OPENROUTER_MODEL || 'openrouter/auto');
-
-        // ================= LOGIKA DETEKSI PERINTAH GAMBAR =================
-        if (pesan && pesan.trim().startsWith('/gambar ')) {
-            const promptGambar = pesan.replace('/gambar ', '').trim();
-
-            // Gambar hanya bisa dibuat menggunakan provider Gemini
-            if (provider === 'openrouter') {
-                return res.status(200).json({
-                    balasan: '⚠️ Pembuatan gambar saat ini hanya mendukung provider Gemini. Silakan ganti provider Anda.'
-                });
-            }
-
-            try {
-                const base64Data = await callGeminiImage({ key: keyTerpilih, prompt: promptGambar });
-
-                return res.status(200).json({
-                    balasan: `Berikut adalah gambar untuk "${promptGambar}":\n\n![Gambar Hasil AI](data:image/png;base64,${base64Data})`,
-                    deepSearchDitolak: null,
-                    deepSearchSisaKredit: null
-                });
-            } catch (err) {
-                return res.status(200).json({ balasan: `⚠️ Gagal membuat gambar: ${err.message}` });
-            }
-        }
-        // =================================================================
 
         // 2. SYSTEM PROMPT (+ instruksi Think Mode kalau aktif)
         let systemPrompt = (customPrompt && customPrompt.trim() !== '')
@@ -348,8 +293,7 @@ export default async function handler(req, res) {
                 userParts.push({ inlineData: { mimeType: img.mimeType, data: cleanBase64 } });
             });
             daftarVideo.forEach(vid => {
-                const cleanBase64 = vid.data.includes(',') ? vid.data.split(',')[1] : vid.data;
-                userParts.push({ inlineData: { mimeType: vid.mimeType, data: cleanBase64 } });
+                userParts.push({ fileData: { mimeType: vid.mimeType, fileUri: vid.uri } });
             });
 
             contents.push({ role: 'user', parts: userParts });
@@ -401,5 +345,4 @@ export default async function handler(req, res) {
         console.error("Error Custom CS Server:", error);
         return res.status(200).json({ balasan: `⚠️ Backend Custom Mode crash: ${error.message}` });
     }
-                                      }
-
+}

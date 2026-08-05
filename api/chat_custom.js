@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 // Pakai SERVICE_ROLE key (bukan anon key) — cuma ada di server, bypass RLS,
 // biar backend bisa kurangi/cek credit user tanpa lewat client.
@@ -326,7 +326,7 @@ async function cariDanBacaFileRelevan(userId, pesanText) {
 }
 
 /* ================= HANDLER UTAMA ================= */
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method tidak diizinkan' });
     }
@@ -439,4 +439,128 @@ Kalau ada beberapa file dalam satu project (misalnya index.html + style.css + sc
             pesanEfektif = `[CATATAN SISTEM: User melampirkan video, tapi provider OpenRouter yang sedang dipakai tidak mendukung pembacaan video. Video TIDAK ikut dibaca. Beri tahu user soal ini di jawabanmu, sarankan pindah ke provider Gemini kalau mau video-nya dianalisis.]\n\n---\n\n${pesanEfektif}`;
         }
 
-        /
+        // 3.6 BACA BALIK FILE TERSIMPAN — kalau pesan user nyebut nama file/project yang
+        //     pernah disimpan (Tahap 2), isinya ditempel di depan sebagai konteks, jadi
+        //     AI beneran "inget" project lama, bukan cuma tau namanya doang.
+        const konteksFile = await cariDanBacaFileRelevan(userId, pesan || '');
+        if (konteksFile) {
+            pesanEfektif = konteksFile + '---\n\n' + pesanEfektif;
+        }
+
+        // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
+        let draftText;
+
+        if (provider === 'openrouter') {
+            const messages = [{ role: 'system', content: systemPrompt }];
+
+            if (Array.isArray(riwayat) && riwayat.length > 0) {
+                riwayat.forEach(item => {
+                    const roleFormatted = (item.role === 'assistant' || item.role === 'model') ? 'assistant' : 'user';
+                    messages.push({ role: roleFormatted, content: item.content || item.text || '' });
+                });
+            }
+
+            if (daftarGambar.length > 0) {
+                const contentParts = [{ type: 'text', text: pesanEfektif }];
+                daftarGambar.forEach(img => {
+                    const cleanBase64 = img.data.includes(',') ? img.data.split(',')[1] : img.data;
+                    contentParts.push({ type: 'image_url', image_url: { url: `data:${img.mimeType};base64,${cleanBase64}` } });
+                });
+                messages.push({ role: 'user', content: contentParts });
+            } else {
+                messages.push({ role: 'user', content: pesanEfektif });
+            }
+
+            try {
+                draftText = await callOpenRouter({ key: keyTerpilih, model: modelOpenRouter, messages });
+            } catch (err) {
+                return res.status(200).json({ balasan: `⚠️ ${err.message}` });
+            }
+        } else {
+            const contents = [];
+
+            if (Array.isArray(riwayat) && riwayat.length > 0) {
+                riwayat.forEach(item => {
+                    const roleFormatted = (item.role === 'assistant' || item.role === 'model') ? 'model' : 'user';
+                    contents.push({
+                        role: roleFormatted,
+                        parts: [{ text: item.content || item.text || '' }]
+                    });
+                });
+            }
+
+            const userParts = [{ text: pesanEfektif }];
+            daftarGambar.forEach(img => {
+                const cleanBase64 = img.data.includes(',') ? img.data.split(',')[1] : img.data;
+                userParts.push({ inlineData: { mimeType: img.mimeType, data: cleanBase64 } });
+            });
+            daftarVideo.forEach(vid => {
+                userParts.push({ fileData: { mimeType: vid.mimeType, fileUri: vid.uri } });
+            });
+
+            contents.push({ role: 'user', parts: userParts });
+
+            try {
+                draftText = await callGemini({ key: keyTerpilih, model: modelGemini, systemPrompt, contents });
+            } catch (err) {
+                return res.status(200).json({ balasan: `⚠️ ${err.message}` });
+            }
+        }
+
+        // 5. THINK MODE PASS KE-2: review & perbaiki draft jawaban sendiri sebelum dikirim ke user
+        let finalText = draftText;
+
+        if (thinkMode) {
+            const refinePrompt = `Ini pertanyaan asli dari user:\n"${pesan}"\n\nIni jawaban draft yang sudah kamu susun:\n"""\n${draftText}\n"""\n\nTinjau ulang draft ini dengan teliti: cek akurasi fakta, kelengkapan, dan kejelasan penjelasannya. Perbaiki kalau ada yang kurang tepat atau kurang lengkap. Balas HANYA dengan versi final yang sudah diperbaiki (jangan tambahkan komentar soal proses reviewnya, jangan bilang "berikut versi revisi", langsung jawaban akhirnya saja).`;
+
+            try {
+                if (provider === 'openrouter') {
+                    finalText = await callOpenRouter({
+                        key: keyTerpilih,
+                        model: modelOpenRouter,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: refinePrompt }
+                        ]
+                    });
+                } else {
+                    finalText = await callGemini({
+                        key: keyTerpilih,
+                        model: modelGemini,
+                        systemPrompt,
+                        contents: [{ role: 'user', parts: [{ text: refinePrompt }] }]
+                    });
+                }
+            } catch (err) {
+                console.error('Think Mode: pass review gagal, pakai draft awal:', err);
+                finalText = draftText; // fallback aman — tetap kasih jawaban draft kalau review-nya gagal
+            }
+        }
+
+        // 6. STORAGE: kalau AI nulis file pakai format [PROJECT]/[FILE], simpan permanen
+        let storageResult = null; // { tersimpan, projectName, files } atau { tersimpan:false, alasan }
+        const { projectName, files } = parseFilesFromResponse(finalText);
+
+        if (files.length > 0) {
+            storageResult = await simpanFileKeStorage(userId, projectName, files);
+            finalText = stripFileMarkers(finalText);
+
+            if (storageResult.tersimpan) {
+                finalText += `\n\n💾 *Tersimpan permanen ke Project "${storageResult.projectName}": ${storageResult.files.join(', ')}*`;
+            } else {
+                finalText += `\n\n⚠️ *File di atas TIDAK tersimpan permanen — ${storageResult.alasan}*`;
+            }
+        }
+
+        return res.status(200).json({
+            balasan: finalText,
+            deepSearchDitolak: creditDitolak, // null kalau normal/gak pakai deepsearch, string kalau ditolak
+            deepSearchSisaKredit: sisaKreditDeepSearch, // integer kalau baru dipakai, null kalau tidak
+            storageResult // null kalau nggak ada file yang di-generate di respons ini
+        });
+
+    } catch (error) {
+        console.error("Error Custom CS Server:", error);
+        return res.status(200).json({ balasan: `⚠️ Backend Custom Mode crash: ${error.message}` });
+    }
+}

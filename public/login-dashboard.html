@@ -343,8 +343,8 @@ body {
         <i class="fa-solid fa-shield-halved"></i>
           Verifikasi
       </h2>
-      <p class="subtitle" id="otpSubtitle">Masukkan 6 digit kode yang dikirim ke emailmu</p>
-      <input type="text" id="otpCode" class="otp-input" placeholder="000000" maxlength="6" inputmode="numeric">
+      <p class="subtitle" id="otpSubtitle">Masukkan 8 digit kode yang dikirim ke emailmu</p>
+      <input type="text" id="otpCode" class="otp-input" placeholder="00000000" maxlength="8" inputmode="numeric">
       <button type="button" class="btn-primary" id="btnVerifyOtp" onclick="verifyOtp()">Verifikasi</button>
       <p class="status-text" id="statusOtp"></p>
 
@@ -436,7 +436,7 @@ body {
       if (error.message.toLowerCase().includes('confirm')) {
         pendingEmail = email;
         setStatus('statusLogin', 'Email belum diverifikasi, cek kode OTP kamu.', true);
-        document.getElementById('otpSubtitle').textContent = 'Masukkan 6 digit kode yang dikirim ke ' + email;
+        document.getElementById('otpSubtitle').textContent = 'Masukkan 8 digit kode yang dikirim ke ' + email;
         showView('otp');
         resendOtp(true);
       } else {
@@ -482,7 +482,7 @@ body {
     }
 
     pendingEmail = email;
-    document.getElementById('otpSubtitle').textContent = 'Masukkan 6 digit kode yang dikirim ke ' + email;
+    document.getElementById('otpSubtitle').textContent = 'Masukkan 8 digit kode yang dikirim ke ' + email;
     showView('otp');
     setStatus('statusOtp', 'Kode verifikasi sudah dikirim ke emailmu.');
   }
@@ -497,8 +497,8 @@ body {
       showView('login');
       return;
     }
-    if (!code || code.length !== 6) {
-      setStatus('statusOtp', 'Kode harus 6 digit.', true);
+    if (!code || code.length !== 8) {
+      setStatus('statusOtp', 'Kode harus 8 digit.', true);
       return;
     }
 

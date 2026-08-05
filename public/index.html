@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Dashboard—Web Kyy</title>
+
+  <!-- PWA: BISA DI-INSTALL KE HOME SCREEN SEPERTI APLIKASI -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0e1621">
+  <link rel="icon" href="/profile.jpg">
+  <!-- Dukungan iOS Safari (Add to Home Screen manual) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Web Kyy">
+  <link rel="apple-touch-icon" href="/profile.jpg">
   <!-- META TAG BANNER (STRUKTUR RAPI BARIS PER BARIS BIAR WHATSAPP GAK BINGUNG) -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jrxrezkyy-dashboard.vercel.app/">
@@ -878,6 +888,8 @@ html, body {
                       <!-- BARU -->
                         <a href="javascript:void(0)" onclick="showBugPopup()" class="btn-social" style="border-color: rgba(239, 68, 68, 0.4);"><i class="fas fa-exclamation-triangle" style="color:#ef4444; font-size:18px;"></i></a>
         </div>
+
+        <button id="installAppBtn" onclick="installApp()" class="ios-btn" style="display:none; align-items:center; justify-content:center; gap:8px; margin-top:16px; width:100%; padding:12px; background:linear-gradient(135deg, var(--tg-accent), #6366f1); border:none; border-radius:14px; color:#fff; font-weight:bold; font-size:13px; cursor:pointer; position:relative; z-index:2; box-shadow:0 4px 15px rgba(51,144,236,0.35);"><i class="fas fa-download"></i> Install Aplikasi ke Layar Utama</button>
     </div>
       
       <div class="glass-sys-info" id="sys-info-widget">
@@ -1093,7 +1105,7 @@ html, body {
 
         <div style="height:1px; background:rgba(255,255,255,0.1); margin:4px 0 16px 0;"></div>
 
-        <button onclick="logoutUser()" class="ios-btn" style="width:100%; padding:12px; margin-bottom:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-right-from-bracket"></i> LOGOUT </button>
+        <button onclick="logoutUser()" class="ios-btn" style="width:100%; padding:12px; margin-bottom:10px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); color:#ff8080; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fas fa-right-from-bracket"></i> Keluar</button>
 
         <button onclick="tutupSettingsPopup()" class="ios-btn" style="width:100%; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:14px; font-weight:bold; font-size:14px; cursor:pointer;">Tutup</button>
       </div>
@@ -1627,6 +1639,54 @@ function salinPermanentId() {
         console.error("Gagal menyalin ID: ", err);
     });
 }
+
+// =====================================================================
+// PWA: REGISTRASI SERVICE WORKER + TOMBOL INSTALL KE HOME SCREEN
+// =====================================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+            console.error('Gagal daftar Service Worker:', err);
+        });
+    });
+}
+
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'flex';
+});
+
+async function installApp() {
+    const btn = document.getElementById('installAppBtn');
+    if (!deferredInstallPrompt) {
+        alert("Untuk install: buka menu browser (⋮) lalu pilih 'Tambahkan ke Layar Utama' / 'Install App'.");
+        return;
+    }
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    if (btn) btn.style.display = 'none';
+
+    if (outcome === 'accepted') {
+        const toast = document.getElementById('custom-toast');
+        const toastMsg = document.getElementById('toast-message');
+        if (toast && toastMsg) {
+            toastMsg.innerText = "Aplikasi Berhasil Diinstall!";
+            toast.style.top = "20px";
+            setTimeout(() => { toast.style.top = "-100px"; }, 2000);
+        }
+    }
+}
+
+window.addEventListener('appinstalled', () => {
+    const btn = document.getElementById('installAppBtn');
+    if (btn) btn.style.display = 'none';
+    deferredInstallPrompt = null;
+});
 
 // FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD DARI LINK WA (VERSI ASYNC)
 async function cekParamUrlShare() {

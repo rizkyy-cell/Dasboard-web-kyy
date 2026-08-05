@@ -880,6 +880,52 @@
   .config-label { font-size:12px; color:var(--text-soft); margin-bottom:6px; display:block; font-weight:500; }
   .config-hint { font-size:11px; color:var(--text-soft); opacity:.75; display:block; margin-top:6px; line-height:1.4; }
 
+  /* ================= STORAGE PERMANEN ================= */
+  .storage-usage-bar-wrap{ margin-bottom:16px; }
+  .storage-usage-bar-track{
+    width:100%; height:8px; border-radius:6px;
+    background:var(--bg-input); overflow:hidden; margin-bottom:6px;
+  }
+  .storage-usage-bar-fill{
+    height:100%; border-radius:6px;
+    background:var(--accent);
+    transition:width .3s ease, background .3s ease;
+  }
+  .storage-usage-bar-fill.full{ background:#e5484d; }
+  .storage-usage-text{ font-size:12px; color:var(--text-soft); }
+
+  .storage-project-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:10px; }
+  .storage-empty-hint{ font-size:12.5px; color:var(--text-soft); opacity:.7; padding:8px 0; }
+
+  .storage-project-card{
+    border:1px solid var(--border); border-radius:12px;
+    padding:12px; background:rgba(255,255,255,.02);
+  }
+  .storage-project-header{
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer; margin-bottom:2px;
+  }
+  .storage-project-name{ font-size:13.5px; font-weight:700; color:var(--text-main); }
+  .storage-project-meta{ font-size:11px; color:var(--text-soft); }
+  .storage-project-actions{ display:flex; gap:4px; }
+  .storage-project-actions button{
+    width:26px; height:26px; border:none; background:transparent;
+    color:var(--text-soft); border-radius:7px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .storage-project-actions button:hover{ background:var(--sidebar-hover); color:var(--text-main); }
+
+  .storage-file-list{ display:none; flex-direction:column; gap:2px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+  .storage-file-list.open{ display:flex; }
+  .storage-file-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:6px 4px; border-radius:7px; cursor:pointer;
+  }
+  .storage-file-row:hover{ background:var(--sidebar-hover); }
+  .storage-file-info{ display:flex; align-items:center; gap:8px; min-width:0; }
+  .storage-file-name{ font-size:12.5px; color:var(--text-main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .storage-file-size{ font-size:10.5px; color:var(--text-soft); flex-shrink:0; }
+
   .provider-box{
     border:1px solid var(--border);
     border-radius:14px;
@@ -1194,6 +1240,9 @@
         <button class="attach-btn" type="button" onclick="document.getElementById('fileInputHidden').click()" title="Lampirkan file">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.19 9.19a1.5 1.5 0 0 1-2.12-2.12l8.49-8.48"/></svg>
         </button>
+        <button class="attach-btn" type="button" onclick="openStoragePicker()" title="Sisipkan dari Storage">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </button>
         <textarea id="userInput" placeholder="Reply JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -1325,7 +1374,43 @@
       </div>
     </div>
 
+    <!-- MENU ACCORDION STORAGE PERMANEN -->
+    <div style="border-top: 1px solid var(--border);">
+      <div class="accordion-header" onclick="toggleStorageAccordion()">
+        <span class="accordion-header-title">Storage</span>
+        <span class="accordion-arrow" id="storageAccordionArrow">V</span>
+      </div>
 
+      <div class="accordion-body" id="storageAccordionBody">
+        <div class="storage-usage-bar-wrap">
+          <div class="storage-usage-bar-track">
+            <div class="storage-usage-bar-fill" id="storageUsageFill" style="width:0%"></div>
+          </div>
+          <div class="storage-usage-text" id="storageUsageText">Memuat...</div>
+        </div>
+
+        <div id="storageProjectList" class="storage-project-list">
+          <div class="storage-empty-hint">Memuat daftar project...</div>
+        </div>
+
+        <span class="config-hint">File yang dibuat AI (misal project portofolio) otomatis tersimpan di sini permanen — nggak kayak lampiran biasa yang cuma sementara. Butuh login buat pakai fitur ini.</span>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<!-- MODAL PICKER "SISIPKAN DARI STORAGE" -->
+<div class="glass-popup-overlay" id="storagePickerPopup" onclick="closeStoragePicker(event)">
+  <div class="glass-popup-card" onclick="event.stopPropagation()">
+    <div class="panel-header-custom">
+      <button class="btn-back-glass" onclick="closeStoragePicker()" title="Tutup">«</button>
+      <div class="panel-title-text">Sisipkan dari Storage</div>
+    </div>
+    <div id="storagePickerList" class="storage-project-list" style="padding:16px;">
+      <div class="storage-empty-hint">Memuat...</div>
+    </div>
   </div>
 </div>
 
@@ -3372,6 +3457,199 @@ function toggleCustomConfigAccordion(){
     body.classList.add('open');
     arrow.classList.add('active');
   }
+}
+
+/* ================= STORAGE PERMANEN ================= */
+async function kyyGetAccessToken(){
+  const { data } = await supabaseClient.auth.getSession();
+  return data?.session?.access_token || null;
+}
+
+async function kyyStorageCall(payload){
+  const accessToken = await kyyGetAccessToken();
+  if(!accessToken){
+    return { error: 'Kamu harus login dulu buat pakai Storage.' };
+  }
+  try{
+    const res = await fetch('/api/storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, accessToken })
+    });
+    return await res.json();
+  }catch(err){
+    return { error: 'Gagal menghubungi server storage: ' + err.message };
+  }
+}
+
+function toggleStorageAccordion(){
+  const body = document.getElementById('storageAccordionBody');
+  const arrow = document.getElementById('storageAccordionArrow');
+
+  if(body.classList.contains('open')){
+    body.classList.remove('open');
+    arrow.classList.remove('active');
+  } else {
+    body.classList.add('open');
+    arrow.classList.add('active');
+    loadStorageData('storageProjectList', false);
+  }
+}
+
+function kyyFormatBytes(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+async function loadStorageData(targetElId, forPicker){
+  const target = document.getElementById(targetElId);
+  if(!target) return;
+  target.innerHTML = '<div class="storage-empty-hint">Memuat...</div>';
+
+  const result = await kyyStorageCall({ action: 'list' });
+
+  if(result.error){
+    target.innerHTML = `<div class="storage-empty-hint">⚠️ ${escapeHtml(result.error)}</div>`;
+    return;
+  }
+
+  if(!forPicker){
+    const fillEl = document.getElementById('storageUsageFill');
+    const textEl = document.getElementById('storageUsageText');
+    const pct = Math.min(100, (result.totalBytes / result.quotaBytes) * 100);
+    if(fillEl){
+      fillEl.style.width = pct + '%';
+      fillEl.classList.toggle('full', pct >= 95);
+    }
+    if(textEl){
+      textEl.textContent = `${kyyFormatBytes(result.totalBytes)} / ${kyyFormatBytes(result.quotaBytes)} terpakai`;
+    }
+  }
+
+  if(!result.projects || result.projects.length === 0){
+    target.innerHTML = '<div class="storage-empty-hint">Belum ada project tersimpan. Minta AI bikinin sesuatu (misal "buatkan portofolio") di Custom Mode + provider Gemini, hasilnya otomatis tersimpan di sini.</div>';
+    return;
+  }
+
+  target.innerHTML = result.projects.map(proj => {
+    const filesInProject = result.files.filter(f => f.project_id === proj.id);
+    const totalSize = filesInProject.reduce((s, f) => s + (f.size_bytes || 0), 0);
+
+    const fileRows = filesInProject.map(f => {
+      if(forPicker){
+        return `
+          <div class="storage-file-row" onclick="insertStorageFileIntoComposer('${f.id}', '${escapeHtml(f.filename)}')">
+            <div class="storage-file-info">
+              ${kyyIcon('file-text', 14)}
+              <span class="storage-file-name">${escapeHtml(f.filename)}</span>
+            </div>
+            <span class="storage-file-size">${kyyFormatBytes(f.size_bytes)}</span>
+          </div>
+        `;
+      }
+      return `
+        <div class="storage-file-row">
+          <div class="storage-file-info">
+            ${kyyIcon('file-text', 14)}
+            <span class="storage-file-name">${escapeHtml(f.filename)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="storage-file-size">${kyyFormatBytes(f.size_bytes)}</span>
+            <button type="button" onclick="deleteStorageFile('${f.id}', event)" title="Hapus file">${kyyIcon('x',12)}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="storage-project-card">
+        <div class="storage-project-header" onclick="toggleStorageProjectFiles('${proj.id}')">
+          <div>
+            <div class="storage-project-name">${escapeHtml(proj.name)}</div>
+            <div class="storage-project-meta">${filesInProject.length} file · ${kyyFormatBytes(totalSize)}</div>
+          </div>
+          ${forPicker ? '' : `
+          <div class="storage-project-actions">
+            <button type="button" onclick="deleteStorageProject('${proj.id}', event)" title="Hapus project">${kyyIcon('trash-2',14)}</button>
+          </div>`}
+        </div>
+        <div class="storage-file-list" id="storageFileList_${proj.id}${forPicker ? '_picker' : ''}">
+          ${fileRows}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleStorageProjectFiles(projectId){
+  const listNormal = document.getElementById(`storageFileList_${projectId}`);
+  const listPicker = document.getElementById(`storageFileList_${projectId}_picker`);
+  const list = listNormal || listPicker;
+  if(list) list.classList.toggle('open');
+}
+
+async function deleteStorageProject(projectId, event){
+  if(event) event.stopPropagation();
+  if(!confirm('Hapus seluruh project ini beserta semua filenya? Nggak bisa dibatalin.')) return;
+
+  const result = await kyyStorageCall({ action: 'delete_project', projectId });
+  if(result.error){
+    kyyToast(result.error, 'trash-2', true);
+    return;
+  }
+  kyyToast('Project berhasil dihapus.', 'trash-2');
+  loadStorageData('storageProjectList', false);
+}
+
+async function deleteStorageFile(fileId, event){
+  if(event) event.stopPropagation();
+  if(!confirm('Hapus file ini?')) return;
+
+  const result = await kyyStorageCall({ action: 'delete_file', fileId });
+  if(result.error){
+    kyyToast(result.error, 'trash-2', true);
+    return;
+  }
+  kyyToast('File berhasil dihapus.', 'trash-2');
+  loadStorageData('storageProjectList', false);
+}
+
+function openStoragePicker(){
+  document.getElementById('storagePickerPopup').classList.add('show');
+  loadStorageData('storagePickerList', true);
+}
+function closeStoragePicker(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('storagePickerPopup').classList.remove('show');
+}
+
+async function insertStorageFileIntoComposer(fileId, fileName){
+  kyyToast(`Mengambil isi "${fileName}"...`, 'file-text');
+  const result = await kyyStorageCall({ action: 'get_file', fileId });
+
+  if(result.error){
+    kyyToast(result.error, 'file-text', true);
+    return;
+  }
+
+  pendingAttachments.push({
+    id: 'storagefile_' + fileId + '_' + Date.now(),
+    file: null,
+    name: fileName,
+    mime: result.file.mime_type || 'text/plain',
+    size: result.file.size_bytes || result.content.length,
+    category: 'text',
+    previewUrl: null,
+    base64: null,
+    textContent: result.content,
+    loading: false
+  });
+
+  renderAttachmentPreview();
+  updateSendBtnState();
+  closeStoragePicker();
+  kyyToast(`"${fileName}" disisipkan ke pesan berikutnya.`, 'file-text');
 }
 
 /* Live warning kalau dua toggle provider dinyalain bareng — nggak maksa matiin,

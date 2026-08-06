@@ -143,34 +143,9 @@ async function pakaiCreditDeepSearch(userId) {
     return { boleh: true, sisa: data };
 }
 
-/* ================= HELPER: SIMPAN FILE HASIL GENERATE AI KE STORAGE PERMANEN ================= */
+/* ================= STORAGE: konstanta dipakai bareng sama /api/storage.js ================= */
 const STORAGE_QUOTA_BYTES = 200 * 1024 * 1024; // 200MB per akun
 const STORAGE_BUCKET = 'user-files';
-
-// Cari marker [PROJECT: ...] dan [FILE: nama] diikuti blok kode ```lang ... ```
-// yang sengaja diinstruksiin ke AI lewat system prompt. Marker ini yang jadi sinyal
-// "file ini harus disimpan permanen", bukan sekadar potongan kode biasa di jawaban.
-function parseFilesFromResponse(text) {
-    const projectMatch = text.match(/\[PROJECT:\s*(.+?)\]/);
-    const projectName = projectMatch ? projectMatch[1].trim() : null;
-
-    const files = [];
-    const fileRegex = /\[FILE:\s*(.+?)\]\s*```[a-zA-Z0-9_-]*\n([\s\S]*?)```/g;
-    let m;
-    while ((m = fileRegex.exec(text)) !== null) {
-        files.push({ fileName: m[1].trim(), content: m[2] });
-    }
-
-    return { projectName, files };
-}
-
-// Hapus baris marker [PROJECT: ...] / [FILE: ...] dari teks yang ditampilkan ke user —
-// blok kodenya (``` ```) TETAP ada, jadi tetap muncul normal sebagai artifact card di chat.
-function stripFileMarkers(text) {
-    return text
-        .replace(/\[PROJECT:\s*.+?\]\s*\n?/g, '')
-        .replace(/\[FILE:\s*.+?\]\s*\n?/g, '');
-}
 
 function guessMimeType(fileName) {
     const ext = (fileName.split('.').pop() || '').toLowerCase();
@@ -180,149 +155,6 @@ function guessMimeType(fileName) {
         svg: 'image/svg+xml', py: 'text/x-python', ts: 'application/typescript'
     };
     return map[ext] || 'text/plain';
-}
-
-// return { tersimpan: true, projectName, files: [...] }
-//     atau { tersimpan: false, alasan: '...' }  -> JANGAN upload apapun
-async function simpanFileKeStorage(userId, projectName, files) {
-    if (!userId) {
-        return { tersimpan: false, alasan: 'User belum login, file nggak bisa disimpan permanen.' };
-    }
-
-    const admin = getSupabaseAdmin();
-    if (!admin) {
-        return { tersimpan: false, alasan: 'Storage belum dikonfigurasi di server.' };
-    }
-
-    const totalBytesBaru = files.reduce((sum, f) => sum + Buffer.byteLength(f.content, 'utf8'), 0);
-
-    const { data: sudahDipakai, error: cekError } = await admin.rpc('get_storage_usage', { p_user_id: userId });
-    if (cekError) {
-        console.error('Gagal cek quota storage:', cekError);
-        return { tersimpan: false, alasan: 'Gagal mengecek quota storage.' };
-    }
-
-    if ((sudahDipakai || 0) + totalBytesBaru > STORAGE_QUOTA_BYTES) {
-        const sisaMB = ((STORAGE_QUOTA_BYTES - (sudahDipakai || 0)) / (1024 * 1024)).toFixed(1);
-        return { tersimpan: false, alasan: `Storage penuh (sisa ${sisaMB}MB dari 200MB). Hapus file lama dulu sebelum bikin yang baru.` };
-    }
-
-    const namaProject = (projectName && projectName.trim()) || `Project ${new Date().toLocaleDateString('id-ID')}`;
-
-    // cari project dengan nama sama milik user ini, atau bikin baru
-    let projectId;
-    const { data: existingProject } = await admin
-        .from('user_projects')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('name', namaProject)
-        .maybeSingle();
-
-    if (existingProject) {
-        projectId = existingProject.id;
-        await admin.from('user_projects').update({ updated_at: new Date() }).eq('id', projectId);
-    } else {
-        const { data: newProject, error: projErr } = await admin
-            .from('user_projects')
-            .insert({ user_id: userId, name: namaProject })
-            .select('id')
-            .single();
-        if (projErr) return { tersimpan: false, alasan: 'Gagal bikin project baru: ' + projErr.message };
-        projectId = newProject.id;
-    }
-
-    const savedFiles = [];
-    for (const f of files) {
-        const mimeType = guessMimeType(f.fileName);
-        const sizeBytes = Buffer.byteLength(f.content, 'utf8');
-        const storagePath = `${userId}/${projectId}/${f.fileName}`;
-
-        const { error: uploadErr } = await admin.storage
-            .from(STORAGE_BUCKET)
-            .upload(storagePath, f.content, { contentType: mimeType, upsert: true });
-
-        if (uploadErr) {
-            console.error(`Gagal upload file ${f.fileName}:`, uploadErr);
-            continue;
-        }
-
-        await admin.from('user_project_files').upsert({
-            user_id: userId,
-            project_id: projectId,
-            filename: f.fileName,
-            storage_path: storagePath,
-            mime_type: mimeType,
-            size_bytes: sizeBytes,
-            updated_at: new Date()
-        }, { onConflict: 'project_id,filename' });
-
-        savedFiles.push(f.fileName);
-    }
-
-    return { tersimpan: true, projectName: namaProject, files: savedFiles };
-}
-
-/* ================= HELPER: BACA BALIK FILE TERSIMPAN YANG RELEVAN ================= */
-// Cocokin nama file/project yang disebut di pesan user (case-insensitive substring match),
-// lalu download isi file yang match dari Storage buat ditempel jadi konteks. Dibatasi ukuran
-// total biar nggak boros token kalau user punya banyak file tersimpan.
-const MAX_FILE_CONTEXT_BYTES = 60 * 1024; // ~60KB total konten file yang di-inject per request
-
-async function cariDanBacaFileRelevan(userId, pesanText) {
-    if (!userId || !pesanText || !pesanText.trim()) return '';
-
-    const admin = getSupabaseAdmin();
-    if (!admin) return '';
-
-    const { data: daftarFile, error } = await admin
-        .from('user_project_files')
-        .select('filename, storage_path, user_projects(name)')
-        .eq('user_id', userId);
-
-    if (error || !daftarFile || daftarFile.length === 0) return '';
-
-    const pesanLower = pesanText.toLowerCase();
-    const matched = daftarFile.filter(f => {
-        const namaProject = f.user_projects?.name || '';
-        const namaFileTanpaExt = f.filename.replace(/\.[^.]+$/, '');
-        return pesanLower.includes(f.filename.toLowerCase())
-            || (namaFileTanpaExt.length > 2 && pesanLower.includes(namaFileTanpaExt.toLowerCase()))
-            || (namaProject && namaProject.length > 2 && pesanLower.includes(namaProject.toLowerCase()));
-    });
-
-    if (matched.length === 0) return '';
-
-    let totalBytes = 0;
-    let adaYangDilewati = false;
-    let hasilKonteks = 'FILE TERSIMPAN MILIK USER YANG RELEVAN DENGAN PERTANYAAN INI (baca dan pakai sebagai konteks/referensi langsung, JANGAN bilang kamu tidak punya akses ke file ini — kamu BISA baca isinya di bawah):\n\n';
-
-    for (const f of matched) {
-        const { data: fileBlob, error: dlError } = await admin.storage
-            .from(STORAGE_BUCKET)
-            .download(f.storage_path);
-
-        if (dlError || !fileBlob) continue;
-
-        const isiFile = await fileBlob.text();
-        const ukuran = Buffer.byteLength(isiFile, 'utf8');
-
-        if (totalBytes + ukuran > MAX_FILE_CONTEXT_BYTES) {
-            adaYangDilewati = true;
-            continue;
-        }
-
-        totalBytes += ukuran;
-        const namaProject = f.user_projects?.name || '(tanpa nama)';
-        hasilKonteks += `--- File: ${f.filename} (Project: ${namaProject}) ---\n${isiFile}\n\n`;
-    }
-
-    if (totalBytes === 0) return '';
-
-    if (adaYangDilewati) {
-        hasilKonteks += '[Catatan sistem: ada file relevan lain yang dilewati karena kontennya kalau digabung kelewat besar buat disertakan sekaligus.]\n\n';
-    }
-
-    return hasilKonteks;
 }
 
 /* ================= HANDLER UTAMA ================= */
@@ -400,17 +232,10 @@ module.exports = async function handler(req, res) {
             systemPrompt += `\n\nMODE THINK AKTIF: Sebelum menjawab, analisis pertanyaan user secara mendalam dan terstruktur — pertimbangkan beberapa sudut pandang, cek konsistensi logika dan fakta, baru susun jawaban akhir yang jelas dan akurat.`;
         }
 
-        if (userId) {
-            systemPrompt += `\n\nKALAU user minta kamu MEMBUAT FILE KODE (misalnya index.html, style.css, script.js, atau file apapun yang jadi bagian dari sebuah project/aplikasi/website), SELALU tandai setiap blok kode itu dengan format berikut PERSIS, supaya otomatis tersimpan permanen:
-
-[PROJECT: Nama Project Singkat]
-[FILE: nama-file.ext]
-\`\`\`bahasa
-...isi kode lengkap file ini...
-\`\`\`
-
-Kalau ada beberapa file dalam satu project (misalnya index.html + style.css + script.js), tulis [PROJECT: ...] SEKALI SAJA di awal, lalu [FILE: ...] buat tiap file yang berbeda. JANGAN pakai format [PROJECT]/[FILE] ini untuk jawaban biasa yang bukan pembuatan file/project — cukup pakai blok kode markdown biasa seperti biasanya.`;
-        }
+        // (Instruksi format [PROJECT]/[FILE] otomatis udah dihapus — sekarang Project
+        //  cuma dibikin manual sama user lewat menu Projects, bukan otomatis dari sini.
+        //  Tahap D nanti nyambungin konteks Project Knowledge kalau chat lagi aktif di
+        //  dalam sebuah Project.)
 
         // 3. DEEP SEARCH (kalau aktif) — hasil pencarian ditempel di depan pesan user
         let pesanEfektif = pesan || '';
@@ -439,13 +264,9 @@ Kalau ada beberapa file dalam satu project (misalnya index.html + style.css + sc
             pesanEfektif = `[CATATAN SISTEM: User melampirkan video, tapi provider OpenRouter yang sedang dipakai tidak mendukung pembacaan video. Video TIDAK ikut dibaca. Beri tahu user soal ini di jawabanmu, sarankan pindah ke provider Gemini kalau mau video-nya dianalisis.]\n\n---\n\n${pesanEfektif}`;
         }
 
-        // 3.6 BACA BALIK FILE TERSIMPAN — kalau pesan user nyebut nama file/project yang
-        //     pernah disimpan (Tahap 2), isinya ditempel di depan sebagai konteks, jadi
-        //     AI beneran "inget" project lama, bukan cuma tau namanya doang.
-        const konteksFile = await cariDanBacaFileRelevan(userId, pesan || '');
-        if (konteksFile) {
-            pesanEfektif = konteksFile + '---\n\n' + pesanEfektif;
-        }
+        // (Baca-balik-file-by-keyword yang lama udah dihapus — Tahap D nanti gantiin
+        //  ini dengan cara yang lebih akurat: konteks Project Knowledge otomatis
+        //  ke-include kalau chat ini emang lagi aktif di dalam sebuah Project.)
 
         // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
         let draftText;
@@ -537,26 +358,10 @@ Kalau ada beberapa file dalam satu project (misalnya index.html + style.css + sc
             }
         }
 
-        // 6. STORAGE: kalau AI nulis file pakai format [PROJECT]/[FILE], simpan permanen
-        let storageResult = null; // { tersimpan, projectName, files } atau { tersimpan:false, alasan }
-        const { projectName, files } = parseFilesFromResponse(finalText);
-
-        if (files.length > 0) {
-            storageResult = await simpanFileKeStorage(userId, projectName, files);
-            finalText = stripFileMarkers(finalText);
-
-            if (storageResult.tersimpan) {
-                finalText += `\n\n💾 *Tersimpan permanen ke Project "${storageResult.projectName}": ${storageResult.files.join(', ')}*`;
-            } else {
-                finalText += `\n\n⚠️ *File di atas TIDAK tersimpan permanen — ${storageResult.alasan}*`;
-            }
-        }
-
         return res.status(200).json({
             balasan: finalText,
             deepSearchDitolak: creditDitolak, // null kalau normal/gak pakai deepsearch, string kalau ditolak
-            deepSearchSisaKredit: sisaKreditDeepSearch, // integer kalau baru dipakai, null kalau tidak
-            storageResult // null kalau nggak ada file yang di-generate di respons ini
+            deepSearchSisaKredit: sisaKreditDeepSearch // integer kalau baru dipakai, null kalau tidak
         });
 
     } catch (error) {

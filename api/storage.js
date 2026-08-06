@@ -40,6 +40,34 @@ module.exports = async function handler(req, res) {
     }
 
     try {
+        if (action === 'create_project') {
+            const { projectName } = req.body;
+            if (!projectName || !projectName.trim()) {
+                return res.status(200).json({ error: 'Nama project nggak boleh kosong.' });
+            }
+
+            const { data: existing } = await admin
+                .from('user_projects')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('name', projectName.trim())
+                .maybeSingle();
+
+            if (existing) {
+                return res.status(200).json({ error: `Project "${projectName.trim()}" udah ada.` });
+            }
+
+            const { data: newProject, error: insErr } = await admin
+                .from('user_projects')
+                .insert({ user_id: userId, name: projectName.trim() })
+                .select()
+                .single();
+
+            if (insErr) throw insErr;
+
+            return res.status(200).json({ project: newProject });
+        }
+
         if (action === 'list') {
             const { data: projects, error: pErr } = await admin
                 .from('user_projects')

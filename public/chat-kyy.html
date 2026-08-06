@@ -553,6 +553,64 @@
   }
 
   /* ================= PANEL ARTIFACT (slide-in dari kanan, gaya Claude.ai) ================= */
+  /* ================= PANEL GENERIK SLIDE-IN (dipakai buat Projects, dll) ================= */
+  .side-panel-overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.5);
+    z-index:310;
+    display:flex;
+    justify-content:flex-end;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:opacity .25s ease, visibility .25s ease;
+  }
+  .side-panel-overlay.show{opacity:1;visibility:visible;pointer-events:auto;}
+  .side-panel-card{
+    width:100vw;max-width:100%;
+    height:100%;height:100dvh;
+    background:var(--bg-sidebar);
+    border-left:1px solid var(--border);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+    box-shadow:-10px 0 30px rgba(0,0,0,.5);
+    transform:translateX(100%);
+    transition:transform .3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .side-panel-overlay.show .side-panel-card{transform:translateX(0);}
+  @media (min-width: 720px){
+    .side-panel-card{width:480px;max-width:480px;}
+  }
+  .side-panel-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px;
+    border-bottom:1px solid var(--border);
+    flex-shrink:0;
+  }
+  .side-panel-title{font-size:16px;font-weight:700;color:var(--text-main);}
+  .side-panel-header button{
+    width:32px;height:32px;border:none;background:transparent;color:var(--text-soft);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .side-panel-header button:hover{background:var(--sidebar-hover);color:var(--text-main);}
+  .side-panel-body{flex:1;overflow-y:auto;padding:14px;}
+
+  .project-card{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .project-card:hover{background:var(--sidebar-hover);}
+  .project-card-name{font-size:14px;font-weight:600;color:var(--text-main);}
+  .project-card-meta{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
+  .project-card-delete{
+    width:30px;height:30px;border:none;background:transparent;color:var(--text-soft);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .project-card-delete:hover{background:rgba(229,72,77,.15);color:#e5484d;}
+
   .artifact-modal-overlay{
     position:fixed;inset:0;
     background:rgba(0,0,0,.5);
@@ -1160,6 +1218,10 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
     Obrolan baru
   </button>
+  <button class="new-chat-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-main);margin-top:8px;" onclick="openProjectsList()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
+    Projects
+  </button>
   
   <!-- TABEL HEADER HISTORY SESSION -->
   <div class="history-header-table" id="historyHeaderTable">
@@ -1254,6 +1316,21 @@
 </div>
 
 <!-- SLIDE PANEL PENGATURAN LIQUID GLASS -->
+<div class="side-panel-overlay" id="projectsPanel" onclick="closeProjectsList(event)">
+  <div class="side-panel-card" onclick="event.stopPropagation()">
+    <div class="side-panel-header">
+      <span class="side-panel-title">Projects</span>
+      <button type="button" onclick="closeProjectsList()" title="Tutup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="side-panel-body" id="projectsListBody">
+      <div class="storage-empty-hint">Memuat...</div>
+    </div>
+    <div style="padding:14px;">
+      <button class="btn-save-config" onclick="createNewProject()">+ Project Baru</button>
+    </div>
+  </div>
+</div>
+
 <div class="artifact-modal-overlay" id="artifactModal" onclick="closeArtifactModal(event)">
   <div class="artifact-modal-card" onclick="event.stopPropagation()">
     <div class="artifact-modal-header">
@@ -3613,6 +3690,84 @@ async function deleteStorageFile(fileId, event){
   }
   kyyToast('File berhasil dihapus.', 'trash-2');
   loadStorageData('storageProjectList', false);
+}
+
+/* ================= PANEL PROJECTS (Tahap B) ================= */
+function openProjectsList(){
+  document.getElementById('projectsPanel').classList.add('show');
+  closeMobileSidebar();
+  loadProjectsList();
+}
+function closeProjectsList(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('projectsPanel').classList.remove('show');
+}
+
+async function loadProjectsList(){
+  const body = document.getElementById('projectsListBody');
+  body.innerHTML = '<div class="storage-empty-hint">Memuat...</div>';
+
+  const result = await kyyStorageCall({ action: 'list' });
+  if(result.error){
+    body.innerHTML = `<div class="storage-empty-hint">${escapeHtml(result.error)}</div>`;
+    return;
+  }
+
+  const projects = result.projects || [];
+  if(projects.length === 0){
+    body.innerHTML = '<div class="storage-empty-hint">Belum ada Project. Bikin satu pakai tombol di bawah.</div>';
+    return;
+  }
+
+  const fileCountByProject = {};
+  (result.files || []).forEach(f => {
+    fileCountByProject[f.project_id] = (fileCountByProject[f.project_id] || 0) + 1;
+  });
+
+  body.innerHTML = projects.map(p => `
+    <div class="project-card" onclick="openProjectDetail('${p.id}')">
+      <div>
+        <div class="project-card-name">${escapeHtml(p.name)}</div>
+        <div class="project-card-meta">${fileCountByProject[p.id] || 0} file di Knowledge</div>
+      </div>
+      <button type="button" class="project-card-delete" onclick="deleteProjectFromList(event, '${p.id}', '${escapeHtml(p.name).replace(/'/g, "\\'")}')" title="Hapus Project">
+        ${kyyIcon('trash-2', 15)}
+      </button>
+    </div>
+  `).join('');
+}
+
+async function createNewProject(){
+  const nama = prompt('Nama Project baru:');
+  if(!nama || !nama.trim()) return;
+
+  const result = await kyyStorageCall({ action: 'create_project', projectName: nama.trim() });
+  if(result.error){
+    kyyToast(result.error, 'zap', true);
+    return;
+  }
+
+  kyyToast(`Project "${nama.trim()}" berhasil dibuat!`, 'sparkles');
+  loadProjectsList();
+}
+
+async function deleteProjectFromList(event, projectId, projectName){
+  event.stopPropagation();
+  if(!confirm(`Hapus Project "${projectName}"? Semua file Knowledge & chat di dalamnya ikut kehapus.`)) return;
+
+  const result = await kyyStorageCall({ action: 'delete_project', projectId });
+  if(result.error){
+    kyyToast(result.error, 'zap', true);
+    return;
+  }
+
+  kyyToast('Project dihapus.', 'trash-2', true);
+  loadProjectsList();
+}
+
+function openProjectDetail(projectId){
+  // Halaman detail Project (Knowledge, Custom Instructions, daftar chat) — Tahap C
+  kyyToast('Detail Project nyusul di Tahap C ya 🙂', 'zap');
 }
 
 function openStoragePicker(){

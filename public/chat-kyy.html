@@ -611,6 +611,49 @@
   }
   .project-card-delete:hover{background:rgba(229,72,77,.15);color:#e5484d;}
 
+  .project-detail-section{margin-bottom:22px;}
+  .project-detail-section-title{
+    font-size:13px;font-weight:700;color:var(--text-main);
+    margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .knowledge-file-row{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 12px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .knowledge-file-row .knowledge-file-name{flex:1;font-size:13px;color:var(--text-main);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .knowledge-file-row .knowledge-file-size{font-size:11px;color:var(--text-soft);flex-shrink:0;}
+  .knowledge-file-row button{
+    width:26px;height:26px;border:none;background:transparent;color:var(--text-soft);
+    border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
+  }
+  .knowledge-file-row button:hover{background:rgba(229,72,77,.15);color:#e5484d;}
+
+  .btn-add-knowledge{
+    width:100%;padding:10px;border:1px dashed var(--border);border-radius:10px;
+    background:transparent;color:var(--text-soft);font-size:12.5px;font-weight:600;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .btn-add-knowledge:hover{border-color:var(--accent);color:var(--accent);}
+
+  .project-instructions-textarea{
+    width:100%;min-height:110px;
+    background:var(--bg-input);border:1px solid var(--border);border-radius:10px;
+    color:var(--text-main);font-size:13px;padding:10px 12px;
+    resize:vertical;font-family:inherit;
+  }
+
+  .project-chat-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:11px 12px;border:1px solid var(--border);border-radius:10px;
+    margin-bottom:8px;cursor:pointer;
+  }
+  .project-chat-row:hover{background:var(--sidebar-hover);}
+  .project-chat-row .chat-title{font-size:13px;color:var(--text-main);}
+  .project-chat-row .chat-date{font-size:11px;color:var(--text-soft);margin-top:2px;}
+
   .artifact-modal-overlay{
     position:fixed;inset:0;
     background:rgba(0,0,0,.5);
@@ -1316,6 +1359,18 @@
 </div>
 
 <!-- SLIDE PANEL PENGATURAN LIQUID GLASS -->
+<div class="side-panel-overlay" id="projectDetailPanel" onclick="closeProjectDetail(event)">
+  <div class="side-panel-card" onclick="event.stopPropagation()">
+    <div class="side-panel-header">
+      <span class="side-panel-title" id="projectDetailTitle">Project</span>
+      <button type="button" onclick="closeProjectDetail()" title="Tutup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="side-panel-body" id="projectDetailBody">
+      <div class="storage-empty-hint">Memuat...</div>
+    </div>
+  </div>
+</div>
+
 <div class="side-panel-overlay" id="projectsPanel" onclick="closeProjectsList(event)">
   <div class="side-panel-card" onclick="event.stopPropagation()">
     <div class="side-panel-header">
@@ -2346,6 +2401,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let currentProfile = null;
 let currentSessionId = null;
+let currentProjectId = null; // null = chat biasa di luar Project manapun
 let messages = [];
 let sending = false;
 let guestSessions = [];
@@ -2837,7 +2893,7 @@ async function ensureSession(firstText){
     try{
       const { data, error } = await supabaseClient
         .from('chat_sessions')
-        .insert({ user_id: currentUser.id, title, mode: currentMode })
+        .insert({ user_id: currentUser.id, title, mode: currentMode, project_id: currentProjectId })
         .select('id')
         .single();
       if(error) throw error;
@@ -2890,11 +2946,12 @@ async function loadSession(id){
   if(currentUser){
     try{
       const [{ data: sess }, { data: msgs, error }] = await Promise.all([
-        supabaseClient.from('chat_sessions').select('mode').eq('id', id).single(),
+        supabaseClient.from('chat_sessions').select('mode,project_id').eq('id', id).single(),
         supabaseClient.from('chat_history').select('role,content').eq('session_id', id).order('created_at', { ascending: true })
       ]);
       if(error) throw error;
       currentMode = sess?.mode || currentMode;
+      currentProjectId = sess?.project_id || null;
       messages = (msgs || []).map(m => ({ role: m.role, content: m.content }));
     }catch(err){
       console.warn('Gagal buka riwayat dari Supabase:', err);
@@ -2904,6 +2961,7 @@ async function loadSession(id){
     const sess = guestSessions.find(s => s.id === id);
     if(!sess) return;
     currentMode = sess.mode || currentMode;
+    currentProjectId = null;
     messages = sess.messages.map(m => ({ role: m.role, content: m.content }));
   }
 
@@ -2939,14 +2997,17 @@ async function deleteSession(id){
   loadHistoryForCurrentUser();
 }
 
-function newChat(){
+function newChat(projectId){
   kyyStopSpeaking();
   currentSessionId = null;
+  currentProjectId = projectId || null;
   messages = [];
   renderMessages();
   document.getElementById('emptyState').style.display = 'flex';
   document.getElementById('chatInner').style.display = 'none';
   closeMobileSidebar();
+  closeProjectsList();
+  closeProjectDetail();
 }
 
 /* ================= MODE ASISTEN ================= */
@@ -3765,9 +3826,137 @@ async function deleteProjectFromList(event, projectId, projectName){
   loadProjectsList();
 }
 
+let kyyProjectDetailCache = null; // { project, files } project yang lagi dibuka
+
 function openProjectDetail(projectId){
-  // Halaman detail Project (Knowledge, Custom Instructions, daftar chat) — Tahap C
-  kyyToast('Detail Project nyusul di Tahap C ya 🙂', 'zap');
+  document.getElementById('projectsPanel').classList.remove('show');
+  document.getElementById('projectDetailPanel').classList.add('show');
+  loadProjectDetail(projectId);
+}
+function closeProjectDetail(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('projectDetailPanel').classList.remove('show');
+}
+
+async function loadProjectDetail(projectId){
+  const body = document.getElementById('projectDetailBody');
+  body.innerHTML = '<div class="storage-empty-hint">Memuat...</div>';
+
+  const result = await kyyStorageCall({ action: 'get_project_detail', projectId });
+  if(result.error){
+    body.innerHTML = `<div class="storage-empty-hint">${escapeHtml(result.error)}</div>`;
+    return;
+  }
+
+  kyyProjectDetailCache = result;
+  document.getElementById('projectDetailTitle').textContent = result.project.name;
+
+  let chatRows = '<div class="storage-empty-hint">Belum ada chat di Project ini.</div>';
+  if(currentUser){
+    const { data: chats } = await supabaseClient
+      .from('chat_sessions')
+      .select('id, title, created_at')
+      .eq('project_id', projectId)
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false });
+
+    if(chats && chats.length > 0){
+      chatRows = chats.map(c => `
+        <div class="project-chat-row" onclick="loadSession('${c.id}'); closeProjectDetail();">
+          <div>
+            <div class="chat-title">${escapeHtml(c.title || 'Untitled')}</div>
+            <div class="chat-date">${new Date(c.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  const knowledgeRows = (result.files || []).length > 0
+    ? result.files.map(f => `
+        <div class="knowledge-file-row">
+          <span class="knowledge-file-name">${escapeHtml(f.filename)}</span>
+          <span class="knowledge-file-size">${formatFileSize(f.size_bytes)}</span>
+          <button type="button" onclick="deleteKnowledgeFile('${f.id}', '${projectId}')" title="Hapus">${kyyIcon('trash-2', 13)}</button>
+        </div>
+      `).join('')
+    : '<div class="storage-empty-hint">Belum ada file Knowledge.</div>';
+
+  body.innerHTML = `
+    <div class="project-detail-section">
+      <div class="project-detail-section-title">Project Knowledge</div>
+      ${knowledgeRows}
+      <input type="file" id="knowledgeFileInput" style="display:none" onchange="handleKnowledgeUpload(event, '${projectId}')">
+      <button type="button" class="btn-add-knowledge" onclick="document.getElementById('knowledgeFileInput').click()">
+        ${kyyIcon('paperclip', 14)} Add knowledge
+      </button>
+    </div>
+
+    <div class="project-detail-section">
+      <div class="project-detail-section-title">Custom Instructions</div>
+      <textarea class="project-instructions-textarea" id="projectInstructionsInput" placeholder="Contoh: Selalu jawab dalam bahasa Indonesia santai, fokus ke project ini...">${escapeHtml(result.project.custom_instructions || '')}</textarea>
+      <button class="btn-save-config" style="margin-top:8px;" onclick="saveProjectInstructions('${projectId}')">Simpan Instructions</button>
+    </div>
+
+    <div class="project-detail-section">
+      <div class="project-detail-section-title">
+        Chats
+        <button type="button" onclick="newChat('${projectId}')" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;">+ New chat</button>
+      </div>
+      ${chatRows}
+    </div>
+  `;
+}
+
+async function saveProjectInstructions(projectId){
+  const text = document.getElementById('projectInstructionsInput').value;
+  const result = await kyyStorageCall({ action: 'update_project_instructions', projectId, instructions: text });
+  if(result.error){
+    kyyToast(result.error, 'zap', true);
+    return;
+  }
+  kyyToast('Custom Instructions tersimpan.', 'sparkles');
+}
+
+async function handleKnowledgeUpload(event, projectId){
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if(!file) return;
+
+  const isTextLike = file.type.startsWith('text/') || /\.(txt|md|html|css|js|json|csv)$/i.test(file.name);
+  if(!isTextLike){
+    kyyToast('Sementara cuma support file teks (txt, md, html, css, js, json, csv).', 'zap', true);
+    return;
+  }
+
+  kyyToast('Mengupload knowledge...', 'zap');
+  const content = await fileToText(file);
+
+  const result = await kyyStorageCall({
+    action: 'upload_knowledge_file',
+    projectId,
+    filename: file.name,
+    content
+  });
+
+  if(result.error){
+    kyyToast(result.error, 'zap', true);
+    return;
+  }
+
+  kyyToast(`"${file.name}" ditambahkan ke Knowledge.`, 'sparkles');
+  loadProjectDetail(projectId);
+}
+
+async function deleteKnowledgeFile(fileId, projectId){
+  if(!confirm('Hapus file ini dari Knowledge?')) return;
+  const result = await kyyStorageCall({ action: 'delete_file', fileId });
+  if(result.error){
+    kyyToast(result.error, 'zap', true);
+    return;
+  }
+  kyyToast('File dihapus.', 'trash-2', true);
+  loadProjectDetail(projectId);
 }
 
 function openStoragePicker(){
@@ -3862,7 +4051,8 @@ function kyyGetCustomPayloadFields(){
     customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
     customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
     customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
-    customPrompt: activePrompt
+    customPrompt: activePrompt,
+    projectId: currentProjectId // dipakai backend di Tahap D buat include Project Knowledge
   };
 }
 

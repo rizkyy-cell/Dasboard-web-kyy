@@ -157,6 +157,67 @@ function guessMimeType(fileName) {
     return map[ext] || 'text/plain';
 }
 
+/* ================= HELPER: KONTEKS PROJECT (Custom Instructions + Knowledge) ================= */
+const MAX_PROJECT_CONTEXT_BYTES = 80 * 1024; // ~80KB total isi Knowledge yang di-inject per request
+
+async function getProjectContext(userId, projectId) {
+    if (!userId || !projectId) return { instructions: '', knowledgeContext: '' };
+
+    const admin = getSupabaseAdmin();
+    if (!admin) return { instructions: '', knowledgeContext: '' };
+
+    const { data: project, error: pErr } = await admin
+        .from('user_projects')
+        .select('name, custom_instructions')
+        .eq('id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+    if (pErr || !project) return { instructions: '', knowledgeContext: '' };
+
+    const instructions = (project.custom_instructions || '').trim();
+
+    const { data: files, error: fErr } = await admin
+        .from('user_project_files')
+        .select('filename, storage_path')
+        .eq('project_id', projectId)
+        .eq('user_id', userId);
+
+    if (fErr || !files || files.length === 0) {
+        return { instructions, knowledgeContext: '' };
+    }
+
+    let totalBytes = 0;
+    let adaYangDilewati = false;
+    let knowledgeContext = `PROJECT KNOWLEDGE dari Project "${project.name}" (baca dan pakai sebagai konteks/referensi utama buat jawab pertanyaan user di chat ini):\n\n`;
+
+    for (const f of files) {
+        const { data: fileBlob, error: dlError } = await admin.storage
+            .from(STORAGE_BUCKET)
+            .download(f.storage_path);
+
+        if (dlError || !fileBlob) continue;
+
+        const isiFile = await fileBlob.text();
+        const ukuran = Buffer.byteLength(isiFile, 'utf8');
+
+        if (totalBytes + ukuran > MAX_PROJECT_CONTEXT_BYTES) {
+            adaYangDilewati = true;
+            continue;
+        }
+
+        totalBytes += ukuran;
+        knowledgeContext += `--- File: ${f.filename} ---\n${isiFile}\n\n`;
+    }
+
+    if (totalBytes === 0) knowledgeContext = '';
+    else if (adaYangDilewati) {
+        knowledgeContext += '[Catatan sistem: ada file Knowledge lain di project ini yang dilewati karena kalau digabung kontennya kelewat besar.]\n\n';
+    }
+
+    return { instructions, knowledgeContext };
+}
+
 /* ================= HANDLER UTAMA ================= */
 module.exports = async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -168,7 +229,7 @@ module.exports = async function handler(req, res) {
             pesan, gambarData, gambarType, gambarList, videoFileList, riwayat,
             customProvider, customApiKey, customGeminiModel,
             customOpenRouterKey, customOpenRouterModel, customPrompt,
-            thinkMode, deepSearchMode, userId
+            thinkMode, deepSearchMode, userId, projectId
         } = req.body;
 
         // Normalisasi gambar: gambarList (array, banyak gambar) > gambarData/gambarType tunggal (kompatibel lama)
@@ -233,12 +294,24 @@ module.exports = async function handler(req, res) {
         }
 
         // (Instruksi format [PROJECT]/[FILE] otomatis udah dihapus — sekarang Project
-        //  cuma dibikin manual sama user lewat menu Projects, bukan otomatis dari sini.
-        //  Tahap D nanti nyambungin konteks Project Knowledge kalau chat lagi aktif di
-        //  dalam sebuah Project.)
+        //  cuma dibikin manual sama user lewat menu Projects, bukan otomatis dari sini.)
+
+        // 2.5 KONTEKS PROJECT — kalau chat ini lagi aktif di dalam sebuah Project,
+        //     Custom Instructions-nya masuk ke system prompt, dan isi semua file
+        //     Knowledge-nya ditempel sebagai konteks sebelum pertanyaan user.
+        let pesanEfektif = pesan || '';
+
+        if (projectId) {
+            const projectCtx = await getProjectContext(userId, projectId);
+            if (projectCtx.instructions) {
+                systemPrompt += `\n\nINSTRUKSI KHUSUS PROJECT INI: ${projectCtx.instructions}`;
+            }
+            if (projectCtx.knowledgeContext) {
+                pesanEfektif = projectCtx.knowledgeContext + '---\n\n' + pesanEfektif;
+            }
+        }
 
         // 3. DEEP SEARCH (kalau aktif) — hasil pencarian ditempel di depan pesan user
-        let pesanEfektif = pesan || '';
         let creditDitolak = null; // dipakai buat kasih tahu user kalau kredit habis/belum login
         let sisaKreditDeepSearch = null; // dikirim balik ke frontend biar tracker langsung update
 
@@ -264,9 +337,8 @@ module.exports = async function handler(req, res) {
             pesanEfektif = `[CATATAN SISTEM: User melampirkan video, tapi provider OpenRouter yang sedang dipakai tidak mendukung pembacaan video. Video TIDAK ikut dibaca. Beri tahu user soal ini di jawabanmu, sarankan pindah ke provider Gemini kalau mau video-nya dianalisis.]\n\n---\n\n${pesanEfektif}`;
         }
 
-        // (Baca-balik-file-by-keyword yang lama udah dihapus — Tahap D nanti gantiin
-        //  ini dengan cara yang lebih akurat: konteks Project Knowledge otomatis
-        //  ke-include kalau chat ini emang lagi aktif di dalam sebuah Project.)
+        // (Baca-balik-file-by-keyword yang lama udah dihapus dan digantikan konteks
+        //  Project Knowledge yang lebih akurat di bagian 2.5 di atas.)
 
         // 4. SUSUN RIWAYAT + PESAN SESUAI FORMAT PROVIDER
         let draftText;

@@ -18,7 +18,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jrxrezkyy-dashboard.vercel.app/">
   <meta property="og:title" content="Dashboard Web Kyy">
-  <meta property="og:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & Ios.">
+  <meta property="og:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & iOS.">
   <meta property="og:image" content="https://jrxrezkyy-dashboard.vercel.app/profile.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="300">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" 
     content="Dashboard Web Kyy">
-  <meta name="twitter:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & Ios.">
+  <meta name="twitter:description" content="Kumpulan Tools, Mod Aplikasi, dan Etalase App Premium untuk Android & iOS.">
   <meta name="twitter:image" content="https://jrxrezkyy-dashboard.vercel.app/profile.jpg">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -57,6 +57,17 @@
       flex-direction: column;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Konten yang wajar buat di-copy user (deskripsi, harga, nama produk, dsb) —
+       body di atas mematikan select secara global untuk UI chrome (tombol, nav, dll),
+       tapi teks informatif ini perlu bisa di-select/copy secara normal. */
+    .mod-box-desc, .mod-box-name, .mod-box-size,
+    .chat-title, .chat-msg,
+    .about-desc, .about-title,
+    .info-row-value {
+      user-select: text;
+      -webkit-user-select: text;
     }
 
     /* ANNOUNCEMENT RUNNING TEXT */
@@ -669,6 +680,24 @@
     body.light-theme .about-desc { 
         color: #475569 !important; 
     }
+    .about-list { list-style: none; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 7px; }
+    .about-list li { font-size: 13.5px; line-height: 1.55; color: var(--tg-text-muted); padding-left: 20px; position: relative; }
+    body.light-theme .about-list li { color: #475569; }
+    .about-list li::before { content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; left: 0; top: 1px; font-size: 10px; color: var(--tg-accent); }
+    .about-list li b { color: var(--tg-text); font-weight: 700; }
+    body.light-theme .about-list li b { color: #1e293b; }
+    .about-note-box {
+        background: rgba(51, 144, 236, 0.08);
+        border: 1px solid rgba(51, 144, 236, 0.25);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--tg-text-muted);
+        margin-top: 10px;
+    }
+    body.light-theme .about-note-box { color: #475569; }
+    .about-note-box b { color: var(--tg-accent); }
 
 .siluet-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -956,21 +985,61 @@ html, body {
                 Halo, saya <span class="about-name">Rizky Kurniawan</span>. Memiliki latar belakang di bidang Teknik Instalasi Tenaga Listrik (TITL) dan kini memfokuskan diri sebagai Web Developer & Creator, mengeksplorasi pembuatan antarmuka modern dan eksperimen simulasi 3D.
             </div>
         </div>
-        
+
         <div class="about-row">
             <div class="about-title"><i class="fas fa-server"></i> About Web</div>
             <div class="about-desc">
-                Dashboard eksklusif yang dirancang sebagai pusat kendali untuk mengunduh Mod Aplikasi, Tools interaktif, serta Etalase Premium. Dibalut dengan antarmuka responsif bermesin <i>Liquid Glass</i> ala native iOS.
+                Dashboard pribadi yang berfungsi sebagai pusat kendali: kumpulan Tools, etalase Mod Aplikasi, dan Store Premium dalam satu tempat. Bisa diakses langsung lewat browser di HP maupun desktop, dan bisa juga dipasang layaknya aplikasi native lewat "Add to Home Screen" (PWA) supaya bisa dibuka tanpa buka browser dulu. Dibalut antarmuka <i>Liquid Glass</i> yang responsif dan konsisten di semua perangkat, lengkap dengan mode terang/gelap dan pilihan warna aksen sesuai selera.
             </div>
         </div>
 
         <div class="about-row">
-            <div class="about-title"><i class="fas fa-robot"></i> KYY CS Assistant</div>
-            <div class="about-desc">
-                Asisten kecerdasan buatan (AI) yang diintegrasikan langsung ke dalam dashboard. Tidak perlu canggung atau memperkenalkan diri, langsung saja ketik pertanyaan atau arahan yang Anda butuhkan, KYY CS siap merespons secara otomatis!
-            </div>
-          </div>
+            <div class="about-title"><i class="fas fa-list-check"></i> Fitur Utama</div>
+            <ul class="about-list">
+                <li><b>Home</b> — kumpulan link web/tools pribadi, tersusun per kategori dan bisa dicari lewat kolom search.</li>
+                <li><b>App Mod</b> — etalase aplikasi mod dengan deskripsi, ukuran file, info pengembang mod, dan link unduhan langsung.</li>
+                <li><b>Store</b> — etalase produk/aplikasi premium berbayar, lengkap info harga dan stok, pemesanan otomatis lewat WhatsApp.</li>
+                <li><b>Setting</b> — kustomisasi warna aksen tema, mode terang/gelap, serta Network Monitor (IP, device, browser, ping) buat cek status koneksi.</li>
+                <li><b>Profil</b> — kelola nama tampilan, username, dan foto profil setelah login.</li>
+                <li><b>KYY AI</b> — halaman asisten AI terpisah untuk tanya-jawab, bantu ngoding, sampai obrolan santai.</li>
+                <li>Kotak <b>Notifikasi/Inbox</b> dan banner <b>pengumuman</b> berjalan buat info terbaru dari admin.</li>
+                <li>Tombol <b>share</b> di tiap App Mod buat bagikan link langsung ke aplikasi tertentu (lengkap preview link di WhatsApp).</li>
+            </ul>
         </div>
+
+        <div class="about-row">
+            <div class="about-title"><i class="fas fa-right-to-bracket"></i> Sistem Login & Akun</div>
+            <div class="about-desc">
+                Dashboard ini <b>bisa dipakai tanpa login</b> (mode Guest) — semua Tools, App Mod, dan Store tetap bisa diakses dan diunduh secara bebas. Login hanya diperlukan untuk membuka fitur yang sifatnya personal:
+            </div>
+            <ul class="about-list">
+                <li>Login memakai akun <b>Google</b> (OAuth), tidak perlu bikin akun/password terpisah — cukup satu klik.</li>
+                <li>Setelah login, kamu bisa atur nama tampilan, username unik, dan foto profil sendiri.</li>
+                <li>Riwayat obrolan di KYY AI otomatis tersinkron ke akun kamu, bukan cuma tersimpan lokal di satu perangkat.</li>
+                <li>Membuka fitur lanjutan seperti <b>Deep Search</b> (pencarian internet real-time di KYY AI) dan <b>Projects</b> (pengelompokan chat per topik).</li>
+                <li>Akun bisa dihapus permanen kapan saja langsung dari menu Profil, tanpa perlu hubungi admin.</li>
+            </ul>
+            <div class="about-note-box">
+                <b>Privasi:</b> Data akun yang tersimpan sebatas informasi profil yang kamu isi sendiri (nama, username, foto) dan riwayat obrolan KYY AI. Tidak ada data pribadi lain yang diminta atau dibagikan ke pihak ketiga.
+            </div>
+        </div>
+
+        <div class="about-row">
+            <div class="about-title"><i class="fas fa-robot"></i> KYY AI Assistant</div>
+            <div class="about-desc">
+                Asisten AI yang terintegrasi langsung di dashboard lewat halaman KYY AI, siap menjawab pertanyaan seputar Tools, App Mod, dan Store secara otomatis.
+            </div>
+            <ul class="about-list">
+                <li>Mode <b>Think</b> — AI meninjau ulang jawabannya sendiri sebelum dikirim, lebih teliti untuk pertanyaan yang butuh ketelitian.</li>
+                <li>Mode <b>Deep Search</b> — AI mencari info terkini dari internet dulu sebelum menjawab (khusus akun login).</li>
+                <li>Fitur <b>Projects</b> — kelompokkan beberapa obrolan dalam satu topik lengkap dengan instruksi & referensi file khusus.</li>
+                <li>Mendukung lampiran gambar, video, dan dokumen, plus ekspor jawaban ke Markdown/PDF/Word.</li>
+            </ul>
+            <div class="about-note-box">
+                Jawaban dari KYY AI dihasilkan otomatis oleh model AI, bukan ditulis manual oleh admin — selalu cek ulang info penting sebelum dipakai sepenuhnya.
+            </div>
+        </div>
+      </div>
     
 
     </div>
@@ -1033,9 +1102,9 @@ html, body {
     <div class="nav-item active" onclick="switchNav('home', 0, this)"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="nav-label">Home</span></div>
     <div class="nav-item" onclick="switchNav('appmod', 1, this)"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg><span class="nav-label">App Mod</span></div>
     <div class="nav-item" onclick="switchNav('store', 2, this)"><svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg><span class="nav-label">Store</span>
-      
-    <span class="nav-badge-apple">3</span>
-    
+
+    <span class="nav-badge-apple" id="storeNavBadge" style="display:none;">0</span>
+
     </div>
     <div class="nav-item" onclick="switchNav('settings', 3, this)"><svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0 0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg><span class="nav-label">Setting</span></div>
     <div class="nav-item" onclick="switchNav('profil', 4, this)"><div style="width: 24px; height: 24px; border-radius: 50%; overflow: hidden; border: 1.5px solid currentColor; margin-bottom: 2px;"><img id="navProfilePic" src="profile.jpg" style="width:100%; height:100%; object-fit:cover;"></div><span class="nav-label">Profil</span></div>
@@ -1856,6 +1925,20 @@ async function cekParamUrlShare() {
         function renderStoreList() {
         const container = document.getElementById('container-store-list');
         if (!container) return;
+
+        // Badge notifikasi di bottom nav "Store" — dulunya angka statis "3" yang
+        // di-hardcode di HTML (menyesatkan). Sekarang diisi jumlah produk asli dari
+        // Supabase, dan cuma muncul kalau memang ada produk.
+        const storeNavBadge = document.getElementById('storeNavBadge');
+        if (storeNavBadge) {
+            if (dataStoreLokal.length > 0) {
+                storeNavBadge.textContent = dataStoreLokal.length;
+                storeNavBadge.style.display = 'flex';
+            } else {
+                storeNavBadge.style.display = 'none';
+            }
+        }
+
         if (dataStoreLokal.length === 0) { container.innerHTML = `<p style="text-align:center; color:var(--tg-text-muted); padding:20px;">Etalase kosong.</p>`; return; }
 
         // Hitung badge jumlah per kategori

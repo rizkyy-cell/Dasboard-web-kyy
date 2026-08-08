@@ -256,6 +256,8 @@
       <input type="text" id="otpCode" class="otp-input" placeholder="00000000" maxlength="8" inputmode="numeric" style="padding-left:16px">
     </div>
 
+    <div class="cf-turnstile" id="turnstileOtp" data-sitekey="0x4AAAAAAEJvSM6VwBV-8QLu" data-callback="onTurnstileOtp"></div>
+
     <button class="btn-main" id="btnVerifyOtp" onclick="verifyOtp()">Verifikasi</button>
     <p class="status" id="statusOtp"></p>
 
@@ -272,6 +274,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 7l9 6 9-6M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <input type="email" id="forgotEmail" placeholder="Email">
     </div>
+
+    <div class="cf-turnstile" id="turnstileForgot" data-sitekey="0x4AAAAAAEJvSM6VwBV-8QLu" data-callback="onTurnstileForgot"></div>
 
     <button class="btn-main" id="btnForgot" onclick="sendResetLink()">Kirim Link Reset</button>
     <p class="status" id="statusForgot"></p>
@@ -308,9 +312,19 @@
   let pendingEmail = "";
   let turnstileTokenLogin = "";
   let turnstileTokenSignup = "";
+  let turnstileTokenForgot = "";
+  let turnstileTokenOtp = "";
 
   function onTurnstileLogin(token) { turnstileTokenLogin = token; }
   function onTurnstileSignup(token) { turnstileTokenSignup = token; }
+  function onTurnstileForgot(token) { turnstileTokenForgot = token; }
+  function onTurnstileOtp(token) { turnstileTokenOtp = token; }
+
+  function resetTurnstile(containerId) {
+    try {
+      if (window.turnstile) window.turnstile.reset(document.getElementById(containerId));
+    } catch (e) { /* widget belum siap, abaikan */ }
+  }
 
   function togglePw(id) {
     const input = document.getElementById(id);
@@ -388,6 +402,8 @@
 
     if (error) {
       btn.disabled = false;
+      turnstileTokenLogin = "";
+      resetTurnstile('turnstileLogin');
       if (error.message.toLowerCase().includes('confirm')) {
         pendingEmail = email;
         setStatus('statusLogin', 'Email belum diverifikasi, cek kode OTP kamu.', true);
@@ -435,6 +451,8 @@
     btn.disabled = false;
 
     if (error) {
+      turnstileTokenSignup = "";
+      resetTurnstile('turnstileSignup');
       setStatus('statusSignup', 'Gagal daftar: ' + error.message, true);
       return;
     }
@@ -483,8 +501,12 @@
   async function resendOtp(silent) {
     if (!pendingEmail) return;
     if (!silent) setStatus('statusOtp', 'Mengirim ulang kode...');
-    const { error } = await supabaseClient.auth.resend({ type: 'signup', email: pendingEmail });
+    const options = {};
+    if (turnstileTokenOtp) options.captchaToken = turnstileTokenOtp;
+    const { error } = await supabaseClient.auth.resend({ type: 'signup', email: pendingEmail, options });
     if (error) {
+      turnstileTokenOtp = "";
+      resetTurnstile('turnstileOtp');
       setStatus('statusOtp', 'Gagal kirim ulang: ' + error.message, true);
     } else if (!silent) {
       setStatus('statusOtp', 'Kode baru sudah dikirim.');
@@ -503,12 +525,15 @@
     setStatus('statusForgot', 'Mengirim link reset...');
 
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: SELF_URL
+      redirectTo: SELF_URL,
+      captchaToken: turnstileTokenForgot
     });
 
     btn.disabled = false;
 
     if (error) {
+      turnstileTokenForgot = "";
+      resetTurnstile('turnstileForgot');
       setStatus('statusForgot', 'Gagal: ' + error.message, true);
       return;
     }

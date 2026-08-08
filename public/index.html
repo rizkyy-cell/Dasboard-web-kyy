@@ -1172,6 +1172,17 @@ html, body {
     const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ==== KEAMANAN: escape teks dari database sebelum di-render lewat innerHTML ====
+    // Mencegah stored XSS kalau ada data (nama produk/app/web/deskripsi) yang berisi
+    // tag HTML/script — semua teks dari Supabase WAJIB lewat fungsi ini dulu sebelum
+    // ditempel ke innerHTML. Atribut URL (img_url, link_web, dll) tidak perlu ini.
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
     // ==== GOOGLE LOGIN & PROFILE ====
     async function initProfileAuth() {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1549,11 +1560,12 @@ html, body {
             // Filter berdasarkan kolom pencarian (search input)
             if (searchQueryStr && !namaWebStr.includes(searchQueryStr)) return;
 
+            const linkWebSafe = (web.link_web || '').replace(/'/g, "\\'");
             container.innerHTML += `
-                <div class="chat-item" onclick="window.open('${web.link_web}', '_blank')">
+                <div class="chat-item" onclick="window.open('${linkWebSafe}', '_blank')">
                     <div class="avatar"><i class="fas fa-globe"></i></div>
                     <div class="chat-content">
-                        <div class="chat-top"><span class="chat-title">${web.nama_web}</span><span class="chat-time" style="color:#10b981;">🌐 Active</span></div>
+                        <div class="chat-top"><span class="chat-title">${escapeHtml(web.nama_web)}</span><span class="chat-time" style="color:#10b981;">🌐 Active</span></div>
                         <div class="chat-bottom"><span class="chat-msg">Klik untuk membuka tautan website</span></div>
                     </div>
                 </div>`;
@@ -1641,7 +1653,7 @@ html, body {
                 <div class="mod-box-header">
                     <div class="mod-box-title-group">
                         <div class="mod-box-icon">${imgHtml}</div>
-                        <div class="mod-box-name">${app.nama_app}</div>
+                        <div class="mod-box-name">${escapeHtml(app.nama_app)}</div>
                     </div>
                     <div class="mod-box-size" style="background:none;">
                         <span style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:6px; font-size:10px; color:#fff;">${app.ukuran || 'N/A'}</span>
@@ -1651,18 +1663,18 @@ html, body {
                 <!-- INFO PENGEMBANG MOD -->
                 <div style="margin-bottom: 6px; font-size: 12px;">
                     <span style="color: var(--tg-text-muted);">Pengembang Mod: </span>
-                    <a href="${devLink}" target="_blank" style="color: var(--tg-accent); font-weight: bold; text-decoration: underline;">${devName}</a>
+                    <a href="${devLink}" target="_blank" style="color: var(--tg-accent); font-weight: bold; text-decoration: underline;">${escapeHtml(devName)}</a>
                 </div>
 
                 <!-- DESKRIPSI RINGKAS -->
                 <div class="mod-box-desc desc-collapsible short-active" id="short-desc-${index}">
-                    ${shortDesc}
+                    ${escapeHtml(shortDesc)}
                     ${isLong ? `<span onclick="toggleReadMore(${index})" style="color:var(--tg-accent); font-weight:bold; cursor:pointer; margin-left:4px;">Read more</span>` : ''}
                 </div>
 
                 <!-- DESKRIPSI LENGKAP -->
                 <div class="mod-box-desc desc-collapsible full-hidden" id="full-desc-${index}">
-                    ${fullDesc}
+                    ${escapeHtml(fullDesc)}
                     <div style="margin-top: 10px;">
                         <span onclick="toggleReadMore(${index})" style="color:var(--tg-accent); font-weight:bold; cursor:pointer;">Read less</span>
                     </div>
@@ -1876,10 +1888,10 @@ async function cekParamUrlShare() {
             container.innerHTML += `
                 <div class="mod-box-item">
                     <div class="mod-box-header">
-                        <div class="mod-box-title-group"><div class="mod-box-icon">${iconHtml}</div><div class="mod-box-name">${prod.nama_produk}</div></div>
-                        <div class="mod-box-size" style="color:#00ff7f; background:none;">${prod.harga}${stockBadge}</div>
+                        <div class="mod-box-title-group"><div class="mod-box-icon">${iconHtml}</div><div class="mod-box-name">${escapeHtml(prod.nama_produk)}</div></div>
+                        <div class="mod-box-size" style="color:#00ff7f; background:none;">${escapeHtml(prod.harga)}${stockBadge}</div>
                     </div>
-                    <div class="mod-box-desc">${prod.deskripsi || 'Tidak ada deskripsi.'}</div>
+                    <div class="mod-box-desc">${escapeHtml(prod.deskripsi || 'Tidak ada deskripsi.')}</div>
                     <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>
                 </div>`;
         });

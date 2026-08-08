@@ -49,8 +49,14 @@
     user-select: none;
   }
   
-  textarea, .msg-bubble, .msg-bubble *, .chat-item-title {
+  textarea, .msg-bubble, .msg-bubble * {
     user-select: text;
+  }
+
+  .chat-item-title{
+    user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
   }
   
   body, .sidebar, .main, .topbar, .input-box, .msg-bubble, .glass-popup-card {
@@ -183,14 +189,15 @@
   .chat-item .del-btn{
     opacity:0;
     flex-shrink:0;
-    width:20px;height:20px;
-    border-radius:5px;
+    width:24px;height:24px;
+    border-radius:6px;
     display:flex;align-items:center;justify-content:center;
     color:var(--text-soft);
     background:transparent;border:none;cursor:pointer;
+    transition:opacity .15s ease, background-color .15s ease, color .15s ease;
   }
-  .chat-item:hover .del-btn{opacity:1;}
-  .chat-item .del-btn:hover{color:#e5484d;background:rgba(229,72,77,.1);}
+  .chat-item:hover .del-btn, .chat-item:focus-within .del-btn{opacity:1;}
+  .chat-item .del-btn:hover{color:var(--text-main);background:rgba(255,255,255,.08);}
   .empty-history-hint{
     padding:14px 12px;
     font-size:12.5px;
@@ -254,6 +261,60 @@
   }
   .icon-btn:hover{background:var(--sidebar-hover);}
   
+  /* ================= LOGIN BOX (SIDEBAR, DI ATAS FOOTER) ================= */
+  @keyframes loginBoxIn{
+    from{opacity:0; transform:translateY(10px) scale(.96);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  @keyframes loginBoxOut{
+    from{opacity:1; transform:translateY(0) scale(1); max-height:80px; margin-bottom:10px;}
+    to{opacity:0; transform:translateY(10px) scale(.96); max-height:0; margin-bottom:0; padding-top:0; padding-bottom:0;}
+  }
+  #loginSidebarBox{
+    margin:0 12px 10px;
+    padding:12px;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    overflow:hidden;
+    animation:loginBoxIn .35s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  #loginSidebarBox.hide{
+    animation:loginBoxOut .3s ease forwards;
+    pointer-events:none;
+  }
+  #loginSidebarBox .login-box-text{
+    font-size:12.5px;
+    color:var(--text-soft);
+    line-height:1.4;
+  }
+  #loginSidebarBox .login-box-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    padding:9px 14px;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    width:100%;
+    transition:background-color .2s ease, transform .15s ease;
+  }
+  #loginSidebarBox .login-box-btn:hover{
+    background:var(--accent-hover);
+    transform:translateY(-1px);
+  }
+  #loginSidebarBox .login-box-btn:active{
+    transform:translateY(0) scale(.97);
+  }
+
   .topbar-right-group {
     margin-left: auto;
     display: flex;
@@ -968,6 +1029,88 @@
     transform:translateX(0) !important;
   }
 
+  /* ================= MODAL SUBMIT FEEDBACK (ala Claude) ================= */
+  .feedback-modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.5);
+    z-index:900;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    opacity:0; visibility:hidden;
+    transition:opacity .25s ease, visibility .25s ease;
+  }
+  .feedback-modal-overlay.show{opacity:1; visibility:visible;}
+  .feedback-modal-card{
+    background:var(--bg-sidebar);
+    border:1px solid var(--border);
+    border-bottom:none;
+    width:100%;
+    max-width:520px;
+    border-radius:20px 20px 0 0;
+    padding:14px 18px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.16,1,.3,1);
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .feedback-modal-overlay.show .feedback-modal-card{transform:translateY(0);}
+  .feedback-modal-handle{
+    width:40px; height:4px;
+    background:var(--border);
+    border-radius:99px;
+    margin:0 auto 16px;
+  }
+  .feedback-modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .feedback-modal-header h3{
+    font-size:17px; font-weight:700;
+    display:flex; align-items:center; gap:8px;
+    color:var(--text-main);
+  }
+  .feedback-modal-header button{
+    background:none; border:none;
+    color:var(--text-soft); cursor:pointer;
+    display:flex; padding:4px;
+  }
+  .feedback-field-label{
+    font-size:13px; font-weight:600;
+    color:var(--text-soft);
+    margin-bottom:8px;
+  }
+  .feedback-select, .feedback-textarea{
+    width:100%;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text-main);
+    padding:12px 14px;
+    font-size:14px;
+    margin-bottom:18px;
+    font-family:inherit;
+  }
+  .feedback-textarea{resize:vertical; min-height:90px;}
+  .feedback-modal-note{
+    font-size:12px; color:var(--text-soft);
+    line-height:1.5; margin-bottom:16px;
+  }
+  .feedback-modal-note a{color:var(--accent);}
+  .feedback-submit-btn{
+    width:100%;
+    padding:13px;
+    background:#fff;
+    color:#111;
+    border:none;
+    border-radius:99px;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  .feedback-submit-btn:disabled{opacity:.6; cursor:not-allowed;}
+
   .panel-header-custom {
     display:flex;
     align-items:center;
@@ -1215,18 +1358,59 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 4px 6px;
+    border-radius: 6px;
     transition: background 0.2s, color 0.2s;
   }
-  .history-btn-icon:hover { color: #e5484d; background: rgba(229,72,77,0.1); }
+  .history-btn-icon:hover { color: var(--text-main); background: rgba(255,255,255,0.06); }
 
+  /* ================= POPUP MENU RIWAYAT (ala Claude App) ================= */
+  .history-popup-backdrop{
+    position:fixed; inset:0; z-index:600; background:transparent;
+  }
+  .history-popup-menu{
+    position:fixed;
+    z-index:601;
+    min-width:180px;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:6px;
+    box-shadow:0 12px 32px rgba(0,0,0,.45);
+    animation:historyPopupIn .18s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes historyPopupIn{
+    from{opacity:0; transform:scale(.92) translateY(-6px);}
+    to{opacity:1; transform:scale(1) translateY(0);}
+  }
+  .history-popup-menu button{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:11px 12px;
+    background:none;
+    border:none;
+    border-radius:9px;
+    color:var(--text-main);
+    font-size:13.5px;
+    cursor:pointer;
+    text-align:left;
+  }
+  .history-popup-menu button svg{flex-shrink:0;}
+  .history-popup-menu button:hover{background:var(--sidebar-hover);}
+  .history-popup-menu button.danger{color:#e5484d;}
+  .history-popup-menu button.danger:hover{background:rgba(229,72,77,.1);}
+
+  /* ================= MODE PILIH (MULTI-SELECT) RIWAYAT ================= */
   .chat-item-checkbox {
     width: 16px;
     height: 16px;
     accent-color: var(--accent);
     cursor: pointer;
     display: none;
+    flex-shrink:0;
   }
   .multi-select-active .chat-item-checkbox { display: inline-block; }
   .multi-select-active .del-btn { display: none !important; }
@@ -1317,18 +1501,30 @@
   <div class="history-header-table" id="historyHeaderTable">
     <span class="history-header-title" id="historyHeaderLabel">History Session</span>
     <div class="history-action-bar" id="historyActionBar" style="display:none;">
-      <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer;">
+      <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text-soft);">
         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllHistory(this)"> All
       </label>
       <button class="history-btn-icon" onclick="deleteSelectedSessions()" title="Hapus Terpilih">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         <span id="selectedCountLabel">0</span>
       </button>
-      <button class="history-btn-icon" onclick="exitMultiSelectMode()" style="color:var(--text-soft);" title="Batal"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+      <button class="history-btn-icon" onclick="exitMultiSelectMode()" title="Batal"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
+    <button class="history-btn-icon" id="historyMenuBtn" onclick="openHeaderHistoryMenu(event)" title="Opsi Riwayat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="12" cy="19" r="1.4"></circle></svg>
+    </button>
   </div>
 
   <div class="chat-history" id="chatHistory"></div>
+
+  <div id="loginSidebarBox" style="display:none;">
+    <div class="login-box-text">Login untuk sinkron riwayat & buka fitur lengkap.</div>
+    <button class="login-box-btn" onclick="goToLoginPage()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+      Login
+    </button>
+  </div>
+
   <div class="sidebar-footer" id="sidebarFooter" onclick="openSettingsPopup()">
     <div class="avatar" id="footerAvatar">?</div>
     <div id="footerLabel">Settings</div>
@@ -1502,6 +1698,39 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<div class="feedback-modal-overlay" id="feedbackModalOverlay" onclick="closeFeedbackModal(event)">
+  <div class="feedback-modal-card" onclick="event.stopPropagation()">
+    <div class="feedback-modal-handle"></div>
+    <div class="feedback-modal-header">
+      <h3><span id="feedbackModalIcon"></span> Submit feedback</h3>
+      <button type="button" onclick="closeFeedbackModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div id="feedbackIssueTypeWrap">
+      <div class="feedback-field-label">What type of issue? (optional)</div>
+      <select class="feedback-select" id="feedbackIssueType">
+        <option value="other">Other</option>
+        <option value="ui_bug">UI bug</option>
+        <option value="harmful_content">Harmful content</option>
+        <option value="overactive_refusal">Overactive refusal</option>
+        <option value="did_not_follow">Did not fully follow my request</option>
+        <option value="not_factual">Not factually correct</option>
+        <option value="incomplete">Incomplete response</option>
+        <option value="memory">Issue with memory</option>
+      </select>
+    </div>
+
+    <div class="feedback-field-label" id="feedbackDetailLabel">Please provide details: (optional)</div>
+    <textarea class="feedback-textarea" id="feedbackDetailInput" placeholder="What was unsatisfying about this response?"></textarea>
+
+    <div class="feedback-modal-note">Mengirim laporan ini akan menyertakan pesan terkait untuk membantu pengembang meningkatkan layanan.</div>
+
+    <button type="button" class="feedback-submit-btn" id="feedbackSubmitBtn" onclick="submitFeedbackReport()">Submit Feedback</button>
   </div>
 </div>
 
@@ -2717,6 +2946,28 @@ function handleAuthSession(session){
     currentProfile = null;
   }
   applyProfileUI();
+  updateLoginFloatBox();
+}
+
+/* ================= LOGIN BOX SIDEBAR ================= */
+function goToLoginPage(){
+  const returnUrl = encodeURIComponent(window.location.href);
+  window.location.href = `https://jrxrezkyy-dashboard.vercel.app/login-dashboard.html?redirect=${returnUrl}`;
+}
+
+function updateLoginFloatBox(){
+  const box = document.getElementById('loginSidebarBox');
+  if(!box) return;
+
+  if(currentUser){
+    if(box.style.display !== 'none'){
+      box.classList.add('hide');
+      setTimeout(()=>{ box.style.display = 'none'; box.classList.remove('hide'); }, 300);
+    }
+  } else {
+    box.classList.remove('hide');
+    box.style.display = 'flex';
+  }
 }
 
 /* ================= DRAG & DROP + LAMPIRAN ================= */
@@ -3620,11 +3871,76 @@ function voteMessage(idx, type, btn){
   if(!m) return;
   const row = btn.closest('.msg-actions');
   row.querySelectorAll('.msg-vote-btn').forEach(b => b.classList.remove('active'));
-  if(m._vote === type){
-    m._vote = null;
+  m._vote = type;
+  btn.classList.add('active');
+  openFeedbackModal(idx, type);
+}
+
+/* ================= MODAL SUBMIT FEEDBACK -> SUPABASE ================= */
+let feedbackContext = null;
+
+function openFeedbackModal(idx, type){
+  feedbackContext = { idx, type };
+
+  const issueWrap = document.getElementById('feedbackIssueTypeWrap');
+  const detailInput = document.getElementById('feedbackDetailInput');
+  const iconEl = document.getElementById('feedbackModalIcon');
+
+  detailInput.value = '';
+  document.getElementById('feedbackIssueType').value = 'other';
+
+  if(type === 'down'){
+    issueWrap.style.display = 'block';
+    detailInput.placeholder = 'What was unsatisfying about this response?';
+    iconEl.innerHTML = kyyIcon('thumbs-down', 18);
   } else {
-    m._vote = type;
-    btn.classList.add('active');
+    issueWrap.style.display = 'none';
+    detailInput.placeholder = 'What was satisfying about this response?';
+    iconEl.innerHTML = kyyIcon('thumbs-up', 18);
+  }
+
+  document.getElementById('feedbackModalOverlay').classList.add('show');
+}
+
+function closeFeedbackModal(evt){
+  if(evt) evt.preventDefault();
+  document.getElementById('feedbackModalOverlay').classList.remove('show');
+  feedbackContext = null;
+}
+
+async function submitFeedbackReport(){
+  if(!feedbackContext) return;
+  const { idx, type } = feedbackContext;
+  const m = messages[idx];
+  if(!m) return;
+
+  const btn = document.getElementById('feedbackSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Mengirim...';
+
+  const issueType = type === 'down' ? document.getElementById('feedbackIssueType').value : null;
+  const detail = document.getElementById('feedbackDetailInput').value.trim() || null;
+
+  try{
+    const { error } = await supabaseClient.from('submit_feedback').insert({
+      user_id: currentUser ? currentUser.id : null,
+      session_id: currentSessionId || null,
+      message_index: idx,
+      message_content: m.content || '',
+      vote: type,
+      issue_type: issueType,
+      detail: detail
+    });
+    if(error) throw error;
+
+    kyyToast('Terima kasih atas feedback-nya!', 'check');
+    closeFeedbackModal();
+  } catch(err){
+    console.error(err);
+    kyyToast('Gagal mengirim feedback: ' + (err.message || ''), 'zap', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit Feedback';
   }
 }
 
@@ -4331,62 +4647,81 @@ async function deleteCustomConfig(provider) {
   updateModelLabel();
 }
 
-/* ================= MULTI-SELECT & HOLD TO DELETE HISTORY ================= */
+/* ================= POPUP MENU & MODE PILIH RIWAYAT (ala Claude App) ================= */
+let activeHistoryPopup = null;
 let isMultiSelectMode = false;
 let selectedSessionIds = new Set();
-let holdTimer = null;
 
-function renderHistorySidebar(list) {
-  const wrap = document.getElementById('chatHistory');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-
-  if (!list || list.length === 0) {
-    wrap.innerHTML = '<div class="empty-history-hint">Belum ada riwayat obrolan.</div>';
-    return;
+function closeHistoryPopup(){
+  if(activeHistoryPopup){
+    activeHistoryPopup.backdrop.remove();
+    activeHistoryPopup.menu.remove();
+    activeHistoryPopup = null;
   }
+}
 
-  list.forEach(sess => {
-    const item = document.createElement('div');
-    item.className = 'chat-item' + (sess.id === currentSessionId ? ' active' : '');
-    item.dataset.id = sess.id;
+function showHistoryPopup(items, anchorRect){
+  closeHistoryPopup();
 
-    const isChecked = selectedSessionIds.has(sess.id);
+  const backdrop = document.createElement('div');
+  backdrop.className = 'history-popup-backdrop';
+  backdrop.addEventListener('click', closeHistoryPopup);
 
-    item.innerHTML = `
-      <input type="checkbox" class="chat-item-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectSession('${sess.id}')">
-      <span class="chat-item-title">${escapeHtml(sess.title || 'Obrolan')}</span>
-      <button class="del-btn" title="Hapus">&times;</button>
-    `;
+  const menu = document.createElement('div');
+  menu.className = 'history-popup-menu';
+  menu.innerHTML = items.map(it =>
+    `<button class="${it.danger ? 'danger' : ''}" data-action><span>${it.label}</span>${it.icon || ''}</button>`
+  ).join('');
 
-    item.addEventListener('touchstart', () => {
-      holdTimer = setTimeout(() => enterMultiSelectMode(sess.id), 500);
-    }, { passive: true });
-
-    item.addEventListener('touchend', () => clearTimeout(holdTimer));
-    item.addEventListener('touchmove', () => clearTimeout(holdTimer));
-    item.addEventListener('mousedown', () => {
-      holdTimer = setTimeout(() => enterMultiSelectMode(sess.id), 500);
+  menu.querySelectorAll('button[data-action]').forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      closeHistoryPopup();
+      items[i].onClick();
     });
-    item.addEventListener('mouseup', () => clearTimeout(holdTimer));
-    item.addEventListener('mouseleave', () => clearTimeout(holdTimer));
-
-    item.addEventListener('click', (e) => {
-      if (e.target.closest('.del-btn')) return;
-      if (isMultiSelectMode) {
-        toggleSelectSession(sess.id);
-      } else {
-        loadSession(sess.id);
-      }
-    });
-
-    item.querySelector('.del-btn').addEventListener('click', (e) => {
-      e.stopPropagation();
-      deleteSession(sess.id);
-    });
-
-    wrap.appendChild(item);
   });
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(menu);
+
+  const menuWidth = 190;
+  let left = anchorRect.left;
+  let top = anchorRect.bottom + 6;
+  if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
+  if (top + items.length * 44 + 16 > window.innerHeight - 8) top = anchorRect.top - (items.length * 44 + 16) - 6;
+
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+
+  activeHistoryPopup = { backdrop, menu };
+}
+
+const ICON_SELECT = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>';
+const ICON_TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+
+function openHeaderHistoryMenu(evt){
+  evt.stopPropagation();
+  const rect = evt.currentTarget.getBoundingClientRect();
+  showHistoryPopup([
+    { label: 'Pilih', icon: ICON_SELECT, onClick: () => enterMultiSelectMode() },
+    { label: 'Hapus Semua', danger: true, icon: ICON_TRASH, onClick: deleteAllSessions }
+  ], rect);
+}
+
+function openItemHistoryMenu(sess, anchorRect){
+  showHistoryPopup([
+    { label: 'Pilih', icon: ICON_SELECT, onClick: () => enterMultiSelectMode(sess.id) },
+    { label: 'Hapus', danger: true, icon: ICON_TRASH, onClick: () => deleteSession(sess.id) }
+  ], anchorRect);
+}
+
+async function deleteAllSessions(){
+  const allIds = Array.from(document.querySelectorAll('.chat-item')).map(el => el.dataset.id).filter(Boolean);
+  if (allIds.length === 0) return;
+  if (!confirm(`Hapus semua ${allIds.length} riwayat obrolan?`)) return;
+
+  for (let id of allIds) {
+    await deleteSession(id);
+  }
 }
 
 function enterMultiSelectMode(initialId) {
@@ -4397,6 +4732,7 @@ function enterMultiSelectMode(initialId) {
   document.getElementById('chatHistory').classList.add('multi-select-active');
   document.getElementById('historyActionBar').style.display = 'flex';
   document.getElementById('historyHeaderLabel').style.display = 'none';
+  document.getElementById('historyMenuBtn').style.display = 'none';
 
   updateSelectUI();
 }
@@ -4408,6 +4744,7 @@ function exitMultiSelectMode() {
   document.getElementById('chatHistory').classList.remove('multi-select-active');
   document.getElementById('historyActionBar').style.display = 'none';
   document.getElementById('historyHeaderLabel').style.display = 'inline';
+  document.getElementById('historyMenuBtn').style.display = 'flex';
 
   loadHistoryForCurrentUser();
 }
@@ -4451,6 +4788,61 @@ async function deleteSelectedSessions() {
   }
 
   exitMultiSelectMode();
+}
+
+function renderHistorySidebar(list) {
+  const wrap = document.getElementById('chatHistory');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  if (!list || list.length === 0) {
+    wrap.innerHTML = '<div class="empty-history-hint">Belum ada riwayat obrolan.</div>';
+    return;
+  }
+
+  list.forEach(sess => {
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (sess.id === currentSessionId ? ' active' : '');
+    item.dataset.id = sess.id;
+
+    const isChecked = selectedSessionIds.has(sess.id);
+
+    item.innerHTML = `
+      <input type="checkbox" class="chat-item-checkbox" ${isChecked ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectSession('${sess.id}')">
+      <span class="chat-item-title">${escapeHtml(sess.title || 'Obrolan')}</span>
+      <button class="del-btn" title="Opsi">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="12" cy="19" r="1.4"></circle></svg>
+      </button>
+    `;
+
+    let holdTimer = null;
+    const openMenu = () => {
+      if (isMultiSelectMode) return;
+      openItemHistoryMenu(sess, item.getBoundingClientRect());
+    };
+
+    item.addEventListener('touchstart', () => {
+      holdTimer = setTimeout(openMenu, 500);
+    }, { passive: true });
+    item.addEventListener('touchend', () => clearTimeout(holdTimer));
+    item.addEventListener('touchmove', () => clearTimeout(holdTimer));
+
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.del-btn') || e.target.closest('.chat-item-checkbox')) return;
+      if (isMultiSelectMode) {
+        toggleSelectSession(sess.id);
+      } else {
+        loadSession(sess.id);
+      }
+    });
+
+    item.querySelector('.del-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openItemHistoryMenu(sess, item.querySelector('.del-btn').getBoundingClientRect());
+    });
+
+    wrap.appendChild(item);
+  });
 }
 
 /* ================= INISIALISASI APLIKASI ================= */

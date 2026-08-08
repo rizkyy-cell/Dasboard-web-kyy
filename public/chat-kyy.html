@@ -85,6 +85,52 @@
     gap:8px;
     padding:16px;
   }
+  .info-guide-btn{
+    margin-left:auto;
+    width:26px;height:26px;
+    border-radius:50%;
+    border:1.5px solid var(--accent);
+    background:transparent;
+    color:var(--accent);
+    font-weight:800;
+    font-size:13px;
+    font-style:italic;
+    font-family:Georgia,'Times New Roman',serif;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .info-guide-btn:hover{background:var(--accent);color:#fff;}
+  .info-guide-btn:active{transform:scale(0.9);}
+
+  .guide-section{margin-bottom:22px;}
+  .guide-section:last-child{margin-bottom:0;}
+  .guide-section-title{
+    display:flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:700;color:var(--text-main);
+    margin-bottom:10px;
+  }
+  .guide-section-title .guide-icon{
+    width:26px;height:26px;border-radius:8px;flex-shrink:0;
+    background:var(--bg-input);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);
+  }
+  .guide-text{font-size:13px;line-height:1.6;color:var(--text-soft);}
+  .guide-list{margin:0;padding-left:20px;}
+  .guide-list li{font-size:13px;line-height:1.65;color:var(--text-soft);margin-bottom:6px;}
+  .guide-list li:last-child{margin-bottom:0;}
+  .guide-list b, .guide-text b{color:var(--text-main);}
+  .guide-disclaimer-box{
+    background:rgba(229,72,77,.08);
+    border:1px solid rgba(229,72,77,.35);
+    border-radius:12px;
+    padding:14px;
+    font-size:12.5px;
+    line-height:1.65;
+    color:var(--text-soft);
+  }
+  .guide-disclaimer-box b{color:#ff6b6f;}
   .logo{
     width:28px;height:28px;
     background:var(--accent);
@@ -1256,6 +1302,7 @@
   <div class="sidebar-header">
     <div class="logo" id="mainLogo">J</div>
     <div class="logo-text">JRxREZKYY</div>
+    <button type="button" class="info-guide-btn" onclick="openGuidePanel()" title="Panduan & Info Penggunaan">!</button>
   </div>
   <button class="new-chat-btn" onclick="newChat()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -1386,6 +1433,78 @@
   </div>
 </div>
 
+<!-- PANEL PANDUAN & INFO PENGGUNAAN -->
+<div class="side-panel-overlay" id="guidePanel" onclick="closeGuidePanel(event)">
+  <div class="side-panel-card" onclick="event.stopPropagation()">
+    <div class="side-panel-header">
+      <span class="side-panel-title">Panduan & Info Penggunaan</span>
+      <button type="button" onclick="closeGuidePanel()" title="Tutup"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="side-panel-body">
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.6 4.9L18 9.4l-4.4 1.5L12 15.8l-1.6-4.9L6 9.4l4.4-1.5L12 3z"></path><path d="M5 3v3.5M3.3 4.8h3.4M19 16.5V20M17.3 18.3h3.4"></path></svg></span> Tentang KYY AI</div>
+        <div class="guide-text">
+          KYY AI adalah asisten percakapan yang terhubung ke model kecerdasan buatan (AI) pihak ketiga. Cocok dipakai untuk tanya-jawab seputar dashboard, brainstorming, bantu ngoding, sampai obrolan santai. Semua balasan dihasilkan otomatis oleh AI, bukan ditulis manual oleh admin.
+        </div>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></span> Cara Pakai</div>
+        <ul class="guide-list">
+          <li>Ketik pertanyaan atau perintah di kolom bawah, lalu kirim seperti chat biasa.</li>
+          <li>Tombol <b>lampiran</b> buat kirim gambar, video, atau dokumen ke AI.</li>
+          <li>Toggle <b>Think</b>: AI mikir & review jawabannya sendiri sebelum dikirim — lebih teliti, tapi lebih lambat.</li>
+          <li>Toggle <b>Deep Search</b>: AI cari info terbaru di internet dulu sebelum jawab (khusus akun login, pakai kuota).</li>
+          <li><b>Projects</b>: kelompokkan beberapa chat dalam satu topik, lengkap dengan instruksi khusus & file referensi (Knowledge) sendiri.</li>
+          <li>Setiap balasan AI bisa disalin, didengarkan (text-to-speech), atau diekspor jadi file PDF/Word/Markdown.</li>
+          <li>Riwayat obrolan otomatis tersimpan di sidebar kiri, bisa dibuka lagi kapan saja.</li>
+        </ul>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span> Fitur Utama</div>
+        <ul class="guide-list">
+          <li>Multi-mode: Assistant biasa, Dev Assistant, dan Custom Mode (pakai API key & prompt sendiri).</li>
+          <li>Dukungan lampiran gambar, video, dan dokumen teks.</li>
+          <li>Riwayat obrolan tersimpan otomatis, bisa diakses lagi tanpa login (perangkat lokal) maupun dengan login (tersinkron).</li>
+          <li>Fitur Projects lengkap dengan Knowledge file & Custom Instructions per topik.</li>
+          <li>Export jawaban ke Markdown, PDF, Word, dan Excel (kalau ada tabel).</li>
+        </ul>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg></span> Kelebihan</div>
+        <ul class="guide-list">
+          <li>Gratis dipakai untuk mode Assistant biasa & Dev Assistant.</li>
+          <li>Fleksibel — mendukung teks, gambar, video, dan dokumen dalam satu obrolan.</li>
+          <li>Bisa disesuaikan lewat Custom Mode kalau kamu punya API key AI sendiri.</li>
+          <li>Riwayat & Projects membantu obrolan tetap terorganisir per topik.</li>
+        </ul>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg></span> Kekurangan & Risiko</div>
+        <ul class="guide-list">
+          <li>Jawaban AI <b>bisa saja salah, kurang akurat, atau ketinggalan zaman</b> — selalu cek ulang info penting sebelum dipakai/dipercaya sepenuhnya.</li>
+          <li>Mode Deep Search & fitur tertentu butuh login dan/atau kuota, tidak selalu gratis tanpa batas.</li>
+          <li>Kecepatan balasan tergantung koneksi internet & beban server penyedia AI, bisa lambat di jam sibuk.</li>
+          <li>Di Custom Mode, API key yang kamu masukkan tersimpan di perangkat kamu sendiri (localStorage) — jaga kerahasiaannya, jangan dipakai di perangkat publik/bersama.</li>
+          <li>Jangan kirim data pribadi sensitif (password, nomor rekening, dokumen rahasia, dsb) lewat chat ini.</li>
+        </ul>
+      </div>
+
+      <div class="guide-section">
+        <div class="guide-section-title"><span class="guide-icon" style="color:#ff6b6f"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span> Lisensi & Batasan Tanggung Jawab</div>
+        <div class="guide-disclaimer-box">
+          Fitur AI di halaman ini (termasuk <b>Custom Mode</b> yang memakai API key/prompt milik pengguna sendiri) disediakan <b>"sebagaimana adanya"</b> untuk tujuan bantu produktivitas dan eksperimen pribadi. Pengelola dashboard <b>tidak bertanggung jawab</b> atas kerugian, kesalahan informasi, maupun penyalahgunaan yang timbul dari penggunaan fitur AI ini — termasuk namun tidak terbatas pada isi jawaban AI, penggunaan Custom Mode dengan API key pihak ketiga, maupun tindakan pengguna berdasarkan hasil chat. Segala risiko penggunaan sepenuhnya ditanggung oleh pengguna masing-masing. Gunakan dengan bijak dan bertanggung jawab.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="artifact-modal-overlay" id="artifactModal" onclick="closeArtifactModal(event)">
   <div class="artifact-modal-card" onclick="event.stopPropagation()">
     <div class="artifact-modal-header">
@@ -1457,6 +1576,7 @@
               <input type="password" id="customApiKeyInput" class="config-field" placeholder="AIzaSy..." autocomplete="off">
               <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility('customApiKeyInput', this)" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
             </div>
+            <span class="config-hint">⚠️ Key ini tersimpan di penyimpanan lokal HP/browser kamu (localStorage), bukan terenkripsi. Jangan pakai HP bersama/publik buat isi ini, dan jangan share isi localStorage kamu ke siapa pun.</span>
           </div>
           <div class="config-input-group">
             <label class="config-label">Model (Gemini):</label>
@@ -1488,6 +1608,7 @@
               <input type="password" id="customOpenRouterKeyInput" class="config-field" placeholder="sk-or-v1-..." autocomplete="off">
               <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility('customOpenRouterKeyInput', this)" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
             </div>
+            <span class="config-hint">⚠️ Key ini tersimpan di penyimpanan lokal HP/browser kamu (localStorage), bukan terenkripsi. Jangan pakai HP bersama/publik buat isi ini, dan jangan share isi localStorage kamu ke siapa pun.</span>
           </div>
           <div class="config-input-group">
             <label class="config-label">Model (OpenRouter):</label>
@@ -3742,6 +3863,16 @@ async function deleteStorageFile(fileId, event){
   }
   kyyToast('File berhasil dihapus.', 'trash-2');
   loadStorageData('storageProjectList', false);
+}
+
+/* ================= PANEL PANDUAN & INFO PENGGUNAAN ================= */
+function openGuidePanel(){
+  document.getElementById('guidePanel')?.classList.add('show');
+  closeMobileSidebar();
+}
+function closeGuidePanel(e){
+  if(e && e.target !== e.currentTarget) return;
+  document.getElementById('guidePanel')?.classList.remove('show');
 }
 
 /* ================= PANEL PROJECTS (Tahap B) ================= */

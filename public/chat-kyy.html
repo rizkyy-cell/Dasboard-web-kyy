@@ -2641,15 +2641,6 @@ function handleFileInputChange(e){
   e.target.value = ''; 
 }
 
-function fileToDataURL(file){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 function fileToText(file){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -3842,7 +3833,20 @@ async function loadProjectDetail(projectId){
   const body = document.getElementById('projectDetailBody');
   body.innerHTML = '<div class="storage-empty-hint">Memuat...</div>';
 
-  const result = await kyyStorageCall({ action: 'get_project_detail', projectId });
+  // Dua request ini independen satu sama lain — jalanin paralel, bukan berurutan,
+  // biar loading-nya nggak nunggu 2x round-trip network.
+  const [result, chatsResult] = await Promise.all([
+    kyyStorageCall({ action: 'get_project_detail', projectId }),
+    currentUser
+      ? supabaseClient
+          .from('chat_sessions')
+          .select('id, title, created_at')
+          .eq('project_id', projectId)
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: null })
+  ]);
+
   if(result.error){
     body.innerHTML = `<div class="storage-empty-hint">${escapeHtml(result.error)}</div>`;
     return;
@@ -3851,25 +3855,17 @@ async function loadProjectDetail(projectId){
   kyyProjectDetailCache = result;
   document.getElementById('projectDetailTitle').textContent = result.project.name;
 
+  const chats = chatsResult.data;
   let chatRows = '<div class="storage-empty-hint">Belum ada chat di Project ini.</div>';
-  if(currentUser){
-    const { data: chats } = await supabaseClient
-      .from('chat_sessions')
-      .select('id, title, created_at')
-      .eq('project_id', projectId)
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: false });
-
-    if(chats && chats.length > 0){
-      chatRows = chats.map(c => `
-        <div class="project-chat-row" onclick="loadSession('${c.id}'); closeProjectDetail();">
-          <div>
-            <div class="chat-title">${escapeHtml(c.title || 'Untitled')}</div>
-            <div class="chat-date">${new Date(c.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})}</div>
-          </div>
+  if(chats && chats.length > 0){
+    chatRows = chats.map(c => `
+      <div class="project-chat-row" onclick="loadSession('${c.id}'); closeProjectDetail();">
+        <div>
+          <div class="chat-title">${escapeHtml(c.title || 'Untitled')}</div>
+          <div class="chat-date">${new Date(c.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'short',year:'numeric'})}</div>
         </div>
-      `).join('');
-    }
+      </div>
+    `).join('');
   }
 
   const knowledgeRows = (result.files || []).length > 0

@@ -144,18 +144,7 @@ async function pakaiCreditDeepSearch(userId) {
 }
 
 /* ================= STORAGE: konstanta dipakai bareng sama /api/storage.js ================= */
-const STORAGE_QUOTA_BYTES = 200 * 1024 * 1024; // 200MB per akun
 const STORAGE_BUCKET = 'user-files';
-
-function guessMimeType(fileName) {
-    const ext = (fileName.split('.').pop() || '').toLowerCase();
-    const map = {
-        html: 'text/html', css: 'text/css', js: 'application/javascript',
-        json: 'application/json', md: 'text/markdown', txt: 'text/plain',
-        svg: 'image/svg+xml', py: 'text/x-python', ts: 'application/typescript'
-    };
-    return map[ext] || 'text/plain';
-}
 
 /* ================= HELPER: KONTEKS PROJECT (Custom Instructions + Knowledge) ================= */
 const MAX_PROJECT_CONTEXT_BYTES = 80 * 1024; // ~80KB total isi Knowledge yang di-inject per request

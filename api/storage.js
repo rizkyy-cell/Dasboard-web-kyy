@@ -10,7 +10,7 @@ function getSupabaseAdmin() {
 }
 
 const STORAGE_BUCKET = 'user-files';
-const STORAGE_QUOTA_BYTES = 200 * 1024 * 1024; // 200MB per akun — samain sama chat_custom.js
+const STORAGE_QUOTA_BYTES = 200 * 1024 * 1024; // 200MB per akun
 
 function guessMimeType(fileName) {
     const ext = (fileName.split('.').pop() || '').toLowerCase();

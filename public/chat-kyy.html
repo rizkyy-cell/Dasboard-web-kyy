@@ -1080,7 +1080,46 @@
     color:var(--text-soft);
     margin-bottom:8px;
   }
-  .feedback-select, .feedback-textarea{
+  .feedback-select-btn{
+    width:100%;
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text-main);
+    padding:12px 14px;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .feedback-select-btn svg{transition:transform .2s ease; flex-shrink:0;}
+  .feedback-issue-dropdown{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease;
+  }
+  .feedback-issue-dropdown.open{max-height:400px;}
+  .feedback-issue-dropdown-inner{
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    margin-top:8px;
+    padding:4px;
+    max-height:280px;
+    overflow-y:auto;
+  }
+  .feedback-issue-dropdown-inner button{
+    width:100%; text-align:left;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:11px 12px;
+    background:none; border:none;
+    color:var(--text-main);
+    font-size:14px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .feedback-issue-dropdown-inner button:hover{background:var(--sidebar-hover);}
+  .feedback-issue-dropdown-inner button.active{color:var(--accent);}
+  .feedback-textarea{
     width:100%;
     background:var(--bg-input);
     border:1px solid var(--border);
@@ -1711,18 +1750,24 @@
       </button>
     </div>
 
-    <div id="feedbackIssueTypeWrap">
+    <div id="feedbackIssueTypeWrap" style="margin-bottom:18px;">
       <div class="feedback-field-label">What type of issue? (optional)</div>
-      <select class="feedback-select" id="feedbackIssueType">
-        <option value="other">Other</option>
-        <option value="ui_bug">UI bug</option>
-        <option value="harmful_content">Harmful content</option>
-        <option value="overactive_refusal">Overactive refusal</option>
-        <option value="did_not_follow">Did not fully follow my request</option>
-        <option value="not_factual">Not factually correct</option>
-        <option value="incomplete">Incomplete response</option>
-        <option value="memory">Issue with memory</option>
-      </select>
+      <button type="button" class="feedback-select-btn" id="feedbackIssueBtn" onclick="toggleFeedbackIssueDropdown()">
+        <span id="feedbackIssueLabel">Other</span>
+        <svg id="feedbackIssueChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div class="feedback-issue-dropdown" id="feedbackIssueDropdown">
+        <div class="feedback-issue-dropdown-inner">
+          <button type="button" data-value="other" onclick="selectFeedbackIssue('other','Other')">Other</button>
+          <button type="button" data-value="ui_bug" onclick="selectFeedbackIssue('ui_bug','UI bug')">UI bug</button>
+          <button type="button" data-value="harmful_content" onclick="selectFeedbackIssue('harmful_content','Harmful content')">Harmful content</button>
+          <button type="button" data-value="overactive_refusal" onclick="selectFeedbackIssue('overactive_refusal','Overactive refusal')">Overactive refusal</button>
+          <button type="button" data-value="did_not_follow" onclick="selectFeedbackIssue('did_not_follow','Did not fully follow my request')">Did not fully follow my request</button>
+          <button type="button" data-value="not_factual" onclick="selectFeedbackIssue('not_factual','Not factually correct')">Not factually correct</button>
+          <button type="button" data-value="incomplete" onclick="selectFeedbackIssue('incomplete','Incomplete response')">Incomplete response</button>
+          <button type="button" data-value="memory" onclick="selectFeedbackIssue('memory','Issue with memory')">Issue with memory</button>
+        </div>
+      </div>
     </div>
 
     <div class="feedback-field-label" id="feedbackDetailLabel">Please provide details: (optional)</div>
@@ -3878,6 +3923,21 @@ function voteMessage(idx, type, btn){
 
 /* ================= MODAL SUBMIT FEEDBACK -> SUPABASE ================= */
 let feedbackContext = null;
+let feedbackIssueTypeValue = 'other';
+
+function toggleFeedbackIssueDropdown(){
+  const dd = document.getElementById('feedbackIssueDropdown');
+  const chevron = document.getElementById('feedbackIssueChevron');
+  const isOpen = dd.classList.toggle('open');
+  chevron.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function selectFeedbackIssue(value, label){
+  feedbackIssueTypeValue = value;
+  document.getElementById('feedbackIssueLabel').textContent = label;
+  document.getElementById('feedbackIssueDropdown').classList.remove('open');
+  document.getElementById('feedbackIssueChevron').style.transform = 'rotate(0deg)';
+}
 
 function openFeedbackModal(idx, type){
   feedbackContext = { idx, type };
@@ -3887,7 +3947,10 @@ function openFeedbackModal(idx, type){
   const iconEl = document.getElementById('feedbackModalIcon');
 
   detailInput.value = '';
-  document.getElementById('feedbackIssueType').value = 'other';
+  feedbackIssueTypeValue = 'other';
+  document.getElementById('feedbackIssueLabel').textContent = 'Other';
+  document.getElementById('feedbackIssueDropdown').classList.remove('open');
+  document.getElementById('feedbackIssueChevron').style.transform = 'rotate(0deg)';
 
   if(type === 'down'){
     issueWrap.style.display = 'block';
@@ -3905,6 +3968,7 @@ function openFeedbackModal(idx, type){
 function closeFeedbackModal(evt){
   if(evt) evt.preventDefault();
   document.getElementById('feedbackModalOverlay').classList.remove('show');
+  document.getElementById('feedbackIssueDropdown').classList.remove('open');
   feedbackContext = null;
 }
 
@@ -3918,12 +3982,14 @@ async function submitFeedbackReport(){
   btn.disabled = true;
   btn.textContent = 'Mengirim...';
 
-  const issueType = type === 'down' ? document.getElementById('feedbackIssueType').value : null;
+  const issueType = type === 'down' ? feedbackIssueTypeValue : null;
   const detail = document.getElementById('feedbackDetailInput').value.trim() || null;
 
   try{
     const { error } = await supabaseClient.from('submit_feedback').insert({
       user_id: currentUser ? currentUser.id : null,
+      user_name: currentUser ? (currentProfile?.full_name || currentUser.email || 'User') : null,
+      user_email: currentUser ? currentUser.email : null,
       session_id: currentSessionId || null,
       message_index: idx,
       message_content: m.content || '',

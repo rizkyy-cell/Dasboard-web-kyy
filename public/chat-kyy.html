@@ -1604,7 +1604,7 @@
     <div class="empty-state" id="emptyState">
       <div class="empty-logo" id="emptyLogo">J</div>
       <div class="empty-title">Ada yang bisa saya bantu?</div>
-      <div class="empty-sub" id="emptySub">Tanya apa saja soal Dashboard Web Kyy atau ada sesuatu yang ingin dibahas.</div>
+      <div class="empty-sub" id="emptySub">Tanya apa saja soal Dashboard Web Kyy atau ada sesuatu yang ingin dibahas. Anda juga bisa custom chat sendiri menu settings.</div>
     </div>
     <div class="chat-inner" id="chatInner" style="display:none;"></div>
   </div>
@@ -3985,10 +3985,27 @@ async function submitFeedbackReport(){
   const issueType = type === 'down' ? feedbackIssueTypeValue : null;
   const detail = document.getElementById('feedbackDetailInput').value.trim() || null;
 
+  // Ambil nama asli dari tabel user_profiles (sumber utama identitas di ekosistem ini),
+  // karena user_metadata bawaan Supabase Auth sering kosong tergantung provider login.
+  let namaUser = null;
+  if(currentUser){
+    namaUser = currentUser.email || null;
+    try{
+      const { data: profileRow } = await supabaseClient
+        .from('user_profiles')
+        .select('display_name, username')
+        .eq('id', currentUser.id)
+        .single();
+      if(profileRow?.display_name) namaUser = profileRow.display_name;
+    }catch(e){
+      console.warn('Gagal ambil user_profiles, pakai fallback email:', e);
+    }
+  }
+
   try{
     const { error } = await supabaseClient.from('submit_feedback').insert({
       user_id: currentUser ? currentUser.id : null,
-      user_name: currentUser ? (currentProfile?.full_name || currentUser.email || 'User') : null,
+      user_name: namaUser,
       user_email: currentUser ? currentUser.email : null,
       session_id: currentSessionId || null,
       message_index: idx,

@@ -1292,6 +1292,21 @@ html, body {
       document.getElementById('infoDisplayName').textContent = profile.display_name;
             document.getElementById('infoPermanentId').textContent = profile.permanent_id;
       document.getElementById('infoDevice').textContent = profile.device_login;
+
+      trackUserLoginSekali(session.access_token);
+    }
+
+    // Rekam IP & waktu login terakhir buat keperluan Manajemen User di admin panel.
+    // Dipanggil sekali per tab browser (bukan tiap render) biar nggak spam server.
+    let _sudahTrackLogin = false;
+    function trackUserLoginSekali(accessToken){
+      if(_sudahTrackLogin || !accessToken) return;
+      _sudahTrackLogin = true;
+      fetch('/api/track-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken })
+      }).catch(() => {}); // fire-and-forget, gagal diam-diam aja, jangan ganggu UX login utama
     }
 
     // ▼▼▼ PASTE KODE BARU DI SINI ▼▼▼

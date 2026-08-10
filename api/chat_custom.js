@@ -35,7 +35,10 @@ async function callGemini({ key, model, systemPrompt, contents }) {
 
     if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`API Gemini gagal (Status ${res.status}). Periksa Custom API Key / nama model kamu.`);
+        const err = new Error(`API Gemini gagal (Status ${res.status}). Periksa Custom API Key / nama model kamu.`);
+        err.status = res.status;
+        err.isRateLimit = (res.status === 429); // kode standar Google buat "quota/rate limit habis"
+        throw err;
     }
 
     const data = await res.json();
@@ -45,6 +48,27 @@ async function callGemini({ key, model, systemPrompt, contents }) {
         throw new Error(`Respons kosong dari Gemini. Alasan: ${data.candidates[0].finishReason}`);
     }
     throw new Error(data.error?.message || 'Perintah ditolak oleh Gemini (Unknown Error)');
+}
+
+// Coba beberapa API key Gemini berurutan — kalau satu kena rate limit (429),
+// otomatis lanjut ke key berikutnya tanpa bikin chat gagal/keputus. Kalau errornya
+// BUKAN soal limit (misal key salah/format aneh), langsung berhenti di situ —
+// nyoba key lain nggak bakal nolong buat jenis error itu.
+async function callGeminiWithFailover({ keys, model, systemPrompt, contents }) {
+    let lastError = null;
+    for (let i = 0; i < keys.length; i++) {
+        try {
+            return await callGemini({ key: keys[i], model, systemPrompt, contents });
+        } catch (err) {
+            lastError = err;
+            if (err.isRateLimit && i < keys.length - 1) {
+                console.warn(`Gemini key ke-${i + 1} kena limit, otomatis coba key berikutnya...`);
+                continue;
+            }
+            throw err;
+        }
+    }
+    throw lastError || new Error('Semua API key Gemini gagal dipakai.');
 }
 
 async function callOpenRouter({ key, model, messages }) {
@@ -216,7 +240,7 @@ module.exports = async function handler(req, res) {
     try {
         const {
             pesan, gambarData, gambarType, gambarList, videoFileList, riwayat,
-            customProvider, customApiKey, customGeminiModel,
+            customProvider, customApiKey, customApiKeys, customGeminiModel,
             customOpenRouterKey, customOpenRouterModel, customPrompt,
             thinkMode, deepSearchMode, userId, projectId
         } = req.body;
@@ -232,13 +256,19 @@ module.exports = async function handler(req, res) {
 
         // 1. TENTUKAN PROVIDER
         const openrouterKey = customOpenRouterKey ? customOpenRouterKey.trim() : null;
-        const geminiKeyUser = customApiKey ? customApiKey.trim() : null;
+
+        // Key Gemini user: field baru customApiKeys (array, sampai 5 slot) diprioritaskan,
+        // fallback ke customApiKey tunggal (kompatibel sama frontend versi lama).
+        const geminiKeysUser = (Array.isArray(customApiKeys) && customApiKeys.length > 0)
+            ? customApiKeys.map(k => (k || '').trim()).filter(Boolean)
+            : (customApiKey && customApiKey.trim() ? [customApiKey.trim()] : []);
 
         let provider = customProvider === 'openrouter' || customProvider === 'gemini'
             ? customProvider
             : (openrouterKey ? 'openrouter' : 'gemini');
 
-        let keyTerpilih = null;
+        let keyTerpilih = null;       // dipakai jalur OpenRouter (single key, nggak ada failover)
+        let geminiKeysList = [];      // dipakai jalur Gemini (bisa banyak key, ada failover)
 
         if (provider === 'openrouter') {
             if (!openrouterKey) {
@@ -246,8 +276,8 @@ module.exports = async function handler(req, res) {
             }
             keyTerpilih = openrouterKey;
         } else {
-            if (geminiKeyUser) {
-                keyTerpilih = geminiKeyUser;
+            if (geminiKeysUser.length > 0) {
+                geminiKeysList = geminiKeysUser;
             } else {
                 const kumpulanKeys = [
                     process.env.GEMINI_API_KEY,
@@ -261,7 +291,9 @@ module.exports = async function handler(req, res) {
                     return res.status(200).json({ balasan: '⚠️ Custom API Key belum diisi dan API Key Vercel kosong!' });
                 }
 
-                keyTerpilih = kumpulanKeys[Math.floor(Math.random() * kumpulanKeys.length)];
+                // pool server: tetap acak urutannya biar beban kepake merata,
+                // tapi tetap kirim SEMUANYA biar failover jalan kalau yang pertama limit
+                geminiKeysList = [...kumpulanKeys].sort(() => Math.random() - 0.5);
             }
         }
 
@@ -383,7 +415,7 @@ module.exports = async function handler(req, res) {
             contents.push({ role: 'user', parts: userParts });
 
             try {
-                draftText = await callGemini({ key: keyTerpilih, model: modelGemini, systemPrompt, contents });
+                draftText = await callGeminiWithFailover({ keys: geminiKeysList, model: modelGemini, systemPrompt, contents });
             } catch (err) {
                 return res.status(200).json({ balasan: `⚠️ ${err.message}` });
             }
@@ -406,8 +438,8 @@ module.exports = async function handler(req, res) {
                         ]
                     });
                 } else {
-                    finalText = await callGemini({
-                        key: keyTerpilih,
+                    finalText = await callGeminiWithFailover({
+                        keys: geminiKeysList,
                         model: modelGemini,
                         systemPrompt,
                         contents: [{ role: 'user', parts: [{ text: refinePrompt }] }]

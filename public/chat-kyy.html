@@ -563,6 +563,31 @@
   }
   .artifact-count-badge:hover{color:var(--text-main);border-color:var(--accent);}
 
+  /* ================= BANNER "SIMPAN KE PROJECT KNOWLEDGE" ================= */
+  .knowledge-save-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    flex-wrap:wrap;
+    padding:10px 14px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--bg-input);
+    font-size:12.5px;color:var(--text-main);
+  }
+  .knowledge-save-banner span{display:flex;align-items:center;gap:7px;}
+  .knowledge-save-banner-actions{display:flex;gap:6px;}
+  .knowledge-save-banner-actions button{
+    font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:8px;border:none;cursor:pointer;
+  }
+  .knowledge-save-banner-actions button:first-child{background:var(--accent);color:#fff;}
+  .knowledge-save-banner-actions button:last-child{background:transparent;color:var(--text-soft);}
+  .knowledge-save-banner-actions button:last-child:hover{color:var(--text-main);}
+  .knowledge-save-banner.saved{
+    background:rgba(62,207,142,.1);
+    border-color:rgba(62,207,142,.3);
+    color:#3ecf8e;
+  }
+
   /* ================= AKSI DI BAWAH BALASAN AI (salin, dengar, vote, ulang) ================= */
   .msg-actions{
     display:flex;align-items:center;gap:2px;
@@ -1080,46 +1105,7 @@
     color:var(--text-soft);
     margin-bottom:8px;
   }
-  .feedback-select-btn{
-    width:100%;
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--bg-input);
-    border:1px solid var(--border);
-    border-radius:12px;
-    color:var(--text-main);
-    padding:12px 14px;
-    font-size:14px;
-    cursor:pointer;
-  }
-  .feedback-select-btn svg{transition:transform .2s ease; flex-shrink:0;}
-  .feedback-issue-dropdown{
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease;
-  }
-  .feedback-issue-dropdown.open{max-height:400px;}
-  .feedback-issue-dropdown-inner{
-    background:var(--bg-input);
-    border:1px solid var(--border);
-    border-radius:12px;
-    margin-top:8px;
-    padding:4px;
-    max-height:280px;
-    overflow-y:auto;
-  }
-  .feedback-issue-dropdown-inner button{
-    width:100%; text-align:left;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:11px 12px;
-    background:none; border:none;
-    color:var(--text-main);
-    font-size:14px;
-    border-radius:9px;
-    cursor:pointer;
-  }
-  .feedback-issue-dropdown-inner button:hover{background:var(--sidebar-hover);}
-  .feedback-issue-dropdown-inner button.active{color:var(--accent);}
-  .feedback-textarea{
+  .feedback-select, .feedback-textarea{
     width:100%;
     background:var(--bg-input);
     border:1px solid var(--border);
@@ -1366,6 +1352,13 @@
     justify-content: center;
   }
   .toggle-eye-btn:hover { color: var(--text-main); }
+
+  .gemini-key-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .gemini-key-remove{
+    width:34px;height:34px;flex-shrink:0;border:1px solid var(--border);background:transparent;color:var(--text-soft);
+    border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .gemini-key-remove:hover{background:rgba(229,72,77,.15);color:#e5484d;}
 
   /* TABEL HEADER HISTORY SESSION DENGAN GARIS ATAS-BAWAH */
   .history-header-table {
@@ -1804,24 +1797,18 @@
       </button>
     </div>
 
-    <div id="feedbackIssueTypeWrap" style="margin-bottom:18px;">
+    <div id="feedbackIssueTypeWrap">
       <div class="feedback-field-label">What type of issue? (optional)</div>
-      <button type="button" class="feedback-select-btn" id="feedbackIssueBtn" onclick="toggleFeedbackIssueDropdown()">
-        <span id="feedbackIssueLabel">Other</span>
-        <svg id="feedbackIssueChevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-      </button>
-      <div class="feedback-issue-dropdown" id="feedbackIssueDropdown">
-        <div class="feedback-issue-dropdown-inner">
-          <button type="button" data-value="other" onclick="selectFeedbackIssue('other','Other')">Other</button>
-          <button type="button" data-value="ui_bug" onclick="selectFeedbackIssue('ui_bug','UI bug')">UI bug</button>
-          <button type="button" data-value="harmful_content" onclick="selectFeedbackIssue('harmful_content','Harmful content')">Harmful content</button>
-          <button type="button" data-value="overactive_refusal" onclick="selectFeedbackIssue('overactive_refusal','Overactive refusal')">Overactive refusal</button>
-          <button type="button" data-value="did_not_follow" onclick="selectFeedbackIssue('did_not_follow','Did not fully follow my request')">Did not fully follow my request</button>
-          <button type="button" data-value="not_factual" onclick="selectFeedbackIssue('not_factual','Not factually correct')">Not factually correct</button>
-          <button type="button" data-value="incomplete" onclick="selectFeedbackIssue('incomplete','Incomplete response')">Incomplete response</button>
-          <button type="button" data-value="memory" onclick="selectFeedbackIssue('memory','Issue with memory')">Issue with memory</button>
-        </div>
-      </div>
+      <select class="feedback-select" id="feedbackIssueType">
+        <option value="other">Other</option>
+        <option value="ui_bug">UI bug</option>
+        <option value="harmful_content">Harmful content</option>
+        <option value="overactive_refusal">Overactive refusal</option>
+        <option value="did_not_follow">Did not fully follow my request</option>
+        <option value="not_factual">Not factually correct</option>
+        <option value="incomplete">Incomplete response</option>
+        <option value="memory">Issue with memory</option>
+      </select>
     </div>
 
     <div class="feedback-field-label" id="feedbackDetailLabel">Please provide details: (optional)</div>
@@ -1899,11 +1886,9 @@
           </div>
 
           <div class="config-input-group">
-            <label class="config-label">Custom API Key (Gemini):</label>
-            <div class="api-key-input-wrapper">
-              <input type="password" id="customApiKeyInput" class="config-field" placeholder="AIzaSy..." autocomplete="off">
-              <button type="button" class="toggle-eye-btn" onclick="toggleApiKeyVisibility('customApiKeyInput', this)" title="Lihat/Sembunyikan API Key"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
-            </div>
+            <label class="config-label">Custom API Key (Gemini) — bisa lebih dari 1, otomatis pindah kalau limit:</label>
+            <div id="geminiKeyList"></div>
+            <button type="button" class="btn-add-knowledge" id="addGeminiKeyBtn" onclick="addGeminiKeyField()">+ Tambah API Key (maks 5)</button>
             <span class="config-hint">⚠️ Key ini tersimpan di penyimpanan lokal HP/browser kamu (localStorage), bukan terenkripsi. Jangan pakai HP bersama/publik buat isi ini, dan jangan share isi localStorage kamu ke siapa pun.</span>
           </div>
           <div class="config-input-group">
@@ -2021,7 +2006,8 @@ const KYY_ICON_PATHS = {
   zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
   'code-2': '<polyline points="18 16 22 12 18 8"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="14.5" y1="4" x2="9.5" y2="20"></line>',
   check: '<polyline points="20 6 9 17 4 12"></polyline>',
-  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
+  folder: '<path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-2H5a2 2 0 0 0-2 2z"></path>'
 };
 function kyyIcon(name, size){
   const s = size || 16;
@@ -2268,6 +2254,60 @@ function kyyDownloadArtifact(id){
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ================= SIMPAN KE PROJECT KNOWLEDGE (manual, dikonfirmasi user) ================= */
+function kyySmartFilename(langKey, usedNames){
+  const defaultNames = { html:'index.html', css:'style.css', javascript:'script.js', typescript:'script.ts' };
+  const ext = KYY_LANG_EXTENSION[langKey] || 'txt';
+  let base = defaultNames[langKey] || `file.${ext}`;
+  let name = base;
+  let i = 2;
+  while(usedNames.has(name)){
+    const dot = base.lastIndexOf('.');
+    name = dot > -1 ? `${base.slice(0,dot)}-${i}${base.slice(dot)}` : `${base}-${i}`;
+    i++;
+  }
+  usedNames.add(name);
+  return name;
+}
+
+async function confirmSaveToKnowledge(mIdx){
+  const groupId = 'msg_' + mIdx;
+  const artifactIds = kyyArtifactGroups[groupId] || [];
+  if(artifactIds.length === 0 || !currentProjectId) return;
+
+  kyyToast('Menyimpan ke Project Knowledge...', 'zap');
+
+  const usedNames = new Set();
+  let sukses = 0;
+
+  for(const id of artifactIds){
+    const item = kyyArtifactStore[id];
+    if(!item) continue;
+    const filename = kyySmartFilename(item.lang, usedNames);
+
+    const result = await kyyStorageCall({
+      action: 'upload_knowledge_file',
+      projectId: currentProjectId,
+      filename,
+      content: item.code
+    });
+
+    if(!result.error) sukses++;
+    else kyyToast(`Gagal simpan "${filename}": ${result.error}`, 'zap', true);
+  }
+
+  if(sukses > 0){
+    messages[mIdx]._knowledgeSaved = true;
+    kyyToast(`${sukses} file tersimpan ke Project Knowledge!`, 'sparkles');
+    renderMessages();
+  }
+}
+
+function dismissSaveToKnowledge(mIdx){
+  messages[mIdx]._knowledgeDismissed = true;
+  renderMessages();
 }
 
 /* Bungkus tiap <table> hasil markdown biar bisa discroll horizontal di HP tanpa merusak layout */
@@ -3192,7 +3232,7 @@ async function addAttachment(file){
   // isi API key Gemini MILIK SENDIRI (bukan key gabungan server, itu nggak boleh
   // dikirim ke browser). Kalau syaratnya nggak lengkap, video tetap bisa dilampirkan
   // buat referensi visual doang, tapi jujur dikasih tau nggak akan terbaca AI.
-  const geminiKeySendiri = (document.getElementById('customApiKeyInput')?.value || '').trim();
+  const geminiKeySendiri = (kyyParseKeyList(localStorage.getItem('kyy_custom_api_keys')) || [])[0] || '';
   const providerAktif = localStorage.getItem('kyy_custom_provider') || 'gemini';
   const videoBisaDibaca = category === 'video'
     && currentMode === 'custom'
@@ -3885,6 +3925,29 @@ function renderMessages(){
       enhanceTables(bubble);
       col.appendChild(bubble);
 
+      // Tawaran simpan ke Project Knowledge — cuma muncul kalau lagi chat di dalam
+      // sebuah Project DAN pesan ini punya kode/artifact. User yang mutusin, bukan
+      // otomatis diam-diam kayak sistem lama.
+      const groupIdKnowledge = 'msg_' + mIdx;
+      const artifactIdsKnowledge = kyyArtifactGroups[groupIdKnowledge] || [];
+      if(currentProjectId && artifactIdsKnowledge.length > 0){
+        const banner = document.createElement('div');
+        if(m._knowledgeSaved){
+          banner.className = 'knowledge-save-banner saved';
+          banner.innerHTML = `<span>${kyyIcon('check',14)} Tersimpan ke Project Knowledge</span>`;
+        } else if(!m._knowledgeDismissed){
+          banner.className = 'knowledge-save-banner';
+          banner.innerHTML = `
+            <span>${kyyIcon('folder',14)} Simpan ${artifactIdsKnowledge.length} file ke Project Knowledge?</span>
+            <div class="knowledge-save-banner-actions">
+              <button type="button" onclick="confirmSaveToKnowledge(${mIdx})">Simpan</button>
+              <button type="button" onclick="dismissSaveToKnowledge(${mIdx})">Abaikan</button>
+            </div>
+          `;
+        }
+        if(banner.innerHTML) col.appendChild(banner);
+      }
+
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
       actions.innerHTML = `
@@ -3988,21 +4051,6 @@ function voteMessage(idx, type, btn){
 
 /* ================= MODAL SUBMIT FEEDBACK -> SUPABASE ================= */
 let feedbackContext = null;
-let feedbackIssueTypeValue = 'other';
-
-function toggleFeedbackIssueDropdown(){
-  const dd = document.getElementById('feedbackIssueDropdown');
-  const chevron = document.getElementById('feedbackIssueChevron');
-  const isOpen = dd.classList.toggle('open');
-  chevron.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-}
-
-function selectFeedbackIssue(value, label){
-  feedbackIssueTypeValue = value;
-  document.getElementById('feedbackIssueLabel').textContent = label;
-  document.getElementById('feedbackIssueDropdown').classList.remove('open');
-  document.getElementById('feedbackIssueChevron').style.transform = 'rotate(0deg)';
-}
 
 function openFeedbackModal(idx, type){
   feedbackContext = { idx, type };
@@ -4012,10 +4060,7 @@ function openFeedbackModal(idx, type){
   const iconEl = document.getElementById('feedbackModalIcon');
 
   detailInput.value = '';
-  feedbackIssueTypeValue = 'other';
-  document.getElementById('feedbackIssueLabel').textContent = 'Other';
-  document.getElementById('feedbackIssueDropdown').classList.remove('open');
-  document.getElementById('feedbackIssueChevron').style.transform = 'rotate(0deg)';
+  document.getElementById('feedbackIssueType').value = 'other';
 
   if(type === 'down'){
     issueWrap.style.display = 'block';
@@ -4033,7 +4078,6 @@ function openFeedbackModal(idx, type){
 function closeFeedbackModal(evt){
   if(evt) evt.preventDefault();
   document.getElementById('feedbackModalOverlay').classList.remove('show');
-  document.getElementById('feedbackIssueDropdown').classList.remove('open');
   feedbackContext = null;
 }
 
@@ -4047,35 +4091,12 @@ async function submitFeedbackReport(){
   btn.disabled = true;
   btn.textContent = 'Mengirim...';
 
-  const issueType = type === 'down' ? feedbackIssueTypeValue : null;
+  const issueType = type === 'down' ? document.getElementById('feedbackIssueType').value : null;
   const detail = document.getElementById('feedbackDetailInput').value.trim() || null;
-
-  // Ambil username & ID permanen dari tabel user_profiles (sumber utama identitas
-  // di ekosistem ini) — username lebih stabil daripada display_name yang bebas diubah user.
-  let namaUser = null;
-  let permanentIdUser = null;
-  if(currentUser){
-    namaUser = currentUser.email || null;
-    try{
-      const { data: profileRow } = await supabaseClient
-        .from('user_profiles')
-        .select('display_name, username, permanent_id')
-        .eq('id', currentUser.id)
-        .single();
-      if(profileRow?.username) namaUser = profileRow.username;
-      else if(profileRow?.display_name) namaUser = profileRow.display_name;
-      if(profileRow?.permanent_id) permanentIdUser = profileRow.permanent_id;
-    }catch(e){
-      console.warn('Gagal ambil user_profiles, pakai fallback email:', e);
-    }
-  }
 
   try{
     const { error } = await supabaseClient.from('submit_feedback').insert({
       user_id: currentUser ? currentUser.id : null,
-      user_permanent_id: permanentIdUser,
-      user_name: namaUser,
-      user_email: currentUser ? currentUser.email : null,
       session_id: currentSessionId || null,
       message_index: idx,
       message_content: m.content || '',
@@ -4620,6 +4641,67 @@ async function onProviderToggleChange(changedProvider){
   updateModelLabel();
 }
 
+/* ================= MULTI API KEY GEMINI (maks 5 slot, failover di backend) ================= */
+function geminiKeyRowHTML(value){
+  return `
+    <div class="gemini-key-row">
+      <div class="api-key-input-wrapper" style="flex:1;">
+        <input type="password" class="config-field gemini-key-input" placeholder="AIzaSy..." value="${escapeHtml(value || '')}" autocomplete="off">
+        <button type="button" class="toggle-eye-btn" onclick="toggleGeminiKeyVisibility(this)">${kyyIcon('eye',16)}</button>
+      </div>
+      <button type="button" class="gemini-key-remove" onclick="removeGeminiKeyField(this)" title="Hapus slot ini">${kyyIcon('x',14)}</button>
+    </div>
+  `;
+}
+
+function renderGeminiKeyFields(keys){
+  const list = document.getElementById('geminiKeyList');
+  const arr = (keys && keys.length > 0) ? keys : [''];
+  list.innerHTML = arr.map(k => geminiKeyRowHTML(k)).join('');
+  updateAddGeminiKeyBtnState();
+}
+
+function addGeminiKeyField(){
+  const list = document.getElementById('geminiKeyList');
+  const rows = list.querySelectorAll('.gemini-key-row');
+  if(rows.length >= 5){
+    kyyToast('Maksimal 5 API key Gemini.', 'zap', true);
+    return;
+  }
+  list.insertAdjacentHTML('beforeend', geminiKeyRowHTML(''));
+  updateAddGeminiKeyBtnState();
+}
+
+function removeGeminiKeyField(btn){
+  const list = document.getElementById('geminiKeyList');
+  const rows = list.querySelectorAll('.gemini-key-row');
+  if(rows.length <= 1){
+    btn.closest('.gemini-key-row').querySelector('input').value = '';
+    return;
+  }
+  btn.closest('.gemini-key-row').remove();
+  updateAddGeminiKeyBtnState();
+}
+
+function updateAddGeminiKeyBtnState(){
+  const list = document.getElementById('geminiKeyList');
+  const rows = list.querySelectorAll('.gemini-key-row').length;
+  const btn = document.getElementById('addGeminiKeyBtn');
+  if(btn) btn.style.display = rows >= 5 ? 'none' : 'flex';
+}
+
+function collectGeminiKeys(){
+  return Array.from(document.querySelectorAll('#geminiKeyList .gemini-key-input'))
+    .map(inp => inp.value.trim())
+    .filter(Boolean);
+}
+
+function toggleGeminiKeyVisibility(btn){
+  const input = btn.previousElementSibling;
+  if(input.type === 'password'){ input.type = 'text'; btn.innerHTML = kyyIcon('eye-off',16); }
+  else { input.type = 'password'; btn.innerHTML = kyyIcon('eye',16); }
+}
+
 function toggleApiKeyVisibility(inputId, btn) {
   const input = document.getElementById(inputId || 'customApiKeyInput');
   btn = btn || event.currentTarget;
@@ -4639,10 +4721,12 @@ function kyyGetCustomPayloadFields(){
   const activePrompt = provider === 'openrouter'
     ? (localStorage.getItem('kyy_custom_openrouter_prompt') || '')
     : (localStorage.getItem('kyy_custom_prompt') || '');
+  const geminiKeys = kyyParseKeyList(localStorage.getItem('kyy_custom_api_keys')) || [];
 
   return {
     customProvider: provider,
-    customApiKey: localStorage.getItem('kyy_custom_api_key') || '',
+    customApiKey: geminiKeys[0] || '', // dipertahankan buat kompatibel sama backend lama
+    customApiKeys: geminiKeys, // dipakai backend baru buat failover otomatis
     customGeminiModel: localStorage.getItem('kyy_custom_gemini_model') || '',
     customOpenRouterKey: localStorage.getItem('kyy_custom_openrouter_key') || '',
     customOpenRouterModel: localStorage.getItem('kyy_custom_openrouter_model') || '',
@@ -4652,7 +4736,7 @@ function kyyGetCustomPayloadFields(){
 }
 
 async function loadSavedCustomConfig() {
-  let key = localStorage.getItem('kyy_custom_api_key') || '';
+  let keys = kyyParseKeyList(localStorage.getItem('kyy_custom_api_keys')) || (localStorage.getItem('kyy_custom_api_key') ? [localStorage.getItem('kyy_custom_api_key')] : []);
   let geminiModel = localStorage.getItem('kyy_custom_gemini_model') || '';
   let geminiPrompt = localStorage.getItem('kyy_custom_prompt') || '';
   let openrouterKey = localStorage.getItem('kyy_custom_openrouter_key') || '';
@@ -4665,12 +4749,12 @@ async function loadSavedCustomConfig() {
     try {
       const { data, error } = await supabaseClient
         .from('user_custom_configs')
-        .select('custom_api_key, custom_gemini_model, custom_prompt, custom_openrouter_key, custom_openrouter_model, custom_openrouter_prompt, custom_gemini_enabled, custom_openrouter_enabled')
+        .select('custom_api_keys, custom_gemini_model, custom_prompt, custom_openrouter_key, custom_openrouter_model, custom_openrouter_prompt, custom_gemini_enabled, custom_openrouter_enabled')
         .eq('user_id', currentUser.id)
         .single();
 
       if (data && !error) {
-        key = data.custom_api_key || key;
+        keys = (Array.isArray(data.custom_api_keys) && data.custom_api_keys.length > 0) ? data.custom_api_keys : keys;
         geminiModel = data.custom_gemini_model || geminiModel;
         geminiPrompt = data.custom_prompt || geminiPrompt;
         openrouterKey = data.custom_openrouter_key || openrouterKey;
@@ -4679,7 +4763,7 @@ async function loadSavedCustomConfig() {
         geminiEnabled = !!data.custom_gemini_enabled;
         openrouterEnabled = !!data.custom_openrouter_enabled;
 
-        localStorage.setItem('kyy_custom_api_key', key);
+        localStorage.setItem('kyy_custom_api_keys', JSON.stringify(keys));
         localStorage.setItem('kyy_custom_gemini_model', geminiModel);
         localStorage.setItem('kyy_custom_prompt', geminiPrompt);
         localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
@@ -4694,7 +4778,7 @@ async function loadSavedCustomConfig() {
     }
   }
 
-  document.getElementById('customApiKeyInput').value = key;
+  renderGeminiKeyFields(keys);
   document.getElementById('customGeminiModelInput').value = geminiModel;
   document.getElementById('customPromptInput').value = geminiPrompt;
   document.getElementById('customOpenRouterKeyInput').value = openrouterKey;
@@ -4704,12 +4788,17 @@ async function loadSavedCustomConfig() {
   document.getElementById('openrouterToggle').checked = openrouterEnabled;
 }
 
+function kyyParseKeyList(raw){
+  if(!raw) return null;
+  try{ const arr = JSON.parse(raw); return Array.isArray(arr) ? arr : null; }catch(e){ return null; }
+}
+
 /* Tulis semua field (kedua kotak) ke localStorage + Supabase, tanpa validasi,
    tanpa toast, tanpa nutup popup — dipakai bareng oleh Save & Delete. */
 async function kyyPersistCustomConfig(){
   const geminiEnabled = document.getElementById('geminiToggle').checked;
   const openrouterEnabled = document.getElementById('openrouterToggle').checked;
-  const key = document.getElementById('customApiKeyInput').value.trim();
+  const keys = collectGeminiKeys();
   const geminiModel = document.getElementById('customGeminiModelInput').value.trim();
   const geminiPrompt = document.getElementById('customPromptInput').value.trim();
   const openrouterKey = document.getElementById('customOpenRouterKeyInput').value.trim();
@@ -4717,7 +4806,7 @@ async function kyyPersistCustomConfig(){
   const openrouterPrompt = document.getElementById('customOpenRouterPromptInput').value.trim();
   const provider = geminiEnabled ? 'gemini' : (openrouterEnabled ? 'openrouter' : (localStorage.getItem('kyy_custom_provider') || 'gemini'));
 
-  localStorage.setItem('kyy_custom_api_key', key);
+  localStorage.setItem('kyy_custom_api_keys', JSON.stringify(keys));
   localStorage.setItem('kyy_custom_gemini_model', geminiModel);
   localStorage.setItem('kyy_custom_prompt', geminiPrompt);
   localStorage.setItem('kyy_custom_openrouter_key', openrouterKey);
@@ -4732,7 +4821,7 @@ async function kyyPersistCustomConfig(){
     try {
       await supabaseClient.from('user_custom_configs').upsert({
         user_id: currentUser.id,
-        custom_api_key: key,
+        custom_api_keys: keys,
         custom_gemini_model: geminiModel,
         custom_prompt: geminiPrompt,
         custom_openrouter_key: openrouterKey,
@@ -4780,7 +4869,7 @@ async function deleteCustomConfig(provider) {
     document.getElementById('customOpenRouterPromptInput').value = '';
     document.getElementById('openrouterToggle').checked = false;
   } else {
-    document.getElementById('customApiKeyInput').value = '';
+    renderGeminiKeyFields(['']);
     document.getElementById('customGeminiModelInput').value = '';
     document.getElementById('customPromptInput').value = '';
     document.getElementById('geminiToggle').checked = false;

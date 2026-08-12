@@ -1563,6 +1563,130 @@
     color:var(--text-soft);
     margin-top:1px;
   }
+
+  /* ================= FILE LIBRARY (Perpustakaan File Permanen) ================= */
+  .library-overlay{
+    position:fixed; inset:0;
+    z-index:850;
+    background:rgba(0,0,0,.55);
+    opacity:0; visibility:hidden;
+    transition:opacity .3s ease, visibility .3s ease;
+  }
+  .library-overlay.show{ opacity:1; visibility:visible; }
+  .library-sheet{
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:100%; height:100dvh;
+    background:var(--bg-sidebar);
+    border-radius:22px 22px 0 0;
+    display:flex; flex-direction:column;
+    transform:translateY(100%);
+    transition:transform .38s cubic-bezier(0.16,1,0.3,1);
+    overflow:hidden;
+  }
+  .library-overlay.show .library-sheet{ transform:translateY(0); }
+  .library-sheet-handle{
+    width:40px; height:4px;
+    background:var(--border);
+    border-radius:99px;
+    margin:10px auto 0;
+    flex-shrink:0;
+  }
+  .library-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px;
+    flex-shrink:0;
+    border-bottom:1px solid var(--border);
+  }
+  .library-header h3{
+    font-size:16px; font-weight:800;
+    display:flex; align-items:center; gap:8px;
+    color:var(--text-main);
+    margin:0;
+  }
+  .library-header-actions{ display:flex; gap:8px; }
+  .library-header-actions button{
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    color:var(--text-main);
+    width:34px; height:34px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .library-body{
+    flex:1;
+    overflow-y:auto;
+    padding:14px 16px 30px;
+  }
+  .library-empty, .library-guest-notice{
+    text-align:center;
+    color:var(--text-soft);
+    font-size:13px;
+    padding:60px 24px;
+    line-height:1.6;
+  }
+  .library-item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:10px;
+  }
+  .library-item-icon{
+    flex-shrink:0;
+    width:38px; height:38px;
+    border-radius:10px;
+    background:var(--sidebar-hover);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent);
+  }
+  .library-item-body{ flex:1; min-width:0; }
+  .library-item-name{
+    font-size:13.5px; font-weight:600;
+    color:var(--text-main);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .library-item-meta{
+    font-size:11px; color:var(--text-soft);
+    margin-top:4px;
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  }
+  .library-source-badge{
+    font-size:10px; font-weight:700;
+    padding:2px 8px; border-radius:20px;
+    white-space:nowrap;
+  }
+  .library-source-badge.user{ background:rgba(51,144,236,.15); color:var(--accent); }
+  .library-source-badge.ai{ background:rgba(16,185,129,.15); color:#10b981; }
+  .library-item-actions{
+    display:flex; gap:6px;
+    margin-top:10px;
+  }
+  .library-use-btn{
+    flex:1;
+    padding:8px 10px;
+    background:var(--accent);
+    color:#fff;
+    border:none; border-radius:9px;
+    font-size:12px; font-weight:700;
+    cursor:pointer;
+  }
+  .library-del-btn{
+    width:34px; height:34px;
+    flex-shrink:0;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text-soft);
+    border-radius:9px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .library-del-btn:hover{ color:#e5484d; border-color:rgba(229,72,77,.4); }
+  @keyframes jrSpinIcon{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -1581,6 +1705,10 @@
   <button class="new-chat-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-main);margin-top:8px;" onclick="openProjectsList()">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-2H5a2 2 0 0 0-2 2z"></path></svg>
     Projects
+  </button>
+  <button class="new-chat-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-main);margin-top:8px;" onclick="openLibraryPanel()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+    Library
   </button>
   
   <!-- TABEL HEADER HISTORY SESSION -->
@@ -1817,6 +1945,30 @@
     <div class="feedback-modal-note">Mengirim laporan ini akan menyertakan pesan terkait untuk membantu pengembang meningkatkan layanan.</div>
 
     <button type="button" class="feedback-submit-btn" id="feedbackSubmitBtn" onclick="submitFeedbackReport()">Submit Feedback</button>
+  </div>
+</div>
+
+<!-- SHEET FULL SCREEN: FILE LIBRARY -->
+<div class="library-overlay" id="libraryOverlay" onclick="if(event.target===this) closeLibraryPanel()">
+  <div class="library-sheet">
+    <div class="library-sheet-handle"></div>
+    <div class="library-header">
+      <h3>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        File Library
+      </h3>
+      <div class="library-header-actions">
+        <button type="button" onclick="loadLibraryFiles()" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="libraryRefreshIcon"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        </button>
+        <button type="button" onclick="closeLibraryPanel()" title="Tutup">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+    <div class="library-body" id="libraryBody">
+      <div class="library-empty">Memuat...</div>
+    </div>
   </div>
 </div>
 
@@ -2246,14 +2398,7 @@ function kyyDownloadArtifact(id){
   if(!item) return;
   const ext = KYY_LANG_EXTENSION[item.lang] || 'txt';
   const blob = new Blob([item.code], { type:'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `kyy-code.${ext}`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  kyyDownloadBlob(blob, `kyy-code.${ext}`);
 }
 
 /* ================= SIMPAN KE PROJECT KNOWLEDGE (manual, dikonfirmasi user) ================= */
@@ -2423,6 +2568,11 @@ function kyyDownloadBlob(blob, filename){
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  // Titik hook TUNGGAL: setiap file yang di-download lewat fungsi ini (PDF, DOCX, XLSX,
+  // Markdown, kode artifact) otomatis kesimpen ke File Library milik user (source: 'ai').
+  // Fire-and-forget — nggak nunggu/nge-block proses download itu sendiri.
+  libSaveAiFile(blob, filename);
 }
 
 function kyyExportMarkdown(idx){
@@ -2526,7 +2676,7 @@ function kyyExportPDF(idx){
     }
   });
 
-  doc.save('kyy-pesan.pdf');
+  kyyDownloadBlob(doc.output('blob'), 'kyy-pesan.pdf');
 }
 
 function kyyExportDocx(idx){
@@ -2581,7 +2731,8 @@ function kyyExportXlsx(idx){
     const ws = XLSX.utils.table_to_sheet(table);
     XLSX.utils.book_append_sheet(wb, ws, `Tabel${i + 1}`);
   });
-  XLSX.writeFile(wb, 'kyy-tabel.xlsx');
+  const xlsxArrayBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  kyyDownloadBlob(new Blob([xlsxArrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'kyy-tabel.xlsx');
 }
 
 /* Deteksi kode React yang ditulis dengan fence "javascript/typescript" biasa
@@ -3219,6 +3370,178 @@ function formatFileSize(bytes){
   return (bytes/(1024*1024)).toFixed(1) + ' MB';
 }
 
+/* ================= FILE LIBRARY (Perpustakaan File Permanen) =================
+   Catatan arsitektur: app ini nggak punya backend Express sendiri — semua fitur
+   (chat_sessions, submit_feedback, dll) connect LANGSUNG ke Supabase dari browser.
+   Jadi 4 "endpoint" yang diminta (upload-user, save-ai-generated, library,
+   chat/attach-file) diimplementasikan sebagai fungsi JS yang manggil Supabase
+   Storage + tabel `file_library` langsung — perannya sama persis, cuma nggak
+   lewat server perantara. Kalau nanti beneran mau backend Express, tinggal
+   pindahin isi 4 fungsi ini ke route masing-masing tanpa ubah logikanya.
+================================================================================= */
+const LIBRARY_BUCKET = 'user-files';
+let libraryDataMap = {};
+
+function libSanitizeFilename(name){
+  return (name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+// setara POST /upload-user — dipanggil otomatis tiap file berhasil dilampirkan user
+async function libSaveUserFile(file){
+  if(!currentUser || !file) return;
+  try{
+    const path = `${currentUser.id}/${Date.now()}-${libSanitizeFilename(file.name)}`;
+    const { error: upErr } = await supabaseClient.storage.from(LIBRARY_BUCKET).upload(path, file, { upsert:false });
+    if(upErr) throw upErr;
+
+    const { error: dbErr } = await supabaseClient.from('file_library').insert({
+      user_id: currentUser.id,
+      origin_session_id: currentSessionId || null,
+      file_name: file.name,
+      mime_type: file.type || 'application/octet-stream',
+      file_size: file.size,
+      source: 'user',
+      storage_path: path
+    });
+    if(dbErr) throw dbErr;
+  }catch(err){
+    console.warn('Gagal simpan file user ke Library:', err);
+  }
+}
+
+// setara POST /save-ai-generated — dipanggil otomatis lewat kyyDownloadBlob()
+async function libSaveAiFile(blob, filename){
+  if(!currentUser || !blob) return;
+  try{
+    const path = `${currentUser.id}/${Date.now()}-${libSanitizeFilename(filename)}`;
+    const { error: upErr } = await supabaseClient.storage.from(LIBRARY_BUCKET)
+      .upload(path, blob, { upsert:false, contentType: blob.type || 'application/octet-stream' });
+    if(upErr) throw upErr;
+
+    const { error: dbErr } = await supabaseClient.from('file_library').insert({
+      user_id: currentUser.id,
+      origin_session_id: currentSessionId || null,
+      file_name: filename,
+      mime_type: blob.type || 'application/octet-stream',
+      file_size: blob.size,
+      source: 'ai',
+      storage_path: path
+    });
+    if(dbErr) throw dbErr;
+  }catch(err){
+    console.warn('Gagal simpan file AI ke Library:', err);
+  }
+}
+
+// setara GET /library
+async function libFetchFiles(){
+  if(!currentUser) return [];
+  const { data, error } = await supabaseClient
+    .from('file_library')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending:false });
+  if(error){ console.error('Gagal ambil Library:', error); return []; }
+  return data || [];
+}
+
+// setara POST /chat/attach-file — tarik file dari Storage, masukin ke chat AKTIF
+// lewat pipeline addAttachment() yang sama persis kayak upload manual, jadi user
+// nggak perlu upload ulang dari device.
+async function libAttachToChat(fileId){
+  const fileRow = libraryDataMap[fileId];
+  if(!fileRow) return;
+
+  try{
+    kyyToast('Mengambil file dari Library...', 'zap');
+    const { data, error } = await supabaseClient.storage.from(LIBRARY_BUCKET).download(fileRow.storage_path);
+    if(error) throw error;
+
+    const file = new File([data], fileRow.file_name, { type: fileRow.mime_type || 'application/octet-stream' });
+    await addAttachment(file);
+    closeLibraryPanel();
+    kyyToast(`"${fileRow.file_name}" siap dipakai di chat ini.`, 'check');
+  }catch(err){
+    console.error('Gagal tarik file dari Library:', err);
+    kyyToast('Gagal mengambil file dari Library.', 'zap', true);
+  }
+}
+
+async function libDeleteFile(fileId){
+  const fileRow = libraryDataMap[fileId];
+  if(!fileRow) return;
+  if(!confirm(`Hapus "${fileRow.file_name}" dari Library? File akan hilang permanen.`)) return;
+
+  try{
+    await supabaseClient.storage.from(LIBRARY_BUCKET).remove([fileRow.storage_path]);
+    await supabaseClient.from('file_library').delete().eq('id', fileRow.id);
+    loadLibraryFiles();
+  }catch(err){
+    console.error('Gagal hapus file Library:', err);
+    kyyToast('Gagal menghapus file.', 'zap', true);
+  }
+}
+
+/* ---------- UI PANEL LIBRARY ---------- */
+function openLibraryPanel(){
+  document.getElementById('libraryOverlay').classList.add('show');
+  loadLibraryFiles();
+}
+
+function closeLibraryPanel(){
+  document.getElementById('libraryOverlay').classList.remove('show');
+}
+
+async function loadLibraryFiles(){
+  const body = document.getElementById('libraryBody');
+  const refreshIcon = document.getElementById('libraryRefreshIcon');
+  if(refreshIcon) refreshIcon.style.animation = 'jrSpinIcon .8s linear infinite';
+
+  if(!currentUser){
+    body.innerHTML = `<div class="library-guest-notice">Login dulu buat pakai File Library — biar file kamu tersimpan permanen dan bisa dipakai lintas chat baru.</div>`;
+    if(refreshIcon) refreshIcon.style.animation = '';
+    return;
+  }
+
+  const files = await libFetchFiles();
+  libraryDataMap = {};
+  files.forEach(f => libraryDataMap[f.id] = f);
+
+  if(refreshIcon) refreshIcon.style.animation = '';
+
+  if(files.length === 0){
+    body.innerHTML = '<div class="library-empty">Belum ada file di Library kamu.<br>File yang kamu upload atau yang dibuat AI bakal muncul di sini.</div>';
+    return;
+  }
+
+  body.innerHTML = files.map(f => {
+    const cat = (f.mime_type || '').startsWith('image/') ? 'image'
+      : (f.mime_type === 'application/pdf' ? 'pdf'
+      : ((f.mime_type || '').startsWith('audio/') ? 'audio'
+      : ((f.mime_type || '').startsWith('video/') ? 'video' : 'text')));
+    const badge = f.source === 'ai'
+      ? '<span class="library-source-badge ai">Dibuat AI</span>'
+      : '<span class="library-source-badge user">Unggahan Anda</span>';
+    const tanggal = new Date(f.created_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+    return `
+      <div class="library-item">
+        <div class="library-item-icon">${fileIconFor(cat)}</div>
+        <div class="library-item-body">
+          <div class="library-item-name">${escapeHtml(f.file_name)}</div>
+          <div class="library-item-meta">
+            ${badge}
+            <span>${formatFileSize(f.file_size || 0)}</span>
+            <span>${tanggal}</span>
+          </div>
+          <div class="library-item-actions">
+            <button class="library-use-btn" onclick="libAttachToChat('${f.id}')">Gunakan di Chat Ini</button>
+            <button class="library-del-btn" onclick="libDeleteFile('${f.id}')" title="Hapus">${kyyIcon('trash-2',15)}</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 async function addAttachment(file){
   const category = categorizeFile(file);
   const limitMB = category === 'video' ? MAX_VIDEO_MB : MAX_ATTACHMENT_MB;
@@ -3297,6 +3620,10 @@ async function addAttachment(file){
   att.loading = false;
   renderAttachmentPreview();
   updateSendBtnState();
+
+  // Titik hook: setiap file yang berhasil dilampirkan user otomatis kesimpen ke
+  // File Library (source: 'user'). Fire-and-forget, nggak nge-block chat.
+  libSaveUserFile(file);
 }
 
 function updateSendBtnState(){

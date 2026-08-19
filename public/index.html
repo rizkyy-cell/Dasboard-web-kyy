@@ -1620,7 +1620,7 @@ html, body {
         if (!container) return;
         if (dataWebLokal.length === 0) {
             tampilkanSkeleton(container);
-            const { data, error } = await supabaseClient.from('web_saya').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('web_saya').select('*').order('urutan', { ascending: false, nullsFirst: true }).order('id', { ascending: false });
             if (error || !data) {
                 container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat data web.<br><button class="btn-retry-fetch" onclick="ambilDataWeb()">Coba Lagi</button></div>`;
                 return;
@@ -1674,7 +1674,7 @@ html, body {
         if (!container) return;
         if (dataAppLokal.length === 0) {
             tampilkanSkeleton(container);
-            const { data, error } = await supabaseClient.from('app_mods').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('app_mods').select('*').order('urutan', { ascending: false, nullsFirst: true }).order('id', { ascending: false });
             if (error || !data) {
                 container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat aplikasi.<br>Cek koneksi internet anda.<br><button class="btn-retry-fetch" onclick="ambilDataApp()">Coba Lagi</button></div>`;
                 return;
@@ -1939,7 +1939,7 @@ async function cekParamUrlShare() {
         if (!container) return;
         if (dataStoreLokal.length === 0) {
             tampilkanSkeleton(container);
-            const { data, error } = await supabaseClient.from('store_products').select('*').order('id', { ascending: false });
+            const { data, error } = await supabaseClient.from('store_products').select('*').order('urutan', { ascending: false, nullsFirst: true }).order('id', { ascending: false });
             if (error || !data) {
                 container.innerHTML = `<div class="fetch-error-box"><i class="fas fa-wifi"></i>Gagal memuat etalase.<br>Cek koneksi internet anda.<br><button class="btn-retry-fetch" onclick="ambilDataStore()">Coba Lagi</button></div>`;
                 return;

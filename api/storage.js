@@ -52,7 +52,7 @@ module.exports = async function handler(req, res) {
 
     try {
         if (action === 'create_project') {
-            const { projectName } = req.body;
+            const { projectName, description } = req.body;
             if (!projectName || !projectName.trim()) {
                 return res.status(200).json({ error: 'Nama project nggak boleh kosong.' });
             }
@@ -70,7 +70,7 @@ module.exports = async function handler(req, res) {
 
             const { data: newProject, error: insErr } = await admin
                 .from('user_projects')
-                .insert({ user_id: userId, name: projectName.trim() })
+                .insert({ user_id: userId, name: projectName.trim(), description: (description || '').trim() })
                 .select()
                 .single();
 
@@ -158,7 +158,7 @@ module.exports = async function handler(req, res) {
         if (action === 'get_project_detail') {
             const { data: project, error: pErr } = await admin
                 .from('user_projects')
-                .select('id, name, custom_instructions, created_at')
+                .select('id, name, description, custom_instructions, created_at')
                 .eq('id', projectId)
                 .eq('user_id', userId)
                 .single();

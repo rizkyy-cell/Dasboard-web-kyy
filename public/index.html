@@ -1264,6 +1264,19 @@ html, body {
             .replace(/\r\n|\r|\n/g, '<br>');
     }
 
+    // Deteksi otomatis "stok habis" dari isi field stock — gak perlu kolom/toggle baru,
+    // admin cukup isi 0 (atau ketik "SOLD"/"Habis") di field Stock yang udah ada.
+    // Stock kosong/belum diisi = dianggap gak dilacak, produk tetap bisa dibeli seperti biasa.
+    function isStokHabis(stockVal) {
+        if (stockVal === null || stockVal === undefined) return false;
+        const s = String(stockVal).trim().toLowerCase();
+        if (s === '') return false;
+        if (['0', 'habis', 'sold', 'kosong', 'out', 'out of stock', 'stok habis'].includes(s)) return true;
+        const n = Number(s);
+        if (!isNaN(n) && n <= 0) return true;
+        return false;
+    }
+
     // ==== GOOGLE LOGIN & PROFILE ====
     async function initProfileAuth() {
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1995,14 +2008,24 @@ async function cekParamUrlShare() {
             const hargaSafe = (prod.harga || '').replace(/'/g, "\\'");
             const linkWaSafe = (prod.link_wa || '').replace(/'/g, "\\'");
 
+            // Status stok habis: badge jadi merah "Stok Habis", tombol beli disabled &
+            // teksnya ganti, kartu sedikit di-dim biar keliatan beda sekilas dari list.
+            const stokHabis = isStokHabis(prod.stock);
+            if (stokHabis) {
+                stockBadge = `<span style="background:rgba(239,68,68,0.18); color:#f87171; padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; font-weight:bold;">Stok Habis</span>`;
+            }
+            const tombolBeli = stokHabis
+                ? `<button class="mod-btn-download" disabled style="background:rgba(255,255,255,0.08); color:var(--tg-text-muted); cursor:not-allowed; box-shadow:none;">Stok Habis</button>`
+                : `<button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>`;
+
             container.innerHTML += `
-                <div class="mod-box-item">
+                <div class="mod-box-item" style="${stokHabis ? 'opacity:0.7;' : ''}">
                     <div class="mod-box-header">
                         <div class="mod-box-title-group"><div class="mod-box-icon">${iconHtml}</div><div class="mod-box-name">${escapeHtml(prod.nama_produk)}</div></div>
                         <div class="mod-box-size" style="color:#00ff7f; background:none;">${escapeHtml(prod.harga)}${stockBadge}</div>
                     </div>
                     <div class="mod-box-desc">${escapeHtmlWithBreaks(prod.deskripsi || 'Tidak ada deskripsi.')}</div>
-                    <button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>
+                    ${tombolBeli}
                 </div>`;
         });
 

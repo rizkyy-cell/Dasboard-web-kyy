@@ -1264,10 +1264,10 @@ html, body {
             .replace(/\r\n|\r|\n/g, '<br>');
     }
 
-    // Deteksi otomatis "stok habis" dari isi field stock — gak perlu kolom/toggle baru,
-    // admin cukup isi 0 (atau ketik "SOLD"/"Habis") di field Stock yang udah ada.
-    // Stock kosong/belum diisi = dianggap gak dilacak, produk tetap bisa dibeli seperti biasa.
-    function isStokHabis(stockVal) {
+    // Deteksi "stok habis" — utamanya dari saklar sold_out yang admin nyalain manual,
+    // tapi tetap kompatibel sama cara lama (isi teks "0"/"SOLD"/"Habis" di field Stock).
+    function isStokHabis(stockVal, soldOutFlag) {
+        if (soldOutFlag === true) return true;
         if (stockVal === null || stockVal === undefined) return false;
         const s = String(stockVal).trim().toLowerCase();
         if (s === '') return false;
@@ -2010,12 +2010,12 @@ async function cekParamUrlShare() {
 
             // Status stok habis: badge jadi merah "Stok Habis", tombol beli disabled &
             // teksnya ganti, kartu sedikit di-dim biar keliatan beda sekilas dari list.
-            const stokHabis = isStokHabis(prod.stock);
+            const stokHabis = isStokHabis(prod.stock, prod.sold_out);
             if (stokHabis) {
-                stockBadge = `<span style="background:rgba(239,68,68,0.18); color:#f87171; padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; font-weight:bold;">Stok Habis</span>`;
+                stockBadge = `<span style="background:rgba(239,68,68,0.18); color:#f87171; padding:2px 8px; border-radius:6px; font-size:10px; margin-left:6px; font-weight:bold;">SOLD OUT</span>`;
             }
             const tombolBeli = stokHabis
-                ? `<button class="mod-btn-download" disabled style="background:rgba(255,255,255,0.08); color:var(--tg-text-muted); cursor:not-allowed; box-shadow:none;">Stok Habis</button>`
+                ? `<button class="mod-btn-download" disabled style="background:rgba(255,255,255,0.08); color:var(--tg-text-muted); cursor:not-allowed; box-shadow:none;">SOLD OUT</button>`
                 : `<button class="mod-btn-download" style="background:linear-gradient(135deg, var(--tg-accent), #4b0082);" onclick="triggerStoreNotif('${namaProdSafe}', '${hargaSafe}', '${linkWaSafe}')">Beli Sekarang</button>`;
 
             container.innerHTML += `

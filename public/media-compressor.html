@@ -267,7 +267,7 @@
 <div class="wrap">
   <header>
     <h1>MEDIA COMPRESSOR</h1>
-    <div class="badge mono">JR乂REZKYY</div>
+    <div class="badge mono">FINAL</div>
   </header>
 
   <div class="tabbar">
@@ -391,8 +391,8 @@
     <div class="eyebrow">01 — File</div>
     <div class="drop" id="dropImg">
       <div class="drop-title">SERET GAMBAR KE SINI ATAU TAP UNTUK PILIH</div>
-      <div class="drop-sub">JPG · PNG · WEBP — bisa pilih banyak sekaligus, diproses di perangkatmu</div>
-      <input type="file" id="fileInputImg" accept="image/jpeg,image/png,image/webp" multiple>
+      <div class="drop-sub">JPG · PNG · WEBP · GIF · SVG — bisa pilih banyak sekaligus, diproses di perangkatmu</div>
+      <input type="file" id="fileInputImg" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" multiple>
     </div>
     <div class="queue" id="queueImg"></div>
   </div>
@@ -406,6 +406,7 @@
 
     <div class="field">
       <label>03 — Format Keluaran</label>
+      <div class="helper-text" style="margin-top:0; margin-bottom:8px;">Khusus JPG/PNG/WEBP. GIF tetap GIF, SVG tetap SVG.</div>
       <button class="picker-btn" id="imgFormatBtn" type="button">
         <span class="pv"><b id="imgFormatBtnLabel">Tetap Format Asli</b><small id="imgFormatBtnSub">Tidak dikonversi</small></span>
         <span class="arrow">▾</span>
@@ -464,6 +465,8 @@
   <div class="err" id="errImg"></div>
 
   </div><!-- /panelGambar -->
+
+  <footer>TAHAP 3/3 — VIDEO &amp; GAMBAR LENGKAP</footer>
   <div class="credit">©JR乂REZKYY — made with all my heart</div>
 </div>
 
@@ -1046,6 +1049,18 @@
     });
   }
 
+  function minifySVG(text){
+    let s = text;
+    s = s.replace(/<!--[\s\S]*?-->/g, ''); // hapus komentar
+    s = s.replace(/<(metadata|sodipodi:namedview)[\s\S]*?<\/\1>/gi, ''); // hapus metadata editor
+    s = s.replace(/<(metadata|sodipodi:namedview)[^>]*\/>/gi, '');
+    s = s.replace(/\s(inkscape|sodipodi):[\w-]+="[^"]*"/gi, ''); // hapus atribut editor
+    s = s.replace(/\sxmlns:(inkscape|sodipodi)="[^"]*"/gi, '');
+    s = s.replace(/>\s+</g, '><'); // rapatkan spasi antar tag
+    s = s.replace(/[ \t\r\n]+/g, ' ').trim();
+    return s;
+  }
+
   function addResultImg(file, blob, ext){
     const before = file.size, after = blob.size;
     const saved = Math.max(0, Math.round((1-after/before)*100));
@@ -1084,6 +1099,42 @@
         stagePctImg.textContent = pct + '%';
         trackFillImg.style.width = pct + '%';
 
+        // ---- SVG: minifikasi teks, bukan canvas ----
+        if(file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg')){
+          const text = await file.text();
+          const cleaned = minifySVG(text);
+          const blob = new Blob([cleaned], { type:'image/svg+xml' });
+          addResultImg(file, blob, 'svg');
+          continue;
+        }
+
+        // ---- GIF animasi: pakai mesin ffmpeg ----
+        if(file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif')){
+          stagePhaseImg.textContent = `MEMPROSES GIF ${i+1}/${imgFiles.length}`;
+          const ff = await loadFFmpeg();
+          const inName = 'in.gif', outName = 'out.gif';
+          await ff.writeFile(inName, await fetchFile(file));
+
+          const gifImg = await loadImage(file);
+          let gw = gifImg.width, gh = gifImg.height;
+          if(resizeOn){
+            gw = parseInt(imgWidthEl.value) || gifImg.width;
+            gh = parseInt(imgHeightEl.value) || gifImg.height;
+          }
+          const colors = Math.max(32, Math.min(256, Math.round(32 + (256-32) * imgQuality)));
+          let filter = resizeOn ? `scale=${gw}:${gh}:flags=lanczos,` : '';
+          filter += `split[s0][s1];[s0]palettegen=max_colors=${colors}[p];[s1][p]paletteuse=dither=bayer`;
+
+          await ff.exec(['-i', inName, '-vf', filter, '-loop', '0', outName]);
+          const data = await ff.readFile(outName);
+          const blob = new Blob([data.buffer], { type:'image/gif' });
+          addResultImg(file, blob, 'gif');
+          await ff.deleteFile(inName);
+          await ff.deleteFile(outName);
+          continue;
+        }
+
+        // ---- JPG/PNG/WEBP: pakai canvas ----
         const img = await loadImage(file);
         let targetW = img.width, targetH = img.height;
         if(resizeOn){

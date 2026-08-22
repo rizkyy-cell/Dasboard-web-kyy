@@ -3,86 +3,143 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>About You — Cinematic Experience</title>
+  <title>About You — Interactive Experience</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Mono&display=swap" rel="stylesheet" />
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
-      background-color: #030304;
+      background-color: #050507;
       color: #ffffff;
       font-family: 'Inter', sans-serif;
       overflow: hidden;
       margin: 0;
+      user-select: none;
     }
 
-    /* INFINITE MOVING BACKGROUND CANVAS */
-    #infinite-canvas {
+    /* 3D INFINITE FILM STRIP SCENE */
+    .film-strip-scene {
       position: fixed;
-      inset: -20%;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+      inset: -50%;
       z-index: 0;
       opacity: 0.15;
-      transform: rotate(-6deg) scale(1.1);
-      animation: panCanvas 40s linear infinite alternate;
       pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 30px;
+      transform: rotate(-8deg) scale(1.15);
     }
 
-    @keyframes panCanvas {
-      0% { transform: rotate(-6deg) scale(1.1) translateY(0); }
-      100% { transform: rotate(-6deg) scale(1.1) translateY(-15%); }
+    .film-track {
+      display: flex;
+      gap: 20px;
+      width: max-content;
+      animation: trackScroll 45s linear infinite;
     }
 
-    .bg-photo-item {
-      width: 100%;
-      aspect-ratio: 1/1;
-      border-radius: 12px;
+    .film-track.reverse {
+      animation-direction: reverse;
+    }
+
+    @keyframes trackScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .film-img-card {
+      width: 180px;
+      height: 180px;
+      border-radius: 14px;
       object-fit: cover;
+      background: #18181b;
       filter: grayscale(100%);
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* CENTER FOCUS POP-UP FRAME */
-    #focus-wrapper {
-      position: relative;
-      z-index: 10;
-      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-
-    .photo-frame {
-      width: 280px;
-      height: 280px;
-      border-radius: 20px;
-      overflow: hidden;
-      background: #111113;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-      transition: all 0.5s ease;
-    }
-
-    /* VIGNETTE EFFECT */
     .cinematic-vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle, transparent 20%, rgba(3, 3, 4, 0.95) 90%);
+      background: radial-gradient(circle, transparent 25%, rgba(0,0,0,0.92) 100%);
       pointer-events: none;
-      z-index: 1;
+      z-index: 2;
     }
 
-    /* WORD HIGHLIGHT STYLES */
-    .word {
-      opacity: 0.35;
-      transition: opacity 0.2s ease, font-weight 0.2s ease;
+    /* START OVERLAY CARD (SCREENSHOT REPLICATION) */
+    #start-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(5, 5, 7, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .word.active {
+
+    #start-overlay.hidden-overlay {
+      opacity: 0;
+      transform: translateY(30px) scale(0.95);
+      pointer-events: none;
+    }
+
+    .start-card {
+      background: #121215;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px;
+      padding: 20px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CENTER ACTIVE FOCUS FRAME & CAMERA PAN */
+    #infinite-viewport {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .center-frame {
+      width: 290px;
+      height: 290px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: #0f0f12;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
+      position: relative;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* LYRICS WORD HIGHLIGHT */
+    .word-span {
+      opacity: 0.3;
+      transition: opacity 0.25s ease, font-weight 0.25s ease;
+      display: inline-block;
+      margin: 0 2px;
+    }
+
+    .word-span.active {
       opacity: 1;
       font-weight: 700;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      text-shadow: 0 0 12px rgba(255,255,255,0.6);
     }
 
     .italic-serif {
@@ -91,165 +148,172 @@
     }
 
     .glass-card {
-      background: rgba(15, 15, 18, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(18, 18, 22, 0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 16px;
+      width: 100%;
+      max-width: 380px;
     }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-between p-4 pb-24">
+<body>
 
-  <!-- Cinematic Background Grid -->
-  <div id="infinite-canvas"></div>
+  <!-- Background 3D Film Strips -->
+  <div class="film-strip-scene">
+    <div class="film-track" id="track1"></div>
+    <div class="film-track reverse" id="track2"></div>
+    <div class="film-track" id="track3"></div>
+  </div>
+
   <div class="cinematic-vignette"></div>
 
-  <!-- Header Banner / Title -->
-  <header class="relative z-10 pt-4 text-center">
-    <p class="font-mono text-[10px] tracking-widest text-white/40 uppercase">Interactive Video Experience</p>
-  </header>
+  <!-- START OVERLAY CARD (PETA PERSIS SCREENSHOT) -->
+  <div id="start-overlay">
+    <div class="start-card">
+      <!-- Album Cover -->
+      <div class="aspect-square w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+        <img id="overlayCover" src="" class="w-full h-full object-cover" />
+      </div>
 
-  <!-- Center Active Photo Display -->
-  <main class="relative z-10 my-auto flex flex-col items-center text-center space-y-6">
-    <div id="focus-wrapper">
-      <div class="photo-frame relative">
-        <img id="active-photo" src="" class="w-full h-full object-cover transition-opacity duration-300 opacity-0" />
-        <div id="loading-spinner" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30">
-          Loading memories...
+      <!-- Title & Artist -->
+      <div class="text-left space-y-0.5">
+        <h2 id="overlaySlug" class="text-xl font-bold text-white tracking-tight">About You</h2>
+        <p class="text-xs text-white/50 font-medium">Bleach Ears</p>
+      </div>
+
+      <!-- Time & Progress Bar -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-[11px] font-mono text-white/40">
+          <span>0:00</span>
+          <span>-0:24</span>
         </div>
+        <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+          <div class="bg-white h-full w-0"></div>
+        </div>
+      </div>
+
+      <!-- Controls Row -->
+      <div class="flex items-center justify-between pt-1">
+        <button class="text-white/30 cursor-not-allowed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><polygon points="9 20 1 12 9 4 9 20"></polygon></svg>
+        </button>
+        
+        <!-- MAIN PLAY BUTTON -->
+        <button id="overlayPlayBtn" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>
+        </button>
+
+        <button class="text-white/30 cursor-not-allowed">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><polygon points="15 4 25 12 15 20 15 4"></polygon></svg>
+        </button>
+      </div>
+
+      <!-- Volume Bar Dummy -->
+      <div class="flex items-center space-x-2 pt-1 opacity-30">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
+        <div class="flex-1 bg-white/20 h-1 rounded-full"><div class="bg-white h-full w-2/3"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Viewport & Active Content -->
+  <div id="infinite-viewport">
+    <div id="focus-box" class="center-frame">
+      <img id="activeImage" src="" class="w-full h-full object-cover transition-opacity duration-300 opacity-0" />
+      <div id="loadingText" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30 uppercase tracking-widest">
+        Loading...
       </div>
     </div>
 
-    <!-- Lyrics Container with Word Sync -->
-    <div class="min-h-[60px] max-w-xs flex items-center justify-center px-2">
-      <p id="lyrics-display" class="text-xl md:text-2xl italic-serif text-white/90 leading-snug">
+    <div class="mt-6 min-h-[60px] max-w-sm text-center px-4">
+      <p id="lyricsContainer" class="text-xl md:text-2xl italic-serif text-white/90 leading-snug">
         "Press play to start..."
       </p>
     </div>
-  </main>
-
-  <!-- Player Floating Bar -->
-  <div class="fixed bottom-5 left-4 right-4 max-w-sm mx-auto glass-card p-3 rounded-2xl flex items-center space-x-3 z-20 shadow-2xl">
-    <img id="player-cover" src="" class="w-12 h-12 rounded-lg object-cover bg-zinc-900 border border-white/10" />
-    
-    <div class="flex-1 min-w-0 text-left">
-      <h4 id="site-title" class="text-xs font-bold text-white truncate">About You</h4>
-      <p class="text-[10px] font-mono text-white/40 truncate">The 1975 — Bleach Ears</p>
-      
-      <div class="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
-        <div id="progress-bar" class="bg-white h-full w-0 transition-all duration-100"></div>
-      </div>
-    </div>
-
-    <button id="play-btn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 active:scale-95 transition-transform">
-      ▶
-    </button>
   </div>
 
-  <audio id="bg-audio" src="/audio.mp3" preload="auto"></audio>
+  <!-- Next.js Bottom Player Floating Card -->
+  <div class="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4">
+    <div class="glass-card">
+      <div class="flex items-center space-x-3.5">
+        <img id="playerCover" src="" class="w-12 h-12 rounded-xl object-cover bg-zinc-900 border border-white/10 flex-shrink-0" />
+        
+        <div class="flex-1 min-w-0">
+          <div class="flex justify-between items-baseline mb-1">
+            <h1 id="siteSlug" class="text-xs font-bold text-white truncate">About You</h1>
+            <span id="timeRemaining" class="font-mono text-[10px] text-white/40">-0:24</span>
+          </div>
+          
+          <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+            <div id="progressFill" class="bg-white h-full w-0 transition-all duration-100"></div>
+          </div>
+        </div>
+
+        <button id="start-btn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center flex-shrink-0 hover:scale-105 active:scale-95 transition-all">
+          <svg id="playIcon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>
+          <svg id="pauseIcon" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio-player" src="/audio.mp3" preload="auto"></audio>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const END_TIME = 24;
 
-      // TIMELINE KATA PER KATA & INDEKS FOTO (PRESISI DEMO VIDEO)
-      const TIMELINE_DATA = [
+      const TIMELINE = [
         { time: 0, text: "...", photoIdx: 0 },
-        { 
-          time: 3.8, 
-          photoIdx: 1,
-          words: [
-            { w: "but", t: 3.8 }, { w: "you", t: 4.1 }, { w: "should", t: 4.3 }, 
-            { w: "know", t: 4.6 }, { w: "that", t: 5.0 }, { w: "i", t: 5.3 }, 
-            { w: "died", t: 5.6 }, { w: "slow", t: 6.2 }
-          ] 
-        },
-        { 
-          time: 7.8, 
-          photoIdx: 2,
-          words: [
-            { w: "running", t: 7.8 }, { w: "through", t: 8.2 }, { w: "the", t: 8.5 }, 
-            { w: "halls", t: 8.8 }, { w: "of", t: 9.2 }, { w: "your", t: 9.5 }, 
-            { w: "haunted", t: 9.8 }, { w: "home", t: 10.3 }
-          ] 
-        },
-        { 
-          time: 11.2, 
-          photoIdx: 3,
-          words: [
-            { w: "and", t: 11.2 }, { w: "the", t: 11.5 }, { w: "toughest", t: 11.8 }, 
-            { w: "part", t: 12.2 }, { w: "is", t: 12.6 }, { w: "that", t: 12.9 }, 
-            { w: "we", t: 13.2 }, { w: "both", t: 13.5 }, { w: "know", t: 13.8 }
-          ] 
-        },
-        { 
-          time: 14.5, 
-          photoIdx: 4,
-          words: [
-            { w: "what", t: 14.5 }, { w: "happened", t: 15.0 }, { w: "to", t: 15.5 }, { w: "you", t: 16.0 }
-          ] 
-        },
-        { 
-          time: 16.8, 
-          photoIdx: 5,
-          words: [
-            { w: "why", t: 16.8 }, { w: "you're", t: 17.3 }, { w: "out", t: 17.8 }, 
-            { w: "on", t: 18.2 }, { w: "your", t: 18.6 }, { w: "own", t: 19.0 }
-          ] 
-        },
-        { 
-          time: 19.8, 
-          photoIdx: 6,
-          words: [{ w: "merry", t: 19.8 }, { w: "christmas", t: 20.3 }] 
-        },
-        { 
-          time: 21.0, 
-          photoIdx: 7,
-          words: [{ w: "please", t: 21.0 }, { w: "don't", t: 21.4 }, { w: "call", t: 21.8 }] 
-        },
-        { 
-          time: 22.2, 
-          photoIdx: 8,
-          words: [{ w: "merry", t: 22.2 }, { w: "christmas", t: 22.5 }] 
-        },
-        { 
-          time: 23.0, 
-          photoIdx: 9,
-          words: [{ w: "please", t: 23.0 }, { w: "don't", t: 23.3 }, { w: "call", t: 23.6 }] 
-        }
+        { time: 3.8, photoIdx: 1, words: [{ w: "but", t: 3.8 }, { w: "you", t: 4.1 }, { w: "should", t: 4.3 }, { w: "know", t: 4.6 }, { w: "that", t: 5.0 }, { w: "i", t: 5.3 }, { w: "died", t: 5.6 }, { w: "slow", t: 6.2 }] },
+        { time: 7.8, photoIdx: 2, words: [{ w: "running", t: 7.8 }, { w: "through", t: 8.2 }, { w: "the", t: 8.5 }, { w: "halls", t: 8.8 }, { w: "of", t: 9.2 }, { w: "your", t: 9.5 }, { w: "haunted", t: 9.8 }, { w: "home", t: 10.3 }] },
+        { time: 11.2, photoIdx: 3, words: [{ w: "and", t: 11.2 }, { w: "the", t: 11.5 }, { w: "toughest", t: 11.8 }, { w: "part", t: 12.2 }, { w: "is", t: 12.6 }, { w: "that", t: 12.9 }, { w: "we", t: 13.2 }, { w: "both", t: 13.8 }, { w: "know", t: 13.8 }] },
+        { time: 14.5, photoIdx: 4, words: [{ w: "what", t: 14.5 }, { w: "happened", t: 15.0 }, { w: "to", t: 15.5 }, { w: "you", t: 16.0 }] },
+        { time: 16.8, photoIdx: 5, words: [{ w: "why", t: 16.8 }, { w: "you're", t: 17.3 }, { w: "out", t: 17.8 }, { w: "on", t: 18.2 }, { w: "your", t: 18.6 }, { w: "own", t: 19.0 }] },
+        { time: 19.8, photoIdx: 6, words: [{ w: "merry", t: 19.8 }, { w: "christmas", t: 20.3 }] },
+        { time: 21.0, photoIdx: 7, words: [{ w: "please", t: 21.0 }, { w: "don't", t: 21.4 }, { w: "call", t: 21.8 }] },
+        { time: 22.2, photoIdx: 8, words: [{ w: "merry", t: 22.2 }, { w: "christmas", t: 22.5 }] },
+        { time: 23.0, photoIdx: 9, words: [{ w: "please", t: 23.0 }, { w: "don't", t: 23.3 }, { w: "call", t: 23.6 }] }
       ];
 
       let galleryUrls = [];
       let isPlaying = false;
-      let activeLineIndex = -1;
+      let activeIndex = -1;
 
-      const audio = document.getElementById('bg-audio');
-      const playBtn = document.getElementById('play-btn');
-      const lyricsDisplay = document.getElementById('lyrics-display');
-      const activePhoto = document.getElementById('active-photo');
-      const focusWrapper = document.getElementById('focus-wrapper');
-      const loadingSpinner = document.getElementById('loading-spinner');
-      const playerCover = document.getElementById('player-cover');
-      const progressBar = document.getElementById('progress-bar');
-      const infiniteCanvas = document.getElementById('infinite-canvas');
-      const siteTitle = document.getElementById('site-title');
+      const audio = document.getElementById('audio-player');
+      const startBtn = document.getElementById('start-btn');
+      const overlayPlayBtn = document.getElementById('overlayPlayBtn');
+      const startOverlay = document.getElementById('start-overlay');
+      const playIcon = document.getElementById('playIcon');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const lyricsContainer = document.getElementById('lyricsContainer');
+      const activeImage = document.getElementById('activeImage');
+      const focusBox = document.getElementById('focus-box');
+      const loadingText = document.getElementById('loadingText');
+      const playerCover = document.getElementById('playerCover');
+      const overlayCover = document.getElementById('overlayCover');
+      const progressFill = document.getElementById('progressFill');
+      const timeRemaining = document.getElementById('timeRemaining');
+      const siteSlug = document.getElementById('siteSlug');
+      const overlaySlug = document.getElementById('overlaySlug');
 
       function getSlug() {
-        const queryId = new URLSearchParams(window.location.search).get('id');
-        if (queryId) return queryId;
-        const path = window.location.pathname.split('/').filter(Boolean)[0];
-        return (path && path !== 'view.html') ? path : null;
+        const q = new URLSearchParams(window.location.search).get('id');
+        if (q) return q;
+        const p = window.location.pathname.split('/').filter(Boolean)[0];
+        return (p && p !== 'view.html') ? p : null;
       }
 
-      async function initData() {
+      async function init() {
         const slug = getSlug();
-        if (!slug) {
-          lyricsDisplay.innerText = "Website ID Not Found";
-          return;
-        }
+        if (!slug) return;
 
-        siteTitle.innerText = `@${slug}`;
+        siteSlug.innerText = `@${slug}`;
+        overlaySlug.innerText = `@${slug}`;
 
         try {
           const res = await fetch('/api/config');
@@ -259,104 +323,107 @@
           const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
           const { data } = await supabase.from('sites').select('*').eq('slug', slug).single();
 
-          if (!data) {
-            lyricsDisplay.innerText = "Data Not Found";
-            return;
-          }
+          if (!data) return;
 
           galleryUrls = data.gallery_urls || [];
           playerCover.src = data.cover_url || '';
+          overlayCover.src = data.cover_url || '';
 
-          // Render Infinite Canvas Background
-          infiniteCanvas.innerHTML = "";
-          const allImages = [data.cover_url, ...galleryUrls, ...galleryUrls, ...galleryUrls];
-          allImages.forEach(src => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.className = 'bg-photo-item';
-            infiniteCanvas.appendChild(img);
+          // Populate Film Tracks
+          const allImgs = [data.cover_url, ...galleryUrls, ...galleryUrls];
+          ['track1', 'track2', 'track3'].forEach(trackId => {
+            const track = document.getElementById(trackId);
+            track.innerHTML = "";
+            allImgs.forEach(src => {
+              const img = document.createElement('img');
+              img.src = src;
+              img.className = 'film-img-card';
+              track.appendChild(img);
+            });
           });
 
-          // Render Foto Pertama (Foto Index 0)
           if (galleryUrls.length > 0) {
-            activePhoto.src = galleryUrls[0];
-            activePhoto.classList.remove('opacity-0');
-            loadingSpinner.classList.add('hidden');
+            activeImage.src = galleryUrls[0];
+            activeImage.classList.remove('opacity-0');
+            loadingText.classList.add('hidden');
           }
 
         } catch (e) {
-          lyricsDisplay.innerText = "Error Loading Memories";
+          console.error(e);
         }
       }
 
-      playBtn.onclick = () => {
+      function togglePlay() {
         if (isPlaying) {
           audio.pause();
         } else {
           if (audio.currentTime >= END_TIME) audio.currentTime = 0;
           audio.play();
+          startOverlay.classList.add('hidden-overlay');
         }
-      };
+      }
+
+      overlayPlayBtn.onclick = togglePlay;
+      startBtn.onclick = togglePlay;
 
       audio.onplay = () => {
         isPlaying = true;
-        playBtn.innerText = "❚❚";
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
       };
 
       audio.onpause = () => {
         isPlaying = false;
-        playBtn.innerText = "▶";
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
       };
 
       audio.ontimeupdate = () => {
         const cur = audio.currentTime;
-
         if (cur >= END_TIME) {
           audio.currentTime = 0;
           return;
         }
 
-        progressBar.style.width = `${(cur / END_TIME) * 100}%`;
+        const rem = Math.max(0, END_TIME - cur);
+        timeRemaining.innerText = `-0:${Math.ceil(rem).toString().padStart(2, '0')}`;
+        progressFill.style.width = `${(cur / END_TIME) * 100}%`;
 
-        // Cari Timeline Aktif
-        let currentSectionIdx = -1;
-        for (let i = TIMELINE_DATA.length - 1; i >= 0; i--) {
-          if (cur >= TIMELINE_DATA[i].time) {
-            currentSectionIdx = i;
+        let currentIdx = -1;
+        for (let i = TIMELINE.length - 1; i >= 0; i--) {
+          if (cur >= TIMELINE[i].time) {
+            currentIdx = i;
             break;
           }
         }
 
-        if (currentSectionIdx !== -1 && currentSectionIdx !== activeLineIndex) {
-          activeLineIndex = currentSectionIdx;
-          const section = TIMELINE_DATA[currentSectionIdx];
+        if (currentIdx !== -1 && currentIdx !== activeIndex) {
+          activeIndex = currentIdx;
+          const sec = TIMELINE[currentIdx];
 
-          // 1. Update & Pop-up Frame Foto
-          const pIdx = section.photoIdx;
+          const pIdx = sec.photoIdx;
           if (galleryUrls[pIdx]) {
-            focusWrapper.style.transform = "scale(0.92)";
-            activePhoto.classList.add('opacity-0');
+            focusBox.style.transform = "scale(0.9) translateY(10px)";
+            activeImage.classList.add('opacity-0');
 
             setTimeout(() => {
-              activePhoto.src = galleryUrls[pIdx];
-              activePhoto.classList.remove('opacity-0');
-              focusWrapper.style.transform = "scale(1.05)";
-              setTimeout(() => focusWrapper.style.transform = "scale(1)", 200);
+              activeImage.src = galleryUrls[pIdx];
+              activeImage.classList.remove('opacity-0');
+              focusBox.style.transform = "scale(1.04) translateY(-5px)";
+              setTimeout(() => focusBox.style.transform = "scale(1) translateY(0)", 250);
             }, 150);
           }
 
-          // 2. Render Teks Lirik dengan Span Kata
-          if (section.words) {
-            lyricsDisplay.innerHTML = `"${section.words.map(item => `<span class="word" data-time="${item.t}">${item.w}</span>`).join(' ')}"`;
+          if (sec.words) {
+            lyricsContainer.innerHTML = `"${sec.words.map(item => `<span class="word-span" data-time="${item.t}">${item.w}</span>`).join(' ')}"`;
           } else {
-            lyricsDisplay.innerHTML = `"${section.text}"`;
+            lyricsContainer.innerHTML = `"${sec.text}"`;
           }
         }
 
-        // Highlight Kata per Kata Sesuai Waktu Audio
-        if (activeLineIndex !== -1 && TIMELINE_DATA[activeLineIndex].words) {
-          const wordSpans = lyricsDisplay.querySelectorAll('.word');
-          wordSpans.forEach(span => {
+        if (activeIndex !== -1 && TIMELINE[activeIndex].words) {
+          const spans = lyricsContainer.querySelectorAll('.word-span');
+          spans.forEach(span => {
             const t = parseFloat(span.getAttribute('data-time'));
             if (cur >= t) {
               span.classList.add('active');
@@ -367,7 +434,7 @@
         }
       };
 
-      initData();
+      init();
     });
   </script>
 </body>

@@ -2,7 +2,6 @@
 let supabase = null;
 let selectedCover = null;
 let selectedGallery = new Array(10).fill(null);
-let isSlugAvailable = false;
 let activeGalleryIndex = null;
 
 // ELEMENT REFERENCES
@@ -78,7 +77,6 @@ slugInput.addEventListener("input", async (e) => {
 
   if (!val) {
     slugStatus.classList.add("hidden");
-    isSlugAvailable = false;
     checkFormValidity();
     return;
   }
@@ -91,12 +89,10 @@ slugInput.addEventListener("input", async (e) => {
     slugStatus.classList.remove("hidden");
     slugStatus.innerText = "Available";
     slugStatus.className = "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-    isSlugAvailable = true;
   } else {
     slugStatus.classList.remove("hidden");
     slugStatus.innerText = "Taken";
     slugStatus.className = "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-rose-950 text-rose-400 border border-rose-800";
-    isSlugAvailable = false;
   }
   checkFormValidity();
 });
@@ -136,8 +132,10 @@ window.removeGalleryImage = (e, index) => {
 
 // 6. VALIDATION & BUTTON STATE
 function checkFormValidity() {
+  const isSlugValid = slugInput.value.trim().length > 0 && slugStatus.innerText === "Available";
   const isGalleryFull = selectedGallery.every(item => item !== null);
-  if (isSlugAvailable && selectedCover && isGalleryFull) {
+
+  if (isSlugValid && selectedCover && isGalleryFull) {
     generateBtn.disabled = false;
     generateBtn.className = "w-full bg-white hover:bg-zinc-200 text-black font-semibold py-4 rounded-xl text-sm transition-all duration-200 cursor-pointer";
   } else {
@@ -149,7 +147,7 @@ function checkFormValidity() {
 // 7. UPLOAD & GENERATE PROCESS
 generateBtn.onclick = async () => {
   if (!supabase) {
-    alert("Supabase belum terkonfigurasi dengan benar di Vercel!");
+    alert("Supabase belum terkonfigurasi dengan benar!");
     return;
   }
 
@@ -192,8 +190,8 @@ generateBtn.onclick = async () => {
 
     if (dbErr) throw dbErr;
 
-    // Tampilkan Link Rapi
-    const fullUrl = `${window.location.origin}/${slug}`;
+    // Tampilkan Link Modal Hasil
+    const fullUrl = `${window.location.origin}/view.html?id=${slug}`;
     resultUrl.innerText = fullUrl;
     openBtn.href = fullUrl;
     successModal.classList.remove("hidden");
@@ -216,4 +214,3 @@ copyBtn.onclick = () => {
 // INITIALIZE APP
 initSupabase();
 renderGalleryGrid();
-      

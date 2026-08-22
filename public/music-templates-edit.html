@@ -1,96 +1,230 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Website Builder</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { background-color: #0a0a0a; color: #e5e5e5; font-family: sans-serif; }
-    .card-bg { background-color: #121212; border: 1px solid #262626; }
-    .spinner {
-      width: 16px; height: 16px; border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
-      display: inline-block; animation: spin .7s linear infinite; vertical-align: -3px; margin-right: 8px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .prog-bar { height: 3px; background: #262626; border-radius: 999px; overflow: hidden; }
-    .prog-fill { height: 100%; background: #fff; width: 0%; transition: width .25s ease; }
-    .fade-in { animation: fadeIn .18s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
-  </style>
-</head>
-<body class="min-h-screen p-4 flex justify-center items-start pb-20">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Website Builder</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    background-color: #0a0a0a; color: #e5e5e5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; min-height: 100vh; padding: 16px 16px 80px;
+    display: flex; justify-content: center; align-items: flex-start;
+  }
+  .wrap { width: 100%; max-width: 420px; margin: 24px 0; }
+  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #71717a; font-weight: 600; margin: 0; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 30px; font-weight: 700; color: #fff; margin: 4px 0 0; }
+  .card { background-color: #121212; border: 1px solid #262626; border-radius: 16px; padding: 20px; margin-top: 24px; }
+  label { display: block; font-size: 14px; font-weight: 500; color: #d4d4d8; margin-bottom: 12px; }
+  .field-wrap { position: relative; }
+  input[type="text"] {
+    width: 100%; background-color: #18181b; border: 1px solid #27272a; border-radius: 12px;
+    padding: 12px 90px 12px 16px; color: #fff; font-size: 14px; outline: none;
+    appearance: none; -webkit-appearance: none; font-family: inherit;
+  }
+  input[type="text"]:focus { border-color: #71717a; }
+  .slug-status { position: absolute; right: 10px; top: 9px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; display: none; }
+  .slug-status.show { display: inline-block; }
+  .slug-status.checking, .slug-status.unknown { background: #27272a; color: #a1a1aa; }
+  .slug-status.available { background: #052e21; color: #34d399; border: 1px solid #065f46; }
+  .slug-status.taken { background: #2c0f16; color: #fb7185; border: 1px solid #9f1239; }
+  .hint { font-size: 12px; color: #71717a; margin: 10px 0 0; }
+  .hint span { color: #a1a1aa; }
+  .cover-box {
+    position: relative; aspect-ratio: 1/1; width: 100%; background: #18181b;
+    border: 1.5px dashed #27272a; border-radius: 14px; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; cursor: pointer; overflow: hidden;
+  }
+  .cover-box input[type="file"] { display: none; }
+  .cover-placeholder { text-align: center; padding: 16px; }
+  .cover-tag { font-size: 11px; background: #27272a; color: #d4d4d8; padding: 4px 12px; border-radius: 8px; }
+  .cover-sub { font-size: 12px; color: #71717a; margin-top: 8px; }
+  .cover-box img { display: none; width: 100%; height: 100%; object-fit: cover; }
+  .cover-box img.show { display: block; }
+  .cover-remove {
+    display: none; position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.6); color: #fff;
+    width: 28px; height: 28px; border-radius: 50%; border: none; align-items: center; justify-content: center;
+    font-size: 12px; z-index: 2; cursor: pointer;
+  }
+  .cover-remove.show { display: flex; }
+  .err-text { display: none; font-size: 12px; color: #fb7185; margin: 10px 0 0; }
+  .err-text.show { display: block; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .card-head label { margin: 0; }
+  .counter { font-size: 12px; color: #71717a; font-family: monospace; }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .gallery-slot {
+    position: relative; aspect-ratio: 1/1; background: #18181b; border: 1px solid #27272a;
+    border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .gallery-slot img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-slot .slot-label { font-size: 10px; color: #71717a; font-family: monospace; }
+  .gallery-slot .remove-btn {
+    position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.6); color: #fff;
+    width: 22px; height: 22px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; z-index: 2; cursor: pointer;
+  }
+  #galleryInput { display: none; }
+  .generate-btn {
+    width: 100%; margin-top: 24px; background: #27272a; color: #71717a; font-weight: 600; font-size: 14px;
+    padding: 16px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease, color .15s ease;
+  }
+  .generate-btn.valid { background: #fff; color: #000; cursor: pointer; box-shadow: 0 8px 24px rgba(255,255,255,.08); }
+  .generate-btn:disabled { cursor: not-allowed; }
+  .spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(0,0,0,.25); border-top-color: #000; display: inline-block; animation: spin .7s linear infinite; margin-right: 8px; }
+  .generate-btn:not(.valid) .spinner { border-color: rgba(255,255,255,.25); border-top-color: #fff; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .prog-wrap { display: none; margin-top: 10px; }
+  .prog-wrap.show { display: block; }
+  .prog-bar { height: 3px; background: #27272a; border-radius: 999px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #fff; width: 0%; transition: width .25s ease; }
+  .prog-label { font-size: 11px; color: #71717a; text-align: center; margin: 6px 0 0; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(4px);
+    justify-content: center; align-items: center; padding: 16px; z-index: 50;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: #121212; border: 1px solid #262626; border-radius: 16px; padding: 24px; width: 100%; max-width: 380px; text-align: center; }
+  .check-circle {
+    width: 48px; height: 48px; background: rgba(52,211,153,.1); color: #34d399; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid rgba(52,211,153,.2); font-size: 20px;
+  }
+  .modal-box h3 { color: #fff; font-size: 17px; font-weight: 700; margin: 16px 0 4px; }
+  .modal-box p { font-size: 12px; color: #a1a1aa; margin: 0; }
+  .url-box { background: #18181b; border: 1px solid #27272a; padding: 12px; border-radius: 12px; font-size: 12px; font-family: monospace; color: #d4d4d8; word-break: break-all; margin: 18px 0; }
+  .btn-secondary { width: 100%; background: #27272a; color: #fff; font-weight: 500; padding: 12px; border-radius: 12px; font-size: 14px; border: none; cursor: pointer; margin-bottom: 8px; }
+  .btn-primary { display: block; width: 100%; background: #fff; color: #000; font-weight: 600; padding: 12px; border-radius: 12px; font-size: 14px; text-align: center; text-decoration: none; box-sizing: border-box; }
+  .fade-in { animation: fadeIn .18s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
 
-  <div class="w-full max-w-md space-y-6 my-6">
+  .preview-overlay { align-items: stretch; padding: 0; backdrop-filter: none; background: #000; }
+  .preview-box { max-width: 100%; width: 100%; height: 100dvh; display: flex; flex-direction: column; border-radius: 0; border: none; padding: 0; text-align: left; }
+  .preview-topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #1f1f1f; }
+  .preview-back { background: none; border: none; color: #d4d4d8; font-size: 14px; padding: 6px 4px; cursor: pointer; }
+  .preview-badge { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: #71717a; font-weight: 600; }
+  .preview-scroll { flex: 1; overflow-y: auto; padding: 16px; }
+  .preview-slug { font-size: 12px; color: #71717a; margin-bottom: 16px; }
+  .preview-slug span { color: #a1a1aa; }
+  .preview-stage { position: relative; aspect-ratio: 1/1; width: 100%; background: #0e0e0e; border-radius: 16px; overflow: hidden; border: 1px solid #1f1f1f; }
+  .preview-gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .preview-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.5); color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .preview-nav-left { left: 10px; }
+  .preview-nav-right { right: 10px; }
+  .preview-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
+  .preview-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
+  .preview-dots .dot.active { background: #fff; }
+  .preview-player { margin-top: 16px; display: flex; align-items: center; gap: 12px; background: #121212; border: 1px solid #262626; border-radius: 14px; padding: 12px; }
+  .preview-cover-img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1f1f1f; }
+  .preview-player-title { font-size: 13px; color: #fff; margin: 0; font-weight: 600; }
+  .preview-player-sub { font-size: 11px; color: #71717a; margin: 2px 0 0; }
+  .preview-note { font-size: 12px; color: #71717a; margin-top: 20px; line-height: 1.5; }
+  .preview-footer { padding: 14px 16px; border-top: 1px solid #1f1f1f; }
+  .preview-footer .generate-btn { margin-top: 0; }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
     <div>
-      <p class="text-xs uppercase tracking-widest text-zinc-500 font-semibold">Website Builder</p>
-      <h1 class="text-3xl font-serif font-bold text-white mt-1">Build your website</h1>
+      <p class="eyebrow">Website Builder</p>
+      <h1>Build your website</h1>
     </div>
 
     <!-- Card 1: Website Name -->
-    <div class="card-bg p-5 rounded-2xl space-y-3">
-      <label class="block text-sm font-medium text-zinc-300" for="slugInput">Website name</label>
-      <form onsubmit="event.preventDefault(); document.getElementById('slugInput').blur();" class="relative">
-        <input type="text" id="slugInput" placeholder="ForAraa" enterkeyhint="done" autocomplete="off"
-               maxlength="40" inputmode="text"
-               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 pr-24 text-white focus:outline-none focus:border-zinc-500 text-sm transition-colors">
-        <span id="slugStatus" class="hidden absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded"></span>
+    <div class="card">
+      <label for="slugInput">Website name</label>
+      <form onsubmit="event.preventDefault(); document.getElementById('slugInput').blur();" class="field-wrap">
+        <input type="text" id="slugInput" placeholder="ForAraa" enterkeyhint="done" autocomplete="off" maxlength="40" inputmode="text">
+        <span id="slugStatus" class="slug-status"></span>
       </form>
-      <p class="text-xs text-zinc-500">yoursite.vercel.app/<span id="slugPreview" class="text-zinc-400">your-name</span></p>
+      <p class="hint">yoursite.vercel.app/<span id="slugPreview">your-name</span></p>
     </div>
 
     <!-- Card 2: Song Cover -->
-    <div class="card-bg p-5 rounded-2xl space-y-3">
-      <label class="block text-sm font-medium text-zinc-300">Song cover</label>
-      <div id="coverBox" class="relative aspect-square w-full bg-zinc-900 border border-dashed border-zinc-800 rounded-xl flex flex-col justify-center items-center cursor-pointer overflow-hidden group active:scale-[0.98] transition-transform">
-        <input type="file" id="coverInput" accept="image/*" class="hidden">
-        <div id="coverPlaceholder" class="text-center p-4">
-          <span class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-md">Cover</span>
-          <p class="text-xs text-zinc-500 mt-2">Ketuk untuk upload foto sampul</p>
+    <div class="card">
+      <label>Song cover</label>
+      <div id="coverBox" class="cover-box">
+        <input type="file" id="coverInput" accept="image/*">
+        <div id="coverPlaceholder" class="cover-placeholder">
+          <span class="cover-tag">Cover</span>
+          <p class="cover-sub">Ketuk untuk upload foto sampul</p>
         </div>
-        <img id="coverPreview" alt="Song cover preview" class="hidden w-full h-full object-cover fade-in">
-        <button type="button" id="coverRemoveBtn" class="hidden absolute top-2 right-2 bg-black/60 text-white w-7 h-7 rounded-full items-center justify-center text-xs z-10">✕</button>
+        <img id="coverPreview" alt="Song cover preview">
+        <button type="button" id="coverRemoveBtn" class="cover-remove">✕</button>
       </div>
-      <p id="coverError" class="hidden text-xs text-rose-400"></p>
+      <p id="coverError" class="err-text"></p>
     </div>
 
     <!-- Card 3: Gallery Photos -->
-    <div class="card-bg p-5 rounded-2xl space-y-3">
-      <div class="flex justify-between items-center">
-        <label class="block text-sm font-medium text-zinc-300">Gallery photos</label>
-        <span id="galleryCounter" class="text-xs text-zinc-500 font-mono">0/10</span>
+    <div class="card">
+      <div class="card-head">
+        <label>Gallery photos</label>
+        <span id="galleryCounter" class="counter">0/10</span>
       </div>
-      <div class="grid grid-cols-3 gap-2" id="galleryGrid"></div>
-      <input type="file" id="galleryInput" accept="image/*" class="hidden">
-      <p id="galleryError" class="hidden text-xs text-rose-400"></p>
+      <div class="gallery-grid" id="galleryGrid"></div>
+      <input type="file" id="galleryInput" accept="image/*">
+      <p id="galleryError" class="err-text"></p>
     </div>
 
-    <!-- Generate Button -->
-    <button id="generateBtn" disabled
-            class="w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center">
-      <span id="generateBtnLabel">Generate website</span>
+    <!-- Preview Button (menggantikan generate langsung) -->
+    <button id="previewBtn" class="generate-btn" disabled>
+      <span id="previewBtnLabel">Preview website</span>
     </button>
-    <div id="progWrap" class="hidden space-y-1">
-      <div class="prog-bar"><div id="progFill" class="prog-fill"></div></div>
-      <p id="progLabel" class="text-[11px] text-zinc-500 text-center"></p>
+  </div>
+
+  <!-- Modal Preview -->
+  <div id="previewModal" class="modal-overlay preview-overlay">
+    <div class="preview-box fade-in">
+      <div class="preview-topbar">
+        <button type="button" id="previewBackBtn" class="preview-back">← Back</button>
+        <span class="preview-badge">Preview</span>
+      </div>
+
+      <div class="preview-scroll">
+        <div class="preview-slug">yoursite.vercel.app/<span id="previewSlugText"></span></div>
+
+        <div class="preview-stage">
+          <img id="previewGalleryImg" class="preview-gallery-img" alt="Preview foto">
+          <button type="button" id="previewPrev" class="preview-nav preview-nav-left">‹</button>
+          <button type="button" id="previewNext" class="preview-nav preview-nav-right">›</button>
+          <div id="previewDots" class="preview-dots"></div>
+        </div>
+
+        <div class="preview-player">
+          <img id="previewCoverImg" class="preview-cover-img" alt="Preview cover">
+          <div class="preview-player-info">
+            <p class="preview-player-title">Song cover</p>
+            <p class="preview-player-sub">Ini yang bakal tampil di pemutar</p>
+          </div>
+        </div>
+
+        <p class="preview-note">Ini pratinjau dari foto yang kamu pilih — belum di-upload. Kalau udah oke, tekan tombol di bawah buat generate beneran.</p>
+      </div>
+
+      <div class="preview-footer">
+        <button id="generateBtn" class="generate-btn valid">
+          <span id="generateBtnLabel">Confirm &amp; Generate</span>
+        </button>
+        <div id="progWrap" class="prog-wrap">
+          <div class="prog-bar"><div id="progFill" class="prog-fill"></div></div>
+          <p id="progLabel" class="prog-label"></p>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Modal Success -->
-  <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 hidden z-50">
-    <div class="card-bg p-6 rounded-2xl w-full max-w-sm text-center space-y-5 border border-zinc-800 fade-in">
-      <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 text-xl">✓</div>
-      <div>
-        <h3 class="text-lg font-bold text-white">Website created successfully</h3>
-        <p class="text-xs text-zinc-400 mt-1">Your site is live and ready to share.</p>
-      </div>
-      <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-mono text-zinc-300 break-all" id="resultUrl"></div>
-      <div class="space-y-2">
-        <button id="copyBtn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-3 rounded-xl text-sm">Copy link</button>
-        <a id="openBtn" href="#" target="_blank" class="block w-full bg-white text-black font-semibold py-3 rounded-xl text-sm">Open website</a>
-      </div>
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-box fade-in">
+      <div class="check-circle">✓</div>
+      <h3>Website created successfully</h3>
+      <p>Your site is live and ready to share.</p>
+      <div class="url-box" id="resultUrl"></div>
+      <button id="copyBtn" class="btn-secondary">Copy link</button>
+      <a id="openBtn" href="#" target="_blank" class="btn-primary">Open website</a>
     </div>
   </div>
 
@@ -98,20 +232,20 @@
     document.addEventListener("DOMContentLoaded", () => {
 
       // ===== Konfigurasi =====
-      const MAX_FILE_MB = 15;                // batas ukuran file mentah sebelum kompresi
-      const COVER_MAX_DIM = 1600;             // px, sisi terpanjang setelah resize
+      const MAX_FILE_MB = 15;
+      const COVER_MAX_DIM = 1600;
       const GALLERY_MAX_DIM = 1280;
       const JPEG_QUALITY = 0.82;
-      const UPLOAD_CONCURRENCY = 3;           // upload paralel maksimum
+      const UPLOAD_CONCURRENCY = 3;
       const SLUG_DEBOUNCE_MS = 450;
       const GALLERY_SLOTS = 10;
 
       // ===== State =====
       let supabase = null;
-      let selectedCover = null;   // { file, previewUrl }
-      let selectedGallery = new Array(GALLERY_SLOTS).fill(null); // { file, previewUrl }
+      let selectedCover = null;
+      let selectedGallery = new Array(GALLERY_SLOTS).fill(null);
       let activeGalleryIndex = null;
-      let slugCheckToken = 0;     // guard race condition pengecekan slug
+      let slugCheckToken = 0;
       let slugAvailable = false;
       let isGenerating = false;
 
@@ -132,6 +266,17 @@
       const galleryCounter = document.getElementById("galleryCounter");
       const galleryErrorEl = document.getElementById("galleryError");
 
+      const previewBtn = document.getElementById("previewBtn");
+      const previewModal = document.getElementById("previewModal");
+      const previewBackBtn = document.getElementById("previewBackBtn");
+      const previewSlugText = document.getElementById("previewSlugText");
+      const previewGalleryImg = document.getElementById("previewGalleryImg");
+      const previewCoverImg = document.getElementById("previewCoverImg");
+      const previewPrev = document.getElementById("previewPrev");
+      const previewNext = document.getElementById("previewNext");
+      const previewDots = document.getElementById("previewDots");
+      let previewIndex = 0;
+
       const generateBtn = document.getElementById("generateBtn");
       const generateBtnLabel = document.getElementById("generateBtnLabel");
       const progWrap = document.getElementById("progWrap");
@@ -143,14 +288,8 @@
       const copyBtn = document.getElementById("copyBtn");
       const openBtn = document.getElementById("openBtn");
 
-      // ===== Util: revoke object URL supaya tidak bocor memori di HP =====
-      function revoke(url) {
-        if (url) { try { URL.revokeObjectURL(url); } catch (_) {} }
-      }
+      function revoke(url) { if (url) { try { URL.revokeObjectURL(url); } catch (_) {} } }
 
-      // ===== Util: kompresi + resize gambar via canvas sebelum upload =====
-      // Ini penting untuk pengguna mobile/data seluler: file 8-12MB dari kamera
-      // HP bisa turun ke ratusan KB tanpa penurunan kualitas visual yang berarti.
       function compressImage(file, maxDim, quality) {
         return new Promise((resolve, reject) => {
           const img = new Image();
@@ -158,27 +297,17 @@
           img.onload = () => {
             let { width, height } = img;
             if (width > maxDim || height > maxDim) {
-              if (width >= height) {
-                height = Math.round(height * (maxDim / width));
-                width = maxDim;
-              } else {
-                width = Math.round(width * (maxDim / height));
-                height = maxDim;
-              }
+              if (width >= height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+              else { width = Math.round(width * (maxDim / height)); height = maxDim; }
             }
             const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
             URL.revokeObjectURL(url);
             canvas.toBlob((blob) => {
               if (!blob) return reject(new Error("Gagal memproses gambar."));
-              const compressedFile = new File(
-                [blob],
-                file.name.replace(/\.(png|heic|webp)$/i, ".jpg"),
-                { type: "image/jpeg" }
-              );
+              const compressedFile = new File([blob], file.name.replace(/\.(png|heic|webp)$/i, ".jpg"), { type: "image/jpeg" });
               resolve(compressedFile);
             }, "image/jpeg", quality);
           };
@@ -193,7 +322,6 @@
         return null;
       }
 
-      // ===== Inisiasi Supabase =====
       async function initSupabase() {
         try {
           const res = await fetch("/api/config");
@@ -207,7 +335,6 @@
         }
       }
 
-      // ===== Render Gallery Grid =====
       function renderGalleryGrid() {
         galleryGrid.innerHTML = "";
         let filledCount = 0;
@@ -215,12 +342,12 @@
         selectedGallery.forEach((item, index) => {
           if (item) filledCount++;
           const slot = document.createElement("div");
-          slot.className = "relative aspect-square bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col justify-center items-center cursor-pointer group";
+          slot.className = "gallery-slot";
 
           if (item) {
             slot.innerHTML = `
-              <img src="${item.previewUrl}" alt="Gallery photo ${index + 1}" class="w-full h-full object-cover fade-in">
-              <button type="button" class="remove-btn absolute top-1 right-1 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs z-10">✕</button>
+              <img src="${item.previewUrl}" alt="Gallery photo ${index + 1}" class="fade-in">
+              <button type="button" class="remove-btn">✕</button>
             `;
             slot.querySelector(".remove-btn").addEventListener("click", (e) => {
               e.stopPropagation();
@@ -229,11 +356,8 @@
               renderGalleryGrid();
             });
           } else {
-            slot.innerHTML = `<span class="text-[10px] text-zinc-500 font-mono">Photo ${index + 1}</span>`;
-            slot.addEventListener("click", () => {
-              activeGalleryIndex = index;
-              galleryInput.click();
-            });
+            slot.innerHTML = `<span class="slot-label">Photo ${index + 1}</span>`;
+            slot.addEventListener("click", () => { activeGalleryIndex = index; galleryInput.click(); });
           }
           galleryGrid.appendChild(slot);
         });
@@ -242,30 +366,14 @@
         checkFormValidity();
       }
 
-      // ===== Slug: sanitasi + debounce + guard race condition =====
       function sanitizeSlug(raw) {
-        return raw
-          .toLowerCase()
-          .replace(/[^a-z0-9-]/g, "-")
-          .replace(/-+/g, "-")
-          .replace(/^-+|-+$/g, "");
+        return raw.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
       }
 
       function setSlugStatus(kind, text) {
-        // kind: 'idle' | 'checking' | 'available' | 'taken' | 'unknown'
-        if (kind === "idle") {
-          slugStatus.classList.add("hidden");
-          return;
-        }
-        slugStatus.classList.remove("hidden");
+        if (kind === "idle") { slugStatus.className = "slug-status"; return; }
         slugStatus.innerText = text;
-        const styles = {
-          checking: "absolute right-3 top-3 text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400",
-          available: "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800",
-          taken: "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-rose-950 text-rose-400 border border-rose-800",
-          unknown: "absolute right-3 top-3 text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400",
-        };
-        slugStatus.className = styles[kind] || styles.unknown;
+        slugStatus.className = `slug-status show ${kind}`;
       }
 
       let slugDebounceTimer = null;
@@ -277,15 +385,10 @@
 
         clearTimeout(slugDebounceTimer);
 
-        if (!val) {
-          setSlugStatus("idle");
-          checkFormValidity();
-          return;
-        }
+        if (!val) { setSlugStatus("idle"); checkFormValidity(); return; }
 
         setSlugStatus("checking", "Checking...");
         checkFormValidity();
-
         slugDebounceTimer = setTimeout(() => checkSlugAvailability(val), SLUG_DEBOUNCE_MS);
       });
 
@@ -294,7 +397,7 @@
 
         if (!supabase) {
           if (myToken !== slugCheckToken) return;
-          slugAvailable = true; // tidak bisa verifikasi tanpa koneksi, izinkan lanjut
+          slugAvailable = true;
           setSlugStatus("unknown", "OK");
           checkFormValidity();
           return;
@@ -302,16 +405,10 @@
 
         try {
           const { data, error } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
-          if (myToken !== slugCheckToken) return; // hasil basi, abaikan (race condition guard)
+          if (myToken !== slugCheckToken) return;
           if (error) throw error;
-
-          if (!data) {
-            slugAvailable = true;
-            setSlugStatus("available", "Available");
-          } else {
-            slugAvailable = false;
-            setSlugStatus("taken", "Taken");
-          }
+          if (!data) { slugAvailable = true; setSlugStatus("available", "Available"); }
+          else { slugAvailable = false; setSlugStatus("taken", "Taken"); }
         } catch (err) {
           if (myToken !== slugCheckToken) return;
           slugAvailable = false;
@@ -320,38 +417,29 @@
         checkFormValidity();
       }
 
-      // ===== Pilih Cover =====
-      coverBox.addEventListener("click", (e) => {
-        if (e.target === coverRemoveBtn) return;
-        coverInput.click();
-      });
+      coverBox.addEventListener("click", (e) => { if (e.target === coverRemoveBtn) return; coverInput.click(); });
 
       coverInput.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         e.target.value = "";
         if (!file) return;
 
-        coverError.classList.add("hidden");
+        coverError.classList.remove("show");
         const err = validateRawFile(file);
-        if (err) {
-          coverError.innerText = err;
-          coverError.classList.remove("hidden");
-          return;
-        }
+        if (err) { coverError.innerText = err; coverError.classList.add("show"); return; }
 
         try {
           const compressed = await compressImage(file, COVER_MAX_DIM, JPEG_QUALITY);
           if (selectedCover) revoke(selectedCover.previewUrl);
           selectedCover = { file: compressed, previewUrl: URL.createObjectURL(compressed) };
           coverPreview.src = selectedCover.previewUrl;
-          coverPreview.classList.remove("hidden");
-          coverPlaceholder.classList.add("hidden");
-          coverRemoveBtn.classList.remove("hidden");
-          coverRemoveBtn.classList.add("flex");
+          coverPreview.classList.add("show");
+          coverPlaceholder.style.display = "none";
+          coverRemoveBtn.classList.add("show");
           checkFormValidity();
         } catch (err) {
           coverError.innerText = "Gagal memproses gambar, coba foto lain.";
-          coverError.classList.remove("hidden");
+          coverError.classList.add("show");
         }
       });
 
@@ -359,28 +447,21 @@
         e.stopPropagation();
         if (selectedCover) revoke(selectedCover.previewUrl);
         selectedCover = null;
-        coverPreview.classList.add("hidden");
+        coverPreview.classList.remove("show");
         coverPreview.src = "";
-        coverPlaceholder.classList.remove("hidden");
-        coverRemoveBtn.classList.add("hidden");
-        coverRemoveBtn.classList.remove("flex");
+        coverPlaceholder.style.display = "";
+        coverRemoveBtn.classList.remove("show");
         checkFormValidity();
       });
 
-      // ===== Pilih Gallery =====
       galleryInput.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         e.target.value = "";
         if (!file || activeGalleryIndex === null) return;
 
-        galleryErrorEl.classList.add("hidden");
+        galleryErrorEl.classList.remove("show");
         const err = validateRawFile(file);
-        if (err) {
-          galleryErrorEl.innerText = err;
-          galleryErrorEl.classList.remove("hidden");
-          activeGalleryIndex = null;
-          return;
-        }
+        if (err) { galleryErrorEl.innerText = err; galleryErrorEl.classList.add("show"); activeGalleryIndex = null; return; }
 
         const targetIndex = activeGalleryIndex;
         activeGalleryIndex = null;
@@ -391,28 +472,56 @@
           renderGalleryGrid();
         } catch (err) {
           galleryErrorEl.innerText = "Gagal memproses salah satu foto, coba lagi.";
-          galleryErrorEl.classList.remove("hidden");
+          galleryErrorEl.classList.add("show");
         }
       });
 
-      // ===== Validasi Tombol Generate =====
       function checkFormValidity() {
         const hasSlug = slugInput.value.trim().length > 0;
         const isGalleryFull = selectedGallery.every((item) => item !== null);
         const valid = hasSlug && slugAvailable && !!selectedCover && isGalleryFull && !isGenerating;
 
-        generateBtn.disabled = !valid;
-        generateBtn.className = valid
-          ? "w-full bg-white hover:bg-zinc-200 text-black font-semibold py-4 rounded-xl text-sm transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-center"
-          : "w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center";
+        previewBtn.disabled = !valid;
+        previewBtn.className = valid ? "generate-btn valid" : "generate-btn";
       }
 
-      // ===== Upload dengan concurrency terbatas + progress =====
-      async function uploadWithConcurrency(tasks, concurrency, onProgress) {
-        let completed = 0;
-        let cursor = 0;
-        const results = new Array(tasks.length);
+      // ===== Preview modal: swipe gallery pakai foto lokal (belum upload) =====
+      function renderPreviewStage() {
+        const item = selectedGallery[previewIndex];
+        if (item) previewGalleryImg.src = item.previewUrl;
 
+        previewDots.innerHTML = "";
+        selectedGallery.forEach((_, i) => {
+          const dot = document.createElement("span");
+          dot.className = "dot" + (i === previewIndex ? " active" : "");
+          previewDots.appendChild(dot);
+        });
+      }
+
+      function openPreview() {
+        if (previewBtn.disabled) return;
+        previewIndex = 0;
+        previewSlugText.innerText = slugInput.value.trim();
+        previewCoverImg.src = selectedCover.previewUrl;
+        renderPreviewStage();
+        previewModal.classList.add("show");
+      }
+
+      previewBtn.addEventListener("click", openPreview);
+      previewBackBtn.addEventListener("click", () => previewModal.classList.remove("show"));
+
+      previewPrev.addEventListener("click", () => {
+        previewIndex = (previewIndex - 1 + selectedGallery.length) % selectedGallery.length;
+        renderPreviewStage();
+      });
+      previewNext.addEventListener("click", () => {
+        previewIndex = (previewIndex + 1) % selectedGallery.length;
+        renderPreviewStage();
+      });
+
+      async function uploadWithConcurrency(tasks, concurrency, onProgress) {
+        let completed = 0, cursor = 0;
+        const results = new Array(tasks.length);
         async function worker() {
           while (cursor < tasks.length) {
             const myIndex = cursor++;
@@ -421,95 +530,82 @@
             onProgress(completed, tasks.length);
           }
         }
-
         const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, worker);
         await Promise.all(workers);
         return results;
       }
 
       function setProgress(pct, label) {
-        progWrap.classList.remove("hidden");
+        progWrap.classList.add("show");
         progFill.style.width = `${pct}%`;
         progLabel.innerText = label;
       }
 
       function setGenerating(state, label) {
         isGenerating = state;
-        generateBtnLabel.innerHTML = state ? `<span class="spinner"></span>${label}` : "Generate website";
+        generateBtn.disabled = state;
+        generateBtnLabel.innerHTML = state ? `<span class="spinner"></span>${label}` : "Confirm &amp; Generate";
         checkFormValidity();
       }
 
-      // ===== Proses Generate =====
       generateBtn.addEventListener("click", async () => {
         if (!supabase) return alert("Koneksi database bermasalah. Pastikan API terhubung!");
         if (isGenerating) return;
 
         const slug = slugInput.value.trim();
-        const uploadedPaths = []; // untuk rollback best-effort jika gagal di tengah jalan
+        const uploadedPaths = [];
 
         setGenerating(true, "Uploading cover...");
         setProgress(0, "Uploading cover...");
 
         try {
-          // 1. Upload cover
           const coverExt = selectedCover.file.name.split(".").pop();
           const coverPath = `${slug}/cover_${Date.now()}.${coverExt}`;
-          const { error: coverErr } = await supabase.storage.from("uploads").upload(coverPath, selectedCover.file, {
-            contentType: selectedCover.file.type,
-          });
+          const { error: coverErr } = await supabase.storage.from("uploads").upload(coverPath, selectedCover.file, { contentType: selectedCover.file.type });
           if (coverErr) throw coverErr;
           uploadedPaths.push(coverPath);
           const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
 
-          // 2. Upload gallery secara paralel (concurrency terbatas) dengan progress akurat
           setGenerating(true, "Uploading gallery...");
           const galleryTasks = selectedGallery.map((item, i) => async () => {
             const ext = item.file.name.split(".").pop();
             const path = `${slug}/gallery_${i}_${Date.now()}.${ext}`;
-            const { error } = await supabase.storage.from("uploads").upload(path, item.file, {
-              contentType: item.file.type,
-            });
+            const { error } = await supabase.storage.from("uploads").upload(path, item.file, { contentType: item.file.type });
             if (error) throw error;
             uploadedPaths.push(path);
             return supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
           });
 
           const galleryUrls = await uploadWithConcurrency(galleryTasks, UPLOAD_CONCURRENCY, (done, total) => {
-            const pct = Math.round((done / total) * 90) + 10; // 10-100%
+            const pct = Math.round((done / total) * 90) + 10;
             setProgress(pct, `Uploading gallery (${done}/${total})...`);
           });
 
-          // 3. Simpan record website
           setGenerating(true, "Saving your website...");
           setProgress(100, "Saving your website...");
-          const { error: insertErr } = await supabase.from("sites").insert([
-            { slug, cover_url: coverUrl, gallery_urls: galleryUrls },
-          ]);
+          const { error: insertErr } = await supabase.from("sites").insert([{ slug, cover_url: coverUrl, gallery_urls: galleryUrls }]);
           if (insertErr) throw insertErr;
 
           const fullUrl = `${window.location.origin}/${slug}`;
           resultUrl.innerText = fullUrl;
           openBtn.href = fullUrl;
-          successModal.classList.remove("hidden");
-          progWrap.classList.add("hidden");
+          previewModal.classList.remove("show");
+          successModal.classList.add("show");
+          progWrap.classList.remove("show");
           setGenerating(false, "");
         } catch (err) {
-          // Rollback best-effort: hapus file yang sudah terlanjur terupload agar storage tidak menumpuk sampah
           if (uploadedPaths.length > 0) {
             try { await supabase.storage.from("uploads").remove(uploadedPaths); } catch (_) {}
           }
           alert("Error: " + (err.message || "Terjadi kesalahan saat membuat website."));
-          progWrap.classList.add("hidden");
+          progWrap.classList.remove("show");
           setGenerating(false, "");
         }
       });
 
-      // ===== Copy Link =====
       copyBtn.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(resultUrl.innerText);
-        } catch (_) {
-          // fallback untuk browser tanpa Clipboard API / permission ditolak
+        try { await navigator.clipboard.writeText(resultUrl.innerText); }
+        catch (_) {
           const ta = document.createElement("textarea");
           ta.value = resultUrl.innerText;
           document.body.appendChild(ta);
@@ -521,13 +617,11 @@
         setTimeout(() => (copyBtn.innerText = "Copy link"), 2000);
       });
 
-      // ===== Bersihkan object URLs saat halaman ditutup =====
       window.addEventListener("beforeunload", () => {
         if (selectedCover) revoke(selectedCover.previewUrl);
         selectedGallery.forEach((item) => item && revoke(item.previewUrl));
       });
 
-      // ===== Mulai Aplikasi =====
       initSupabase();
       renderGalleryGrid();
     });

@@ -267,7 +267,7 @@
 <div class="wrap">
   <header>
     <h1>MEDIA COMPRESSOR</h1>
-    <div class="badge mono">FINAL</div>
+    <div class="badge mono">JR乂REZKYY</div>
   </header>
 
   <div class="tabbar">
@@ -441,11 +441,10 @@
 
     <div class="field">
       <label>05 — Privasi</label>
-      <div class="seg" id="metaSeg">
-        <button data-meta="on" class="active">HAPUS DATA EXIF/LOKASI</button>
-        <button data-meta="off">BIARKAN</button>
+      <div style="border:3px solid var(--ink); background:var(--yellow); padding:12px 14px; font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12.5px;">
+        ✓ DATA EXIF/LOKASI OTOMATIS TERHAPUS
       </div>
-      <div class="helper-text" style="margin-top:6px;">EXIF berisi info kamera dan kadang lokasi GPS saat foto diambil.</div>
+      <div class="helper-text" style="margin-top:6px;">EXIF berisi info kamera dan kadang lokasi GPS saat foto diambil. Terhapus otomatis saat gambar diproses (kecuali SVG, yang tidak mengandung EXIF).</div>
     </div>
   </div>
 
@@ -772,7 +771,7 @@
       stagePct.textContent = pct + '%';
       trackFill.style.width = pct + '%';
     });
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
     const ffmpegBase = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd';
     await ffmpeg.load({
       coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
@@ -930,7 +929,6 @@
   let imgQuality = 0.75;
   let imgFormat = 'keep'; // keep | jpeg | png | webp
   let resizeOn = false;
-  let metaStrip = true;
   let lastZipBlobs = [];
 
   document.getElementById('imgQualRange').addEventListener('input', (e)=>{
@@ -946,14 +944,7 @@
     document.getElementById('resizeImgInputs').style.display = resizeOn ? '' : 'none';
   });
 
-  document.getElementById('metaSeg').addEventListener('click', e=>{
-    const btn = e.target.closest('button'); if(!btn) return;
-    e.currentTarget.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    metaStrip = btn.dataset.meta === 'on';
-  });
-
-  // aspect ratio lock
+  // aspek ratio lock
   let imgAspect = null;
   const imgWidthEl = document.getElementById('imgWidth');
   const imgHeightEl = document.getElementById('imgHeight');

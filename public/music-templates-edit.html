@@ -2,16 +2,26 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Website Builder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background-color: #0a0a0a; color: #e5e5e5; font-family: sans-serif; }
     .card-bg { background-color: #121212; border: 1px solid #262626; }
+    .spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.25); border-top-color: #fff;
+      display: inline-block; animation: spin .7s linear infinite; vertical-align: -3px; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .prog-bar { height: 3px; background: #262626; border-radius: 999px; overflow: hidden; }
+    .prog-fill { height: 100%; background: #fff; width: 0%; transition: width .25s ease; }
+    .fade-in { animation: fadeIn .18s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
   </style>
 </head>
-<body class="min-h-screen p-4 flex justify-center items-start">
+<body class="min-h-screen p-4 flex justify-center items-start pb-20">
 
   <div class="w-full max-w-md space-y-6 my-6">
     <div>
@@ -19,31 +29,31 @@
       <h1 class="text-3xl font-serif font-bold text-white mt-1">Build your website</h1>
     </div>
 
-    <!-- Card 1: Website Name / Slug -->
+    <!-- Card 1: Website Name -->
     <div class="card-bg p-5 rounded-2xl space-y-3">
-      <label class="block text-sm font-medium text-zinc-300">Website name</label>
-      <div class="relative">
-        <input type="text" id="slugInput" placeholder="ForAraa" 
-               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-zinc-500 text-sm">
-        <span id="slugStatus" class="hidden absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
-          Available
-        </span>
-      </div>
+      <label class="block text-sm font-medium text-zinc-300" for="slugInput">Website name</label>
+      <form onsubmit="event.preventDefault(); document.getElementById('slugInput').blur();" class="relative">
+        <input type="text" id="slugInput" placeholder="ForAraa" enterkeyhint="done" autocomplete="off"
+               maxlength="40" inputmode="text"
+               class="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 pr-24 text-white focus:outline-none focus:border-zinc-500 text-sm transition-colors">
+        <span id="slugStatus" class="hidden absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded"></span>
+      </form>
       <p class="text-xs text-zinc-500">yoursite.vercel.app/<span id="slugPreview" class="text-zinc-400">your-name</span></p>
     </div>
 
     <!-- Card 2: Song Cover -->
     <div class="card-bg p-5 rounded-2xl space-y-3">
       <label class="block text-sm font-medium text-zinc-300">Song cover</label>
-      <div id="coverBox" onclick="document.getElementById('coverInput').click()" 
-           class="relative aspect-square w-full bg-zinc-900 border border-dashed border-zinc-800 rounded-xl flex flex-col justify-center items-center cursor-pointer overflow-hidden group">
-        <input type="file" id="coverInput" accept="image/*" class="hidden" onchange="handleCoverSelect(event)">
+      <div id="coverBox" class="relative aspect-square w-full bg-zinc-900 border border-dashed border-zinc-800 rounded-xl flex flex-col justify-center items-center cursor-pointer overflow-hidden group active:scale-[0.98] transition-transform">
+        <input type="file" id="coverInput" accept="image/*" class="hidden">
         <div id="coverPlaceholder" class="text-center p-4">
           <span class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-md">Cover</span>
           <p class="text-xs text-zinc-500 mt-2">Ketuk untuk upload foto sampul</p>
         </div>
-        <img id="coverPreview" class="hidden w-full h-full object-cover">
+        <img id="coverPreview" alt="Song cover preview" class="hidden w-full h-full object-cover fade-in">
+        <button type="button" id="coverRemoveBtn" class="hidden absolute top-2 right-2 bg-black/60 text-white w-7 h-7 rounded-full items-center justify-center text-xs z-10">✕</button>
       </div>
+      <p id="coverError" class="hidden text-xs text-rose-400"></p>
     </div>
 
     <!-- Card 3: Gallery Photos -->
@@ -52,215 +62,475 @@
         <label class="block text-sm font-medium text-zinc-300">Gallery photos</label>
         <span id="galleryCounter" class="text-xs text-zinc-500 font-mono">0/10</span>
       </div>
-      
       <div class="grid grid-cols-3 gap-2" id="galleryGrid"></div>
-      <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleGallerySelect(event)">
+      <input type="file" id="galleryInput" accept="image/*" class="hidden">
+      <p id="galleryError" class="hidden text-xs text-rose-400"></p>
     </div>
 
     <!-- Generate Button -->
-    <button id="generateBtn" disabled 
-            class="w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200">
-      Generate website
+    <button id="generateBtn" disabled
+            class="w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center">
+      <span id="generateBtnLabel">Generate website</span>
     </button>
+    <div id="progWrap" class="hidden space-y-1">
+      <div class="prog-bar"><div id="progFill" class="prog-fill"></div></div>
+      <p id="progLabel" class="text-[11px] text-zinc-500 text-center"></p>
+    </div>
   </div>
 
   <!-- Modal Success -->
   <div id="successModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center p-4 hidden z-50">
-    <div class="card-bg p-6 rounded-2xl w-full max-w-sm text-center space-y-5 border border-zinc-800">
-      <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 text-xl">
-        ✓
-      </div>
+    <div class="card-bg p-6 rounded-2xl w-full max-w-sm text-center space-y-5 border border-zinc-800 fade-in">
+      <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 text-xl">✓</div>
       <div>
         <h3 class="text-lg font-bold text-white">Website created successfully</h3>
         <p class="text-xs text-zinc-400 mt-1">Your site is live and ready to share.</p>
       </div>
-      
-      <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-mono text-zinc-300 break-all" id="resultUrl">
-        https://yoursite.vercel.app/your-name
-      </div>
-
+      <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-mono text-zinc-300 break-all" id="resultUrl"></div>
       <div class="space-y-2">
-        <button id="copyBtn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-3 rounded-xl text-sm">
-          Copy link
-        </button>
-        <a id="openBtn" href="#" target="_blank" class="block w-full bg-white text-black font-semibold py-3 rounded-xl text-sm">
-          Open website
-        </a>
+        <button id="copyBtn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-3 rounded-xl text-sm">Copy link</button>
+        <a id="openBtn" href="#" target="_blank" class="block w-full bg-white text-black font-semibold py-3 rounded-xl text-sm">Open website</a>
       </div>
     </div>
   </div>
 
-  <!-- SELURUH JAVASCRIPT DISATUKAN DI SINI -->
   <script>
-    let supabase = null;
-    let selectedCover = null;
-    let selectedGallery = new Array(10).fill(null);
-    let activeGalleryIndex = null;
+    document.addEventListener("DOMContentLoaded", () => {
 
-    const slugInput = document.getElementById("slugInput");
-    const slugStatus = document.getElementById("slugStatus");
-    const slugPreview = document.getElementById("slugPreview");
-    const coverPreview = document.getElementById("coverPreview");
-    const coverPlaceholder = document.getElementById("coverPlaceholder");
-    const galleryGrid = document.getElementById("galleryGrid");
-    const galleryCounter = document.getElementById("galleryCounter");
-    const generateBtn = document.getElementById("generateBtn");
-    const successModal = document.getElementById("successModal");
-    const resultUrl = document.getElementById("resultUrl");
-    const copyBtn = document.getElementById("copyBtn");
-    const openBtn = document.getElementById("openBtn");
+      // ===== Konfigurasi =====
+      const MAX_FILE_MB = 15;                // batas ukuran file mentah sebelum kompresi
+      const COVER_MAX_DIM = 1600;             // px, sisi terpanjang setelah resize
+      const GALLERY_MAX_DIM = 1280;
+      const JPEG_QUALITY = 0.82;
+      const UPLOAD_CONCURRENCY = 3;           // upload paralel maksimum
+      const SLUG_DEBOUNCE_MS = 450;
+      const GALLERY_SLOTS = 10;
 
-    async function initSupabase() {
-      try {
-        const res = await fetch("/api/config");
-        const config = await res.json();
-        if (!config.supabaseUrl || !config.supabaseAnonKey) return;
-        supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-      } catch (err) {
-        console.error("Gagal load config:", err);
+      // ===== State =====
+      let supabase = null;
+      let selectedCover = null;   // { file, previewUrl }
+      let selectedGallery = new Array(GALLERY_SLOTS).fill(null); // { file, previewUrl }
+      let activeGalleryIndex = null;
+      let slugCheckToken = 0;     // guard race condition pengecekan slug
+      let slugAvailable = false;
+      let isGenerating = false;
+
+      // ===== DOM refs =====
+      const slugInput = document.getElementById("slugInput");
+      const slugStatus = document.getElementById("slugStatus");
+      const slugPreview = document.getElementById("slugPreview");
+
+      const coverBox = document.getElementById("coverBox");
+      const coverInput = document.getElementById("coverInput");
+      const coverPreview = document.getElementById("coverPreview");
+      const coverPlaceholder = document.getElementById("coverPlaceholder");
+      const coverRemoveBtn = document.getElementById("coverRemoveBtn");
+      const coverError = document.getElementById("coverError");
+
+      const galleryGrid = document.getElementById("galleryGrid");
+      const galleryInput = document.getElementById("galleryInput");
+      const galleryCounter = document.getElementById("galleryCounter");
+      const galleryErrorEl = document.getElementById("galleryError");
+
+      const generateBtn = document.getElementById("generateBtn");
+      const generateBtnLabel = document.getElementById("generateBtnLabel");
+      const progWrap = document.getElementById("progWrap");
+      const progFill = document.getElementById("progFill");
+      const progLabel = document.getElementById("progLabel");
+
+      const successModal = document.getElementById("successModal");
+      const resultUrl = document.getElementById("resultUrl");
+      const copyBtn = document.getElementById("copyBtn");
+      const openBtn = document.getElementById("openBtn");
+
+      // ===== Util: revoke object URL supaya tidak bocor memori di HP =====
+      function revoke(url) {
+        if (url) { try { URL.revokeObjectURL(url); } catch (_) {} }
       }
-    }
 
-    function renderGalleryGrid() {
-      galleryGrid.innerHTML = "";
-      let filledCount = 0;
-
-      selectedGallery.forEach((item, index) => {
-        if (item) filledCount++;
-        const slot = document.createElement("div");
-        slot.className = "relative aspect-square bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col justify-center items-center cursor-pointer group";
-
-        if (item) {
-          slot.innerHTML = `
-            <img src="${item.preview}" class="w-full h-full object-cover">
-            <button onclick="removeGalleryImage(event, ${index})" class="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs z-10">✕</button>
-          `;
-        } else {
-          slot.innerHTML = `<span class="text-[10px] text-zinc-500 font-mono">Photo ${index + 1}</span>`;
-          slot.onclick = () => {
-            activeGalleryIndex = index;
-            document.getElementById("galleryInput").click();
+      // ===== Util: kompresi + resize gambar via canvas sebelum upload =====
+      // Ini penting untuk pengguna mobile/data seluler: file 8-12MB dari kamera
+      // HP bisa turun ke ratusan KB tanpa penurunan kualitas visual yang berarti.
+      function compressImage(file, maxDim, quality) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const url = URL.createObjectURL(file);
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxDim || height > maxDim) {
+              if (width >= height) {
+                height = Math.round(height * (maxDim / width));
+                width = maxDim;
+              } else {
+                width = Math.round(width * (maxDim / height));
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            URL.revokeObjectURL(url);
+            canvas.toBlob((blob) => {
+              if (!blob) return reject(new Error("Gagal memproses gambar."));
+              const compressedFile = new File(
+                [blob],
+                file.name.replace(/\.(png|heic|webp)$/i, ".jpg"),
+                { type: "image/jpeg" }
+              );
+              resolve(compressedFile);
+            }, "image/jpeg", quality);
           };
+          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("File bukan gambar yang valid.")); };
+          img.src = url;
+        });
+      }
+
+      function validateRawFile(file) {
+        if (!file.type.startsWith("image/")) return "File harus berupa gambar.";
+        if (file.size > MAX_FILE_MB * 1024 * 1024) return `Ukuran gambar maksimal ${MAX_FILE_MB}MB.`;
+        return null;
+      }
+
+      // ===== Inisiasi Supabase =====
+      async function initSupabase() {
+        try {
+          const res = await fetch("/api/config");
+          if (!res.ok) throw new Error("Config unavailable");
+          const config = await res.json();
+          if (config.supabaseUrl && config.supabaseAnonKey) {
+            supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+          }
+        } catch (err) {
+          console.warn("Supabase config belum terbaca, UI tetap berjalan:", err.message);
         }
-        galleryGrid.appendChild(slot);
+      }
+
+      // ===== Render Gallery Grid =====
+      function renderGalleryGrid() {
+        galleryGrid.innerHTML = "";
+        let filledCount = 0;
+
+        selectedGallery.forEach((item, index) => {
+          if (item) filledCount++;
+          const slot = document.createElement("div");
+          slot.className = "relative aspect-square bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col justify-center items-center cursor-pointer group";
+
+          if (item) {
+            slot.innerHTML = `
+              <img src="${item.previewUrl}" alt="Gallery photo ${index + 1}" class="w-full h-full object-cover fade-in">
+              <button type="button" class="remove-btn absolute top-1 right-1 bg-black/60 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs z-10">✕</button>
+            `;
+            slot.querySelector(".remove-btn").addEventListener("click", (e) => {
+              e.stopPropagation();
+              revoke(selectedGallery[index].previewUrl);
+              selectedGallery[index] = null;
+              renderGalleryGrid();
+            });
+          } else {
+            slot.innerHTML = `<span class="text-[10px] text-zinc-500 font-mono">Photo ${index + 1}</span>`;
+            slot.addEventListener("click", () => {
+              activeGalleryIndex = index;
+              galleryInput.click();
+            });
+          }
+          galleryGrid.appendChild(slot);
+        });
+
+        galleryCounter.innerText = `${filledCount}/${GALLERY_SLOTS}`;
+        checkFormValidity();
+      }
+
+      // ===== Slug: sanitasi + debounce + guard race condition =====
+      function sanitizeSlug(raw) {
+        return raw
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+
+      function setSlugStatus(kind, text) {
+        // kind: 'idle' | 'checking' | 'available' | 'taken' | 'unknown'
+        if (kind === "idle") {
+          slugStatus.classList.add("hidden");
+          return;
+        }
+        slugStatus.classList.remove("hidden");
+        slugStatus.innerText = text;
+        const styles = {
+          checking: "absolute right-3 top-3 text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400",
+          available: "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800",
+          taken: "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-rose-950 text-rose-400 border border-rose-800",
+          unknown: "absolute right-3 top-3 text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400",
+        };
+        slugStatus.className = styles[kind] || styles.unknown;
+      }
+
+      let slugDebounceTimer = null;
+      slugInput.addEventListener("input", (e) => {
+        const val = sanitizeSlug(e.target.value);
+        slugInput.value = val;
+        slugPreview.innerText = val || "your-name";
+        slugAvailable = false;
+
+        clearTimeout(slugDebounceTimer);
+
+        if (!val) {
+          setSlugStatus("idle");
+          checkFormValidity();
+          return;
+        }
+
+        setSlugStatus("checking", "Checking...");
+        checkFormValidity();
+
+        slugDebounceTimer = setTimeout(() => checkSlugAvailability(val), SLUG_DEBOUNCE_MS);
       });
 
-      galleryCounter.innerText = `${filledCount}/10`;
-      checkFormValidity();
-    }
+      async function checkSlugAvailability(val) {
+        const myToken = ++slugCheckToken;
 
-    slugInput.addEventListener("input", async (e) => {
-      const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
-      slugInput.value = val;
-      slugPreview.innerText = val || "your-name";
-
-      if (!val) {
-        slugStatus.classList.add("hidden");
-        checkFormValidity();
-        return;
-      }
-      if (!supabase) return;
-
-      const { data } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
-      if (!data) {
-        slugStatus.classList.remove("hidden");
-        slugStatus.innerText = "Available";
-        slugStatus.className = "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-      } else {
-        slugStatus.classList.remove("hidden");
-        slugStatus.innerText = "Taken";
-        slugStatus.className = "absolute right-3 top-3 text-xs font-semibold px-2 py-1 rounded bg-rose-950 text-rose-400 border border-rose-800";
-      }
-      checkFormValidity();
-    });
-
-    window.handleCoverSelect = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        selectedCover = file;
-        coverPreview.src = URL.createObjectURL(file);
-        coverPreview.classList.remove("hidden");
-        coverPlaceholder.classList.add("hidden");
-        checkFormValidity();
-      }
-    };
-
-    window.handleGallerySelect = (e) => {
-      const file = e.target.files[0];
-      if (file && activeGalleryIndex !== null) {
-        selectedGallery[activeGalleryIndex] = {
-          file: file,
-          preview: URL.createObjectURL(file)
-        };
-        activeGalleryIndex = null;
-        e.target.value = ""; // Reset file picker
-        renderGalleryGrid();
-      }
-    };
-
-    window.removeGalleryImage = (e, index) => {
-      e.stopPropagation();
-      selectedGallery[index] = null;
-      renderGalleryGrid();
-    };
-
-    function checkFormValidity() {
-      const isSlugValid = slugInput.value.trim().length > 0 && slugStatus.innerText === "Available";
-      const isGalleryFull = selectedGallery.every(item => item !== null);
-
-      if (isSlugValid && selectedCover && isGalleryFull) {
-        generateBtn.disabled = false;
-        generateBtn.className = "w-full bg-white hover:bg-zinc-200 text-black font-semibold py-4 rounded-xl text-sm transition-all duration-200 cursor-pointer";
-      } else {
-        generateBtn.disabled = true;
-        generateBtn.className = "w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200";
-      }
-    }
-
-    generateBtn.onclick = async () => {
-      if (!supabase) return alert("Koneksi Supabase gagal!");
-      generateBtn.disabled = true;
-      const slug = slugInput.value.trim();
-
-      try {
-        generateBtn.innerText = "Uploading cover...";
-        const coverPath = `${slug}/cover_${Date.now()}.${selectedCover.name.split('.').pop()}`;
-        await supabase.storage.from("uploads").upload(coverPath, selectedCover);
-        const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
-
-        const galleryUrls = [];
-        for (let i = 0; i < selectedGallery.length; i++) {
-          generateBtn.innerText = `Uploading gallery (${i + 1}/10)...`;
-          const file = selectedGallery[i].file;
-          const path = `${slug}/gallery_${i}_${Date.now()}.${file.name.split('.').pop()}`;
-          await supabase.storage.from("uploads").upload(path, file);
-          galleryUrls.push(supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl);
+        if (!supabase) {
+          if (myToken !== slugCheckToken) return;
+          slugAvailable = true; // tidak bisa verifikasi tanpa koneksi, izinkan lanjut
+          setSlugStatus("unknown", "OK");
+          checkFormValidity();
+          return;
         }
 
-        generateBtn.innerText = "Saving your website...";
-        const { error } = await supabase.from("sites").insert([{ slug, cover_url: coverUrl, gallery_urls: galleryUrls }]);
-        if (error) throw error;
+        try {
+          const { data, error } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
+          if (myToken !== slugCheckToken) return; // hasil basi, abaikan (race condition guard)
+          if (error) throw error;
 
-        const fullUrl = `${window.location.origin}/${slug}`;
-        resultUrl.innerText = fullUrl;
-        openBtn.href = fullUrl;
-        successModal.classList.remove("hidden");
-      } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
-        generateBtn.innerText = "Generate website";
+          if (!data) {
+            slugAvailable = true;
+            setSlugStatus("available", "Available");
+          } else {
+            slugAvailable = false;
+            setSlugStatus("taken", "Taken");
+          }
+        } catch (err) {
+          if (myToken !== slugCheckToken) return;
+          slugAvailable = false;
+          setSlugStatus("unknown", "Error");
+        }
         checkFormValidity();
       }
-    };
 
-    copyBtn.onclick = () => {
-      navigator.clipboard.writeText(resultUrl.innerText);
-      copyBtn.innerText = "Copied!";
-      setTimeout(() => copyBtn.innerText = "Copy link", 2000);
-    };
+      // ===== Pilih Cover =====
+      coverBox.addEventListener("click", (e) => {
+        if (e.target === coverRemoveBtn) return;
+        coverInput.click();
+      });
 
-    initSupabase();
-    renderGalleryGrid();
+      coverInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+
+        coverError.classList.add("hidden");
+        const err = validateRawFile(file);
+        if (err) {
+          coverError.innerText = err;
+          coverError.classList.remove("hidden");
+          return;
+        }
+
+        try {
+          const compressed = await compressImage(file, COVER_MAX_DIM, JPEG_QUALITY);
+          if (selectedCover) revoke(selectedCover.previewUrl);
+          selectedCover = { file: compressed, previewUrl: URL.createObjectURL(compressed) };
+          coverPreview.src = selectedCover.previewUrl;
+          coverPreview.classList.remove("hidden");
+          coverPlaceholder.classList.add("hidden");
+          coverRemoveBtn.classList.remove("hidden");
+          coverRemoveBtn.classList.add("flex");
+          checkFormValidity();
+        } catch (err) {
+          coverError.innerText = "Gagal memproses gambar, coba foto lain.";
+          coverError.classList.remove("hidden");
+        }
+      });
+
+      coverRemoveBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (selectedCover) revoke(selectedCover.previewUrl);
+        selectedCover = null;
+        coverPreview.classList.add("hidden");
+        coverPreview.src = "";
+        coverPlaceholder.classList.remove("hidden");
+        coverRemoveBtn.classList.add("hidden");
+        coverRemoveBtn.classList.remove("flex");
+        checkFormValidity();
+      });
+
+      // ===== Pilih Gallery =====
+      galleryInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file || activeGalleryIndex === null) return;
+
+        galleryErrorEl.classList.add("hidden");
+        const err = validateRawFile(file);
+        if (err) {
+          galleryErrorEl.innerText = err;
+          galleryErrorEl.classList.remove("hidden");
+          activeGalleryIndex = null;
+          return;
+        }
+
+        const targetIndex = activeGalleryIndex;
+        activeGalleryIndex = null;
+
+        try {
+          const compressed = await compressImage(file, GALLERY_MAX_DIM, JPEG_QUALITY);
+          selectedGallery[targetIndex] = { file: compressed, previewUrl: URL.createObjectURL(compressed) };
+          renderGalleryGrid();
+        } catch (err) {
+          galleryErrorEl.innerText = "Gagal memproses salah satu foto, coba lagi.";
+          galleryErrorEl.classList.remove("hidden");
+        }
+      });
+
+      // ===== Validasi Tombol Generate =====
+      function checkFormValidity() {
+        const hasSlug = slugInput.value.trim().length > 0;
+        const isGalleryFull = selectedGallery.every((item) => item !== null);
+        const valid = hasSlug && slugAvailable && !!selectedCover && isGalleryFull && !isGenerating;
+
+        generateBtn.disabled = !valid;
+        generateBtn.className = valid
+          ? "w-full bg-white hover:bg-zinc-200 text-black font-semibold py-4 rounded-xl text-sm transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-center"
+          : "w-full bg-zinc-800 text-zinc-500 font-semibold py-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center";
+      }
+
+      // ===== Upload dengan concurrency terbatas + progress =====
+      async function uploadWithConcurrency(tasks, concurrency, onProgress) {
+        let completed = 0;
+        let cursor = 0;
+        const results = new Array(tasks.length);
+
+        async function worker() {
+          while (cursor < tasks.length) {
+            const myIndex = cursor++;
+            results[myIndex] = await tasks[myIndex]();
+            completed++;
+            onProgress(completed, tasks.length);
+          }
+        }
+
+        const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, worker);
+        await Promise.all(workers);
+        return results;
+      }
+
+      function setProgress(pct, label) {
+        progWrap.classList.remove("hidden");
+        progFill.style.width = `${pct}%`;
+        progLabel.innerText = label;
+      }
+
+      function setGenerating(state, label) {
+        isGenerating = state;
+        generateBtnLabel.innerHTML = state ? `<span class="spinner"></span>${label}` : "Generate website";
+        checkFormValidity();
+      }
+
+      // ===== Proses Generate =====
+      generateBtn.addEventListener("click", async () => {
+        if (!supabase) return alert("Koneksi database bermasalah. Pastikan API terhubung!");
+        if (isGenerating) return;
+
+        const slug = slugInput.value.trim();
+        const uploadedPaths = []; // untuk rollback best-effort jika gagal di tengah jalan
+
+        setGenerating(true, "Uploading cover...");
+        setProgress(0, "Uploading cover...");
+
+        try {
+          // 1. Upload cover
+          const coverExt = selectedCover.file.name.split(".").pop();
+          const coverPath = `${slug}/cover_${Date.now()}.${coverExt}`;
+          const { error: coverErr } = await supabase.storage.from("uploads").upload(coverPath, selectedCover.file, {
+            contentType: selectedCover.file.type,
+          });
+          if (coverErr) throw coverErr;
+          uploadedPaths.push(coverPath);
+          const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
+
+          // 2. Upload gallery secara paralel (concurrency terbatas) dengan progress akurat
+          setGenerating(true, "Uploading gallery...");
+          const galleryTasks = selectedGallery.map((item, i) => async () => {
+            const ext = item.file.name.split(".").pop();
+            const path = `${slug}/gallery_${i}_${Date.now()}.${ext}`;
+            const { error } = await supabase.storage.from("uploads").upload(path, item.file, {
+              contentType: item.file.type,
+            });
+            if (error) throw error;
+            uploadedPaths.push(path);
+            return supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
+          });
+
+          const galleryUrls = await uploadWithConcurrency(galleryTasks, UPLOAD_CONCURRENCY, (done, total) => {
+            const pct = Math.round((done / total) * 90) + 10; // 10-100%
+            setProgress(pct, `Uploading gallery (${done}/${total})...`);
+          });
+
+          // 3. Simpan record website
+          setGenerating(true, "Saving your website...");
+          setProgress(100, "Saving your website...");
+          const { error: insertErr } = await supabase.from("sites").insert([
+            { slug, cover_url: coverUrl, gallery_urls: galleryUrls },
+          ]);
+          if (insertErr) throw insertErr;
+
+          const fullUrl = `${window.location.origin}/${slug}`;
+          resultUrl.innerText = fullUrl;
+          openBtn.href = fullUrl;
+          successModal.classList.remove("hidden");
+          progWrap.classList.add("hidden");
+          setGenerating(false, "");
+        } catch (err) {
+          // Rollback best-effort: hapus file yang sudah terlanjur terupload agar storage tidak menumpuk sampah
+          if (uploadedPaths.length > 0) {
+            try { await supabase.storage.from("uploads").remove(uploadedPaths); } catch (_) {}
+          }
+          alert("Error: " + (err.message || "Terjadi kesalahan saat membuat website."));
+          progWrap.classList.add("hidden");
+          setGenerating(false, "");
+        }
+      });
+
+      // ===== Copy Link =====
+      copyBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(resultUrl.innerText);
+        } catch (_) {
+          // fallback untuk browser tanpa Clipboard API / permission ditolak
+          const ta = document.createElement("textarea");
+          ta.value = resultUrl.innerText;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+        }
+        copyBtn.innerText = "Copied!";
+        setTimeout(() => (copyBtn.innerText = "Copy link"), 2000);
+      });
+
+      // ===== Bersihkan object URLs saat halaman ditutup =====
+      window.addEventListener("beforeunload", () => {
+        if (selectedCover) revoke(selectedCover.previewUrl);
+        selectedGallery.forEach((item) => item && revoke(item.previewUrl));
+      });
+
+      // ===== Mulai Aplikasi =====
+      initSupabase();
+      renderGalleryGrid();
+    });
   </script>
 </body>
 </html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About You</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #0d0d0d; color: #ffffff; font-family: sans-serif; }
+    .card-bg { background-color: #141414; border: 1px solid #262626; }
+    .italic-serif { font-family: Georgia, serif; font-style: italic; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 pb-28">
+
+  <!-- Main Container -->
+  <div class="w-full max-w-sm space-y-6 my-auto pt-6 text-center" id="mainContent">
+    
+    <!-- Photo Display Box -->
+    <div class="card-bg p-3 rounded-2xl shadow-2xl relative">
+      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-zinc-900">
+        <img id="galleryImg" src="" alt="Gallery" class="w-full h-full object-cover transition-all duration-300 opacity-0">
+        <div id="loadingText" class="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 font-mono">
+          Loading memories...
+        </div>
+      </div>
+    </div>
+
+    <!-- Lyrics Display Box -->
+    <div class="min-h-[60px] flex items-center justify-center px-4">
+      <p id="lyricText" class="text-xl md:text-2xl italic-serif text-zinc-200 transition-all duration-300 transform">
+        "Press play to start..."
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Audio Player Floating Bar (Sticky Bottom) -->
+  <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto card-bg p-3 rounded-2xl flex items-center space-x-3 shadow-xl backdrop-blur-md bg-zinc-900/90 border border-zinc-800">
+    <!-- Album Cover Thumbnail -->
+    <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-zinc-800 flex-shrink-0">
+    
+    <!-- Song Details -->
+    <div class="flex-1 min-w-0 text-left">
+      <h4 class="text-xs font-semibold text-white truncate">Merry Christmas, Please Don't Call</h4>
+      <p class="text-[10px] text-zinc-400 truncate mt-0.5">Bleach-Ears</p>
+      <!-- Progress Line -->
+      <div class="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+        <div id="progressBar" class="bg-white h-full w-0 transition-all duration-200"></div>
+      </div>
+    </div>
+
+    <!-- Play/Pause Button -->
+    <button id="playBtn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+      ▶
+    </button>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="bgAudio" src="/audio.mp3" preload="auto"></audio>
+
+  <script>
+    // DURATION AUDIOPLAYER (0 - 24 DETIK)
+    const START_TIME = 0;
+    const END_TIME = 24;
+
+    // TIMELINE LIRIK & FOTO PRESISI DARI VIDEO
+    const TIMELINE = [
+      { time: 0, text: "...", photoIdx: 0 },
+      { time: 3, text: "but you should know that i died slow", photoIdx: 1 },
+      { time: 6, text: "running through the halls of your haunted home", photoIdx: 2 },
+      { time: 9, text: "and the toughest part is that we both know", photoIdx: 3 },
+      { time: 12, text: "what happened to you", photoIdx: 4 },
+      { time: 15, text: "why you're out on your own", photoIdx: 5 },
+      { time: 18, text: "merry christmas", photoIdx: 6 },
+      { time: 20, text: "please don't call", photoIdx: 7 },
+      { time: 21, text: "merry christmas", photoIdx: 8 },
+      { time: 22, text: "please don't call", photoIdx: 9 }
+    ];
+
+    let galleryUrls = [];
+    let isPlaying = false;
+
+    // Elements
+    const audio = document.getElementById('bgAudio');
+    const playBtn = document.getElementById('playBtn');
+    const lyricText = document.getElementById('lyricText');
+    const galleryImg = document.getElementById('galleryImg');
+    const loadingText = document.getElementById('loadingText');
+    const playerCover = document.getElementById('playerCover');
+    const progressBar = document.getElementById('progressBar');
+
+    // Fetch Site Data from Supabase
+    async function loadSiteData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const slug = urlParams.get('id');
+
+      if (!slug) {
+        lyricText.innerText = "Website not found.";
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/config');
+        const config = await res.json();
+        const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+        const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
+
+        if (error || !data) {
+          lyricText.innerText = "Website data not found.";
+          return;
+        }
+
+        galleryUrls = data.gallery_urls;
+        playerCover.src = data.cover_url;
+
+        // Set awal foto pertama
+        if (galleryUrls.length > 0) {
+          galleryImg.src = galleryUrls[0];
+          galleryImg.classList.remove('opacity-0');
+          loadingText.classList.add('hidden');
+        }
+
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Audio Controls & Sync
+    playBtn.onclick = () => {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        if (audio.currentTime >= END_TIME) {
+          audio.currentTime = START_TIME;
+        }
+        audio.play();
+      }
+    };
+
+    audio.onplay = () => {
+      isPlaying = true;
+      playBtn.innerText = "❚❚";
+    };
+
+    audio.onpause = () => {
+      isPlaying = false;
+      playBtn.innerText = "▶";
+    };
+
+    audio.ontimeupdate = () => {
+      const current = audio.currentTime;
+
+      // Batasi Audio sampai Detik 24 -> Loop kembali ke Detik 0
+      if (current >= END_TIME) {
+        audio.currentTime = START_TIME;
+        return;
+      }
+
+      // Sync Progress Bar
+      const progressPercent = (current / END_TIME) * 100;
+      progressBar.style.width = `${Math.max(0, Math.min(100, progressPercent))}%`;
+
+      // Sync Lirik & Foto Galeri berdasarkan Waktu
+      for (let i = TIMELINE.length - 1; i >= 0; i--) {
+        if (current >= TIMELINE[i].time) {
+          const currentText = `"${TIMELINE[i].text}"`;
+          if (lyricText.innerText !== currentText) {
+            lyricText.innerText = currentText;
+            
+            // Ganti foto jika foto baru tersedia
+            const photoIdx = TIMELINE[i].photoIdx;
+            if (galleryUrls[photoIdx] && galleryImg.src !== galleryUrls[photoIdx]) {
+              galleryImg.classList.add('opacity-0');
+              setTimeout(() => {
+                galleryImg.src = galleryUrls[photoIdx];
+                galleryImg.classList.remove('opacity-0');
+              }, 150);
+            }
+          }
+          break;
+        }
+      }
+    };
+
+    loadSiteData();
+  </script>
+</body>
+</html>

@@ -1288,6 +1288,35 @@ html, body {
         } catch { return ''; }
     }
 
+    // Fallback bertingkat pas gambar icon gagal load: coba tebakan favicon Google dulu
+    // (yang dulu dipakai sebagai icon default), baru kalau itu juga gagal -> ikon globe biasa.
+    function handleWebIconError(imgEl, fallbackFaviconUrl) {
+        if (fallbackFaviconUrl && imgEl.src !== fallbackFaviconUrl && !imgEl.dataset.triedFallback) {
+            imgEl.dataset.triedFallback = '1';
+            imgEl.src = fallbackFaviconUrl;
+        } else {
+            imgEl.outerHTML = '<i class="fas fa-globe"></i>';
+        }
+    }
+
+    // Tombol share di kartu Web — coba native share sheet Android dulu (WhatsApp/Telegram
+    // dll langsung muncul di situ), kalau browser gak support baru fallback copy link + toast.
+    function shareWebLink(link, namaWeb) {
+        if (navigator.share) {
+            navigator.share({ title: namaWeb, url: link }).catch(() => {}); // dibatalkan user = biarin aja
+            return;
+        }
+        navigator.clipboard.writeText(link).then(() => {
+            const toast = document.getElementById('custom-toast');
+            const toastMsg = document.getElementById('toast-message');
+            if (toast && toastMsg) {
+                toastMsg.innerText = `Link ${namaWeb} berhasil disalin!`;
+                toast.style.top = "20px";
+                setTimeout(() => { toast.style.top = "-100px"; }, 2500);
+            }
+        }).catch(err => console.error("Gagal menyalin link: ", err));
+    }
+
     function escapeHtmlWithBreaks(str) {
         return escapeHtml(str)
             .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
@@ -1700,18 +1729,25 @@ html, body {
             if (searchQueryStr && !namaWebStr.includes(searchQueryStr)) return;
 
             const linkWebSafe = (web.link_web || '').replace(/'/g, "\\'");
-            const iconSrc = web.img_url || getFaviconUrl(web.link_web);
-            const iconHtml = iconSrc
-                ? `<img src="${iconSrc}" onerror="this.outerHTML='<i class=&quot;fas fa-globe&quot;></i>'" style="width:60%; height:60%; object-fit:contain;">`
+            const namaWebSafe = (web.nama_web || '').replace(/'/g, "\\'");
+            // Fallback bertingkat: img_url hasil extract dulu -> kalau gagal load, coba
+            // tebakan favicon Google (ikon "yang sebelumnya") -> kalau itu juga gagal, globe biasa.
+            const iconUtama = web.img_url || getFaviconUrl(web.link_web) || '';
+            const iconFallback = getFaviconUrl(web.link_web) || '';
+            const iconHtml = iconUtama
+                ? `<img src="${iconUtama}" onerror="handleWebIconError(this, '${iconFallback}')" style="width:60%; height:60%; object-fit:contain;">`
                 : `<i class="fas fa-globe"></i>`;
             const deskripsiTampil = web.deskripsi ? escapeHtmlWithBreaks(web.deskripsi) : 'Klik untuk membuka tautan website';
             container.innerHTML += `
-                <div class="chat-item" onclick="window.open('${linkWebSafe}', '_blank')">
-                    <div class="avatar">${iconHtml}</div>
-                    <div class="chat-content">
+                <div class="chat-item">
+                    <div class="avatar" onclick="window.open('${linkWebSafe}', '_blank')" style="cursor:pointer;">${iconHtml}</div>
+                    <div class="chat-content" onclick="window.open('${linkWebSafe}', '_blank')" style="cursor:pointer;">
                         <div class="chat-top"><span class="chat-title">${escapeHtml(web.nama_web)}</span><span class="chat-time" style="color:#10b981;">🌐 Active</span></div>
                         <div class="chat-bottom"><span class="chat-msg">${deskripsiTampil}</span></div>
                     </div>
+                    <button onclick="shareWebLink('${linkWebSafe}', '${namaWebSafe}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; width: 40px; height:40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; position:relative; z-index:1;" title="Bagikan Link">
+                        <i class="fas fa-share-alt" style="color: var(--tg-accent);"></i>
+                    </button>
                 </div>`;
         });
     }

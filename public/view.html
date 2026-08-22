@@ -1,211 +1,298 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About You</title>
-  <!-- Tailwind CSS CDN -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>About You — Interactive Experience</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Mono&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    body { background-color: #0d0d0d; color: #ffffff; font-family: sans-serif; }
-    .card-bg { background-color: #141414; border: 1px solid #262626; }
-    .italic-serif { font-family: Georgia, serif; font-style: italic; }
+    body {
+      background-color: #050507;
+      color: #ffffff;
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* Film Strip Animation Track */
+    .film-strip-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.18;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .film-track {
+      display: flex;
+      gap: 16px;
+      width: max-content;
+      animation: moveStrip 35s linear infinite;
+    }
+
+    .film-card {
+      width: 140px;
+      height: 140px;
+      background: #18181b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      object-fit: cover;
+      filter: grayscale(100%);
+    }
+
+    @keyframes moveStrip {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Cinematic Vignette & Grain */
+    .cinematic-vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.85) 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Dynamic Camera & Card Motion */
+    #photo-card {
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+      will-change: transform, opacity;
+    }
+
+    .card-zoom-in {
+      transform: scale(1.05) translateY(-10px);
+    }
+    
+    .card-zoom-out {
+      transform: scale(0.95) translateY(10px);
+    }
+
+    /* Glassmorphism Styles */
+    .glass-card {
+      background: rgba(18, 18, 20, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .italic-serif {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-4 pb-28">
 
-  <!-- Main Container -->
-  <div class="w-full max-w-sm space-y-6 my-auto pt-6 text-center" id="mainContent">
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+  <!-- Background Animated Film Strips -->
+  <div class="film-strip-scene">
+    <div class="film-track" id="filmTrack">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <div class="cinematic-vignette"></div>
+
+  <!-- Main Viewport / Camera Slot -->
+  <main class="relative z-10 w-full max-w-sm mx-auto flex flex-col items-center text-center space-y-6">
     
-    <!-- Photo Display Box -->
-    <div class="card-bg p-3 rounded-2xl shadow-2xl relative">
-      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-zinc-900">
-        <img id="galleryImg" src="" alt="Gallery" class="w-full h-full object-cover transition-all duration-300 opacity-0">
-        <div id="loadingText" class="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 font-mono">
-          Loading memories...
+    <!-- Photo Frame Card -->
+    <div id="photo-card" class="glass-card p-3 rounded-2xl w-full shadow-2xl relative overflow-hidden">
+      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-zinc-950/80 flex items-center justify-center">
+        <img id="mainImage" src="" class="w-full h-full object-cover transition-all duration-500 opacity-0 scale-100" />
+        <div id="loadingText" class="absolute font-mono text-xs text-white/30 tracking-widest uppercase">
+          Loading experience...
         </div>
       </div>
     </div>
 
-    <!-- Lyrics Display Box -->
-    <div class="min-h-[60px] flex items-center justify-center px-4">
-      <p id="lyricText" class="text-xl md:text-2xl italic-serif text-zinc-200 transition-all duration-300 transform">
+    <!-- Lyrics Text Display -->
+    <div class="min-h-[70px] flex items-center justify-center px-4 w-full">
+      <p id="lyricText" class="text-xl md:text-2xl italic-serif text-white/90 transition-all duration-300 drop-shadow-lg">
         "Press play to start..."
       </p>
     </div>
 
-  </div>
+  </main>
 
-  <!-- Audio Player Floating Bar (Sticky Bottom) -->
-  <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto card-bg p-3 rounded-2xl flex items-center space-x-3 shadow-xl backdrop-blur-md bg-zinc-900/90 border border-zinc-800">
-    <!-- Album Cover Thumbnail -->
-    <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-zinc-800 flex-shrink-0">
+  <!-- Player Overlay Bottom Bar -->
+  <div class="fixed bottom-5 left-4 right-4 max-w-sm mx-auto glass-card p-3 rounded-2xl flex items-center space-x-3 z-20 shadow-2xl">
+    <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-zinc-800 flex-shrink-0 border border-white/10" />
     
-    <!-- Song Details -->
     <div class="flex-1 min-w-0 text-left">
-      <h4 class="text-xs font-semibold text-white truncate">Merry Christmas, Please Don't Call</h4>
-      <p class="text-[10px] text-zinc-400 truncate mt-0.5">Bleach-Ears</p>
-      <!-- Progress Line -->
-      <div class="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
-        <div id="progressBar" class="bg-white h-full w-0 transition-all duration-200"></div>
+      <h4 id="siteSlugTitle" class="text-xs font-bold text-white truncate">About You</h4>
+      <p class="text-[10px] font-mono text-white/40 truncate">The 1975 — Bleach Ears</p>
+      
+      <!-- Progress Bar -->
+      <div class="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden cursor-pointer" id="progressContainer">
+        <div id="progressBar" class="bg-white h-full w-0 transition-all duration-150"></div>
       </div>
     </div>
 
-    <!-- Play/Pause Button -->
-    <button id="playBtn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+    <button id="playBtn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-transform active:scale-95">
       ▶
     </button>
   </div>
 
-  <!-- Audio Element -->
   <audio id="bgAudio" src="/audio.mp3" preload="auto"></audio>
 
   <script>
-    // DURATION AUDIOPLAYER (0 - 24 DETIK)
-    const START_TIME = 0;
-    const END_TIME = 24;
+    document.addEventListener("DOMContentLoaded", () => {
+      const END_TIME = 24;
 
-    // TIMELINE LIRIK & FOTO PRESISI DARI VIDEO
-    const TIMELINE = [
-      { time: 0, text: "...", photoIdx: 0 },
-      { time: 3, text: "but you should know that i died slow", photoIdx: 1 },
-      { time: 6, text: "running through the halls of your haunted home", photoIdx: 2 },
-      { time: 9, text: "and the toughest part is that we both know", photoIdx: 3 },
-      { time: 12, text: "what happened to you", photoIdx: 4 },
-      { time: 15, text: "why you're out on your own", photoIdx: 5 },
-      { time: 18, text: "merry christmas", photoIdx: 6 },
-      { time: 20, text: "please don't call", photoIdx: 7 },
-      { time: 21, text: "merry christmas", photoIdx: 8 },
-      { time: 22, text: "please don't call", photoIdx: 9 }
-    ];
+      // TIMELINE SINKRONISASI PRESISI VIDEO REFERENSI
+      const TIMELINE = [
+        { time: 0, text: "...", photoIdx: 0 },
+        { time: 4, text: "but you should know that i died slow", photoIdx: 1 },
+        { time: 8, text: "running through the halls of your haunted home", photoIdx: 2 },
+        { time: 11, text: "and the toughest part is that we both know", photoIdx: 3 },
+        { time: 14, text: "what happened to you", photoIdx: 4 },
+        { time: 17, text: "why you're out on your own", photoIdx: 5 },
+        { time: 20, text: "merry christmas", photoIdx: 6 },
+        { time: 21, text: "please don't call", photoIdx: 7 },
+        { time: 22, text: "merry christmas", photoIdx: 8 },
+        { time: 23, text: "please don't call", photoIdx: 9 }
+      ];
 
-    let galleryUrls = [];
-    let isPlaying = false;
+      let galleryUrls = [];
+      let isPlaying = false;
 
-    // Elements
-    const audio = document.getElementById('bgAudio');
-    const playBtn = document.getElementById('playBtn');
-    const lyricText = document.getElementById('lyricText');
-    const galleryImg = document.getElementById('galleryImg');
-    const loadingText = document.getElementById('loadingText');
-    const playerCover = document.getElementById('playerCover');
-    const progressBar = document.getElementById('progressBar');
+      const audio = document.getElementById('bgAudio');
+      const playBtn = document.getElementById('playBtn');
+      const lyricText = document.getElementById('lyricText');
+      const mainImage = document.getElementById('mainImage');
+      const photoCard = document.getElementById('photo-card');
+      const loadingText = document.getElementById('loadingText');
+      const playerCover = document.getElementById('playerCover');
+      const progressBar = document.getElementById('progressBar');
+      const filmTrack = document.getElementById('filmTrack');
+      const siteSlugTitle = document.getElementById('siteSlugTitle');
 
-    // FUNGSI DETEKSI SLUG SECARA AKURAT (PATH ATAU QUERY PARAM)
-    function getSlugFromURL() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const queryId = urlParams.get('id');
-      if (queryId) return queryId;
-
-      // Ambil dari URL Path misal: /ytjugv
-      const pathSegments = window.location.pathname.split('/').filter(Boolean);
-      if (pathSegments.length > 0 && pathSegments[0] !== 'view.html') {
-        return pathSegments[0];
-      }
-      return null;
-    }
-
-    // Fetch Site Data from Supabase
-    async function loadSiteData() {
-      const slug = getSlugFromURL();
-
-      if (!slug) {
-        lyricText.innerText = "Website ID not found.";
-        return;
+      function getSlug() {
+        const queryId = new URLSearchParams(window.location.search).get('id');
+        if (queryId) return queryId;
+        const path = window.location.pathname.split('/').filter(Boolean)[0];
+        return (path && path !== 'view.html') ? path : null;
       }
 
-      try {
-        const res = await fetch('/api/config');
-        const config = await res.json();
-
-        if (!config.supabaseUrl || !config.supabaseAnonKey) {
-          lyricText.innerText = "Configuration Error.";
+      async function loadData() {
+        const slug = getSlug();
+        if (!slug) {
+          lyricText.innerText = "Website ID not found.";
           return;
         }
 
-        const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-        const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
+        siteSlugTitle.innerText = `@${slug}`;
 
-        if (error || !data) {
-          lyricText.innerText = "Website data not found.";
-          return;
-        }
+        try {
+          const res = await fetch('/api/config');
+          const config = await res.json();
+          
+          if (!config.supabaseUrl || !config.supabaseAnonKey) return;
 
-        galleryUrls = data.gallery_urls || [];
-        playerCover.src = data.cover_url || '';
+          const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+          const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
 
-        // Tampilkan foto pertama
-        if (galleryUrls.length > 0) {
-          galleryImg.src = galleryUrls[0];
-          galleryImg.classList.remove('opacity-0');
-          loadingText.classList.add('hidden');
-        }
-
-      } catch (err) {
-        console.error("Error loading site data:", err);
-        lyricText.innerText = "Failed to load data.";
-      }
-    }
-
-    // Audio Controls & Sync
-    playBtn.onclick = () => {
-      if (isPlaying) {
-        audio.pause();
-      } else {
-        if (audio.currentTime >= END_TIME) {
-          audio.currentTime = START_TIME;
-        }
-        audio.play();
-      }
-    };
-
-    audio.onplay = () => {
-      isPlaying = true;
-      playBtn.innerText = "❚❚";
-    };
-
-    audio.onpause = () => {
-      isPlaying = false;
-      playBtn.innerText = "▶";
-    };
-
-    audio.ontimeupdate = () => {
-      const current = audio.currentTime;
-
-      // Loop Audio
-      if (current >= END_TIME) {
-        audio.currentTime = START_TIME;
-        return;
-      }
-
-      // Sync Progress Bar
-      const progressPercent = (current / END_TIME) * 100;
-      progressBar.style.width = `${Math.max(0, Math.min(100, progressPercent))}%`;
-
-      // Sync Lirik & Foto Galeri
-      for (let i = TIMELINE.length - 1; i >= 0; i--) {
-        if (current >= TIMELINE[i].time) {
-          const currentText = `"${TIMELINE[i].text}"`;
-          if (lyricText.innerText !== currentText) {
-            lyricText.innerText = currentText;
-            
-            const photoIdx = TIMELINE[i].photoIdx;
-            if (galleryUrls[photoIdx] && galleryImg.src !== galleryUrls[photoIdx]) {
-              galleryImg.classList.add('opacity-0');
-              setTimeout(() => {
-                galleryImg.src = galleryUrls[photoIdx];
-                galleryImg.classList.remove('opacity-0');
-              }, 150);
-            }
+          if (error || !data) {
+            lyricText.innerText = "Site data not found.";
+            return;
           }
-          break;
+
+          galleryUrls = data.gallery_urls || [];
+          playerCover.src = data.cover_url || '';
+
+          // Build Background Film Strip
+          filmTrack.innerHTML = "";
+          const stripPhotos = [data.cover_url, ...galleryUrls, ...galleryUrls];
+          stripPhotos.forEach(url => {
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'film-card';
+            filmTrack.appendChild(img);
+          });
+
+          // Show First Photo
+          if (galleryUrls.length > 0) {
+            mainImage.src = galleryUrls[0];
+            mainImage.classList.remove('opacity-0');
+            loadingText.classList.add('hidden');
+          }
+
+        } catch (e) {
+          lyricText.innerText = "Error loading memories.";
         }
       }
-    };
 
-    loadSiteData();
+      playBtn.onclick = () => {
+        if (isPlaying) {
+          audio.pause();
+        } else {
+          if (audio.currentTime >= END_TIME) audio.currentTime = 0;
+          audio.play();
+        }
+      };
+
+      audio.onplay = () => {
+        isPlaying = true;
+        playBtn.innerText = "❚❚";
+      };
+
+      audio.onpause = () => {
+        isPlaying = false;
+        playBtn.innerText = "▶";
+      };
+
+      audio.ontimeupdate = () => {
+        const current = audio.currentTime;
+
+        if (current >= END_TIME) {
+          audio.currentTime = 0;
+          return;
+        }
+
+        // Progress Bar
+        progressBar.style.width = `${(current / END_TIME) * 100}%`;
+
+        // Sync Timeline & Camera Motion Effect
+        for (let i = TIMELINE.length - 1; i >= 0; i--) {
+          if (current >= TIMELINE[i].time) {
+            const text = `"${TIMELINE[i].text}"`;
+            
+            if (lyricText.innerText !== text) {
+              lyricText.innerText = text;
+              
+              const pIdx = TIMELINE[i].photoIdx;
+              if (galleryUrls[pIdx] && mainImage.src !== galleryUrls[pIdx]) {
+                
+                // Trigger Camera Zoom Transition
+                photoCard.classList.add('card-zoom-out');
+                mainImage.classList.add('opacity-0');
+
+                setTimeout(() => {
+                  mainImage.src = galleryUrls[pIdx];
+                  mainImage.classList.remove('opacity-0');
+                  photoCard.classList.remove('card-zoom-out');
+                  photoCard.classList.add('card-zoom-in');
+                  
+                  setTimeout(() => photoCard.classList.remove('card-zoom-in'), 400);
+                }, 200);
+              }
+            }
+            break;
+          }
+        }
+      };
+
+      loadData();
+    });
   </script>
 </body>
 </html>
+

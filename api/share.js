@@ -1,9 +1,13 @@
 // File: /api/share.js
 // Vercel Serverless Function - Dynamic Meta Tags & Static Banner Image
+// Support 2 tipe konten: App Mod (default, gak perlu ubah link lama yang udah beredar)
+// dan Web Saya (?type=web) — biar tombol share Web juga ngarah ke domain sendiri dulu
+// (preview bagus di WhatsApp/Telegram), baru redirect ke halaman publik.
 
 module.exports = async function handler(req, res) {
-  // 1. Tangkap parameter ID dari query URL (?id=...)
-  const { id } = req.query;
+  // 1. Tangkap parameter dari query URL (?id=...&type=web)
+  const { id, type } = req.query;
+  const isWeb = type === 'web';
 
   const domainUtama = "https://jrxrezkyy-dashboard.vercel.app";
   
@@ -11,22 +15,23 @@ module.exports = async function handler(req, res) {
   const defaultBannerImage = `${domainUtama}/default-banner.jpg`;
 
   // Nilai Fallback Default jika ID tidak ditemukan atau terjadi kesalahan
-  let title = "Download Mod Aplikasi";
-  let desc = "Unduh Mod Premium Gratis di Dashboard Web Kyy!";
+  let title = isWeb ? "Kunjungi Web Kyy" : "Download Mod Aplikasi";
+  let desc = isWeb ? "Kumpulan Tools & Website favorit dari Dashboard Web Kyy!" : "Unduh Mod Premium Gratis di Dashboard Web Kyy!";
   let targetUrl = `${domainUtama}/`;
   let shareUrl = `${domainUtama}/api/share`;
 
   if (id) {
-    targetUrl = `${domainUtama}/?app_id=${id}`;
-    shareUrl = `${domainUtama}/api/share?id=${id}`;
+    targetUrl = isWeb ? `${domainUtama}/?web_id=${id}` : `${domainUtama}/?app_id=${id}`;
+    shareUrl = isWeb ? `${domainUtama}/api/share?type=web&id=${id}` : `${domainUtama}/api/share?id=${id}`;
 
     try {
       // Credentials Supabase
       const SUPABASE_URL = "https://djojqarslfsvubuflwdn.supabase.co";
       const SUPABASE_KEY = "sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9"; 
 
-      // 2. Tarik Data Aplikasi dari Database Supabase via Native Fetch REST API
-      const apiUrl = `${SUPABASE_URL}/rest/v1/app_mods?id=eq.${id}&select=*`;
+      // 2. Tarik Data dari Supabase via Native Fetch REST API — tabel beda tergantung tipe
+      const namaTabel = isWeb ? 'web_saya' : 'app_mods';
+      const apiUrl = `${SUPABASE_URL}/rest/v1/${namaTabel}?id=eq.${id}&select=*`;
       
       const response = await fetch(apiUrl, {
         headers: {
@@ -39,18 +44,29 @@ module.exports = async function handler(req, res) {
         const data = await response.json();
 
         if (data && data.length > 0) {
-          const app = data[0];
+          const item = data[0];
 
-          // Ambil Nama Aplikasi
-          if (app.nama_app) {
-            title = app.nama_app.replace(/<br\s*\/?>/gi, ' ').trim();
-          }
-
-          // Ambil Deskripsi Aplikasi & Bersihkan Tag HTML <br>
-          if (app.deskripsi) {
-            let cleanDesc = app.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
-            // Batasi panjang deskripsi max 150 karakter agar tidak terpotong jelek di WA
-            desc = cleanDesc.length > 150 ? cleanDesc.substring(0, 150) + "..." : cleanDesc;
+          if (isWeb) {
+            // Ambil Nama Website
+            if (item.nama_web) {
+              title = item.nama_web.replace(/<br\s*\/?>/gi, ' ').trim();
+            }
+            // Ambil Deskripsi Website & Bersihkan Tag HTML <br>
+            if (item.deskripsi) {
+              let cleanDesc = item.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
+              desc = cleanDesc.length > 150 ? cleanDesc.substring(0, 150) + "..." : cleanDesc;
+            }
+          } else {
+            // Ambil Nama Aplikasi
+            if (item.nama_app) {
+              title = item.nama_app.replace(/<br\s*\/?>/gi, ' ').trim();
+            }
+            // Ambil Deskripsi Aplikasi & Bersihkan Tag HTML <br>
+            if (item.deskripsi) {
+              let cleanDesc = item.deskripsi.replace(/<br\s*\/?>/gi, ' ').trim();
+              // Batasi panjang deskripsi max 150 karakter agar tidak terpotong jelek di WA
+              desc = cleanDesc.length > 150 ? cleanDesc.substring(0, 150) + "..." : cleanDesc;
+            }
           }
         }
       }

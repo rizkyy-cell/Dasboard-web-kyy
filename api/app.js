@@ -34,7 +34,6 @@ async function initSupabase() {
     }
 
     supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
-    console.log("Supabase berhasil terhubung!");
   } catch (err) {
     console.error("Gagal mengambil konfigurasi dari /api/config:", err);
   }
@@ -53,7 +52,7 @@ function renderGalleryGrid() {
     if (item) {
       slot.innerHTML = `
         <img src="${item.preview}" class="w-full h-full object-cover">
-        <button onclick="removeGalleryImage(event, ${index})" class="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs">✕</button>
+        <button onclick="removeGalleryImage(event, ${index})" class="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs z-10">✕</button>
       `;
     } else {
       slot.innerHTML = `
@@ -86,7 +85,6 @@ slugInput.addEventListener("input", async (e) => {
 
   if (!supabase) return;
 
-  // Cek ketersediaan slug ke Supabase
   const { data } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
 
   if (!data) {
@@ -151,7 +149,7 @@ function checkFormValidity() {
 // 7. UPLOAD & GENERATE PROCESS
 generateBtn.onclick = async () => {
   if (!supabase) {
-    alert("Supabase belum terkonfigurasi dengan benar!");
+    alert("Supabase belum terkonfigurasi dengan benar di Vercel!");
     return;
   }
 
@@ -170,9 +168,7 @@ generateBtn.onclick = async () => {
     const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
 
     // Upload 10 Foto Galeri
-    generateBtn.innerText = "Uploading gallery (0/10)...";
     const galleryUrls = [];
-
     for (let i = 0; i < selectedGallery.length; i++) {
       generateBtn.innerText = `Uploading gallery (${i + 1}/10)...`;
       const file = selectedGallery[i].file;
@@ -186,7 +182,7 @@ generateBtn.onclick = async () => {
       galleryUrls.push(publicUrl);
     }
 
-    // Simpan Data ke Supabase Database
+    // Simpan ke Database
     generateBtn.innerText = "Saving your website...";
     const { error: dbErr } = await supabase.from("sites").insert([{
       slug: slug,
@@ -196,8 +192,8 @@ generateBtn.onclick = async () => {
 
     if (dbErr) throw dbErr;
 
-    // Tampilkan Modal Sukses
-    const fullUrl = `${window.location.origin}/view.html?id=${slug}`;
+    // Tampilkan Link Rapi
+    const fullUrl = `${window.location.origin}/${slug}`;
     resultUrl.innerText = fullUrl;
     openBtn.href = fullUrl;
     successModal.classList.remove("hidden");

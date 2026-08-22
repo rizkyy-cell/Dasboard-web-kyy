@@ -1,629 +1,330 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Website Builder</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  * { box-sizing: border-box; }
-  body {
-    background-color: #0a0a0a; color: #e5e5e5;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0; min-height: 100vh; padding: 16px 16px 80px;
-    display: flex; justify-content: center; align-items: flex-start;
-  }
-  .wrap { width: 100%; max-width: 420px; margin: 24px 0; }
-  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: #71717a; font-weight: 600; margin: 0; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 30px; font-weight: 700; color: #fff; margin: 4px 0 0; }
-  .card { background-color: #121212; border: 1px solid #262626; border-radius: 16px; padding: 20px; margin-top: 24px; }
-  label { display: block; font-size: 14px; font-weight: 500; color: #d4d4d8; margin-bottom: 12px; }
-  .field-wrap { position: relative; }
-  input[type="text"] {
-    width: 100%; background-color: #18181b; border: 1px solid #27272a; border-radius: 12px;
-    padding: 12px 90px 12px 16px; color: #fff; font-size: 14px; outline: none;
-    appearance: none; -webkit-appearance: none; font-family: inherit;
-  }
-  input[type="text"]:focus { border-color: #71717a; }
-  .slug-status { position: absolute; right: 10px; top: 9px; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; display: none; }
-  .slug-status.show { display: inline-block; }
-  .slug-status.checking, .slug-status.unknown { background: #27272a; color: #a1a1aa; }
-  .slug-status.available { background: #052e21; color: #34d399; border: 1px solid #065f46; }
-  .slug-status.taken { background: #2c0f16; color: #fb7185; border: 1px solid #9f1239; }
-  .hint { font-size: 12px; color: #71717a; margin: 10px 0 0; }
-  .hint span { color: #a1a1aa; }
-  .cover-box {
-    position: relative; aspect-ratio: 1/1; width: 100%; background: #18181b;
-    border: 1.5px dashed #27272a; border-radius: 14px; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; cursor: pointer; overflow: hidden;
-  }
-  .cover-box input[type="file"] { display: none; }
-  .cover-placeholder { text-align: center; padding: 16px; }
-  .cover-tag { font-size: 11px; background: #27272a; color: #d4d4d8; padding: 4px 12px; border-radius: 8px; }
-  .cover-sub { font-size: 12px; color: #71717a; margin-top: 8px; }
-  .cover-box img { display: none; width: 100%; height: 100%; object-fit: cover; }
-  .cover-box img.show { display: block; }
-  .cover-remove {
-    display: none; position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.6); color: #fff;
-    width: 28px; height: 28px; border-radius: 50%; border: none; align-items: center; justify-content: center;
-    font-size: 12px; z-index: 2; cursor: pointer;
-  }
-  .cover-remove.show { display: flex; }
-  .err-text { display: none; font-size: 12px; color: #fb7185; margin: 10px 0 0; }
-  .err-text.show { display: block; }
-  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .card-head label { margin: 0; }
-  .counter { font-size: 12px; color: #71717a; font-family: monospace; }
-  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .gallery-slot {
-    position: relative; aspect-ratio: 1/1; background: #18181b; border: 1px solid #27272a;
-    border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .gallery-slot img { width: 100%; height: 100%; object-fit: cover; }
-  .gallery-slot .slot-label { font-size: 10px; color: #71717a; font-family: monospace; }
-  .gallery-slot .remove-btn {
-    position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.6); color: #fff;
-    width: 22px; height: 22px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center;
-    font-size: 11px; z-index: 2; cursor: pointer;
-  }
-  #galleryInput { display: none; }
-  .generate-btn {
-    width: 100%; margin-top: 24px; background: #27272a; color: #71717a; font-weight: 600; font-size: 14px;
-    padding: 16px; border-radius: 14px; border: none; display: flex; align-items: center; justify-content: center;
-    transition: background .15s ease, color .15s ease;
-  }
-  .generate-btn.valid { background: #fff; color: #000; cursor: pointer; box-shadow: 0 8px 24px rgba(255,255,255,.08); }
-  .generate-btn:disabled { cursor: not-allowed; }
-  .spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(0,0,0,.25); border-top-color: #000; display: inline-block; animation: spin .7s linear infinite; margin-right: 8px; }
-  .generate-btn:not(.valid) .spinner { border-color: rgba(255,255,255,.25); border-top-color: #fff; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .prog-wrap { display: none; margin-top: 10px; }
-  .prog-wrap.show { display: block; }
-  .prog-bar { height: 3px; background: #27272a; border-radius: 999px; overflow: hidden; }
-  .prog-fill { height: 100%; background: #fff; width: 0%; transition: width .25s ease; }
-  .prog-label { font-size: 11px; color: #71717a; text-align: center; margin: 6px 0 0; }
-  .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); backdrop-filter: blur(4px);
-    justify-content: center; align-items: center; padding: 16px; z-index: 50;
-  }
-  .modal-overlay.show { display: flex; }
-  .modal-box { background: #121212; border: 1px solid #262626; border-radius: 16px; padding: 24px; width: 100%; max-width: 380px; text-align: center; }
-  .check-circle {
-    width: 48px; height: 48px; background: rgba(52,211,153,.1); color: #34d399; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 1px solid rgba(52,211,153,.2); font-size: 20px;
-  }
-  .modal-box h3 { color: #fff; font-size: 17px; font-weight: 700; margin: 16px 0 4px; }
-  .modal-box p { font-size: 12px; color: #a1a1aa; margin: 0; }
-  .url-box { background: #18181b; border: 1px solid #27272a; padding: 12px; border-radius: 12px; font-size: 12px; font-family: monospace; color: #d4d4d8; word-break: break-all; margin: 18px 0; }
-  .btn-secondary { width: 100%; background: #27272a; color: #fff; font-weight: 500; padding: 12px; border-radius: 12px; font-size: 14px; border: none; cursor: pointer; margin-bottom: 8px; }
-  .btn-primary { display: block; width: 100%; background: #fff; color: #000; font-weight: 600; padding: 12px; border-radius: 12px; font-size: 14px; text-align: center; text-decoration: none; box-sizing: border-box; }
-  .fade-in { animation: fadeIn .18s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Build your website — About You</title>
+  
+  <!-- Google Fonts & Tailwind CSS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Playfair+Display:ital,wght@0,700;1,700&family=Space+Mono&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  .preview-overlay { align-items: stretch; padding: 0; backdrop-filter: none; background: #000; }
-  .preview-box { max-width: 100%; width: 100%; height: 100dvh; display: flex; flex-direction: column; border-radius: 0; border: none; padding: 0; text-align: left; }
-  .preview-topbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #1f1f1f; }
-  .preview-back { background: none; border: none; color: #d4d4d8; font-size: 14px; padding: 6px 4px; cursor: pointer; }
-  .preview-badge { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: #71717a; font-weight: 600; }
-  .preview-scroll { flex: 1; overflow-y: auto; padding: 16px; }
-  .preview-slug { font-size: 12px; color: #71717a; margin-bottom: 16px; }
-  .preview-slug span { color: #a1a1aa; }
-  .preview-stage { position: relative; aspect-ratio: 1/1; width: 100%; background: #0e0e0e; border-radius: 16px; overflow: hidden; border: 1px solid #1f1f1f; }
-  .preview-gallery-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .preview-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.5); color: #fff; border: none; width: 34px; height: 34px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .preview-nav-left { left: 10px; }
-  .preview-nav-right { right: 10px; }
-  .preview-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; }
-  .preview-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.3); }
-  .preview-dots .dot.active { background: #fff; }
-  .preview-player { margin-top: 16px; display: flex; align-items: center; gap: 12px; background: #121212; border: 1px solid #262626; border-radius: 14px; padding: 12px; }
-  .preview-cover-img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1f1f1f; }
-  .preview-player-title { font-size: 13px; color: #fff; margin: 0; font-weight: 600; }
-  .preview-player-sub { font-size: 11px; color: #71717a; margin: 2px 0 0; }
-  .preview-note { font-size: 12px; color: #71717a; margin-top: 20px; line-height: 1.5; }
-  .preview-footer { padding: 14px 16px; border-top: 1px solid #1f1f1f; }
-  .preview-footer .generate-btn { margin-top: 0; }
-</style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Playfair Display', 'serif'],
+            mono: ['Space Mono', 'monospace'],
+          },
+          colors: {
+            'db-bg': '#0a0a0c',
+            'db-border': '#ffffff15',
+            'db-violet': '#8b5cf6',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background-color: #0a0a0c; color: #ffffff; }
+    .db-glass {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .db-frame-slot {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+  </style>
 </head>
-<body>
 
-  <div class="wrap">
-    <div>
-      <p class="eyebrow">Website Builder</p>
-      <h1>Build your website</h1>
-    </div>
+<body class="min-h-screen px-4 py-6 text-white sm:px-6 lg:px-10 lg:py-10">
+  <div class="mx-auto max-w-5xl">
+    <header class="mb-6 lg:mb-10">
+      <p class="font-mono text-xs uppercase tracking-widest text-white/40">Website builder</p>
+      <h1 class="font-display text-2xl text-white/95 sm:text-3xl">Build your website</h1>
+    </header>
 
-    <!-- Card 1: Website Name -->
-    <div class="card">
-      <label for="slugInput">Website name</label>
-      <form onsubmit="event.preventDefault(); document.getElementById('slugInput').blur();" class="field-wrap">
-        <input type="text" id="slugInput" placeholder="ForAraa" enterkeyhint="done" autocomplete="off" maxlength="40" inputmode="text">
-        <span id="slugStatus" class="slug-status"></span>
-      </form>
-      <p class="hint">yoursite.vercel.app/<span id="slugPreview">your-name</span></p>
-    </div>
-
-    <!-- Card 2: Song Cover -->
-    <div class="card">
-      <label>Song cover</label>
-      <div id="coverBox" class="cover-box">
-        <input type="file" id="coverInput" accept="image/*">
-        <div id="coverPlaceholder" class="cover-placeholder">
-          <span class="cover-tag">Cover</span>
-          <p class="cover-sub">Ketuk untuk upload foto sampul</p>
-        </div>
-        <img id="coverPreview" alt="Song cover preview">
-        <button type="button" id="coverRemoveBtn" class="cover-remove">✕</button>
-      </div>
-      <p id="coverError" class="err-text"></p>
-    </div>
-
-    <!-- Card 3: Gallery Photos -->
-    <div class="card">
-      <div class="card-head">
-        <label>Gallery photos</label>
-        <span id="galleryCounter" class="counter">0/10</span>
-      </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
-      <input type="file" id="galleryInput" accept="image/*">
-      <p id="galleryError" class="err-text"></p>
-    </div>
-
-    <!-- Preview Button (menggantikan generate langsung) -->
-    <button id="previewBtn" class="generate-btn" disabled>
-      <span id="previewBtnLabel">Preview website</span>
-    </button>
-  </div>
-
-  <!-- Modal Preview -->
-  <div id="previewModal" class="modal-overlay preview-overlay">
-    <div class="preview-box fade-in">
-      <div class="preview-topbar">
-        <button type="button" id="previewBackBtn" class="preview-back">← Back</button>
-        <span class="preview-badge">Preview</span>
-      </div>
-
-      <div class="preview-scroll">
-        <div class="preview-slug">yoursite.vercel.app/<span id="previewSlugText"></span></div>
-
-        <div class="preview-stage">
-          <img id="previewGalleryImg" class="preview-gallery-img" alt="Preview foto">
-          <button type="button" id="previewPrev" class="preview-nav preview-nav-left">‹</button>
-          <button type="button" id="previewNext" class="preview-nav preview-nav-right">›</button>
-          <div id="previewDots" class="preview-dots"></div>
-        </div>
-
-        <div class="preview-player">
-          <img id="previewCoverImg" class="preview-cover-img" alt="Preview cover">
-          <div class="preview-player-info">
-            <p class="preview-player-title">Song cover</p>
-            <p class="preview-player-sub">Ini yang bakal tampil di pemutar</p>
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div class="space-y-6">
+        
+        <!-- Card 1: Website Name -->
+        <div class="db-glass rounded-xl p-4">
+          <label for="site-name" class="mb-2 block font-display text-lg text-white/90">Website name</label>
+          <form onsubmit="event.preventDefault(); document.getElementById('site-name').blur();">
+            <input id="site-name" type="text" placeholder="ForAraa" enterkeyhint="done" autocomplete="off"
+                   class="w-full rounded-lg border border-db-border bg-black/30 px-4 py-2.5 font-sans text-white/90 placeholder:text-white/25 focus:border-db-violet focus:outline-none focus:ring-1 focus:ring-db-violet" />
+          </form>
+          <div class="mt-2 flex items-center justify-between font-mono text-xs">
+            <span class="text-white/40">yoursite.vercel.app/<span id="slug-preview" class="text-white/70">…</span></span>
+            <span id="slug-status" class="hidden font-semibold"></span>
           </div>
         </div>
 
-        <p class="preview-note">Ini pratinjau dari foto yang kamu pilih — belum di-upload. Kalau udah oke, tekan tombol di bawah buat generate beneran.</p>
+        <!-- Card 2: Song Cover -->
+        <div class="db-glass rounded-xl p-4">
+          <h2 class="mb-2 font-display text-lg text-white/90">Song cover</h2>
+          <div class="max-w-[200px]">
+            <div id="cover-slot" class="db-frame-slot group relative aspect-square cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-[1.02]">
+              <input type="file" id="cover-input" accept="image/*" class="hidden" />
+              <img id="cover-img" class="hidden h-full w-full object-cover" />
+              <div id="cover-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-2 text-center">
+                <span class="rounded bg-black/55 px-2 py-1 font-mono text-[10px] tracking-wide text-white/75 backdrop-blur-sm">Cover</span>
+                <span class="mt-2 text-[11px] text-white/35">Click to upload</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Gallery Photos -->
+        <div class="db-glass rounded-xl p-4">
+          <div class="mb-3 flex items-baseline justify-between">
+            <h2 class="font-display text-lg text-white/90">Gallery photos</h2>
+            <span id="gallery-counter" class="font-mono text-xs text-white/40">0/10</span>
+          </div>
+          
+          <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5" id="gallery-grid"></div>
+          <input type="file" id="gallery-input" accept="image/*" class="hidden" />
+        </div>
+
+        <!-- Card 4: Submit Button -->
+        <div class="db-glass rounded-xl p-4">
+          <button id="generate-btn" disabled class="w-full rounded-lg px-4 py-3 font-display text-base transition-all bg-white/10 text-white/35 cursor-not-allowed">
+            Generate website
+          </button>
+          <p class="mt-2 text-center text-xs text-white/35">Fill in a website name and all 11 images to continue.</p>
+        </div>
       </div>
 
-      <div class="preview-footer">
-        <button id="generateBtn" class="generate-btn valid">
-          <span id="generateBtnLabel">Confirm &amp; Generate</span>
-        </button>
-        <div id="progWrap" class="prog-wrap">
-          <div class="prog-bar"><div id="progFill" class="prog-fill"></div></div>
-          <p id="progLabel" class="prog-label"></p>
+      <!-- Sidebar / Live Preview -->
+      <div class="lg:sticky lg:top-10 lg:self-start">
+        <div class="db-glass rounded-xl p-4 space-y-3">
+          <h2 class="font-display text-lg text-white/90">Live preview</h2>
+          <p class="text-sm text-white/45">Empty slots preview with the original flow, so you can see how it looks.</p>
+          <div class="aspect-square w-full rounded-lg bg-black/40 border border-white/10 overflow-hidden relative flex items-center justify-center">
+             <img id="preview-active-img" src="" class="hidden w-full h-full object-cover">
+             <span id="preview-text" class="font-mono text-xs text-white/30">Preview Box</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Modal Success -->
-  <div id="successModal" class="modal-overlay">
-    <div class="modal-box fade-in">
-      <div class="check-circle">✓</div>
-      <h3>Website created successfully</h3>
-      <p>Your site is live and ready to share.</p>
-      <div class="url-box" id="resultUrl"></div>
-      <button id="copyBtn" class="btn-secondary">Copy link</button>
-      <a id="openBtn" href="#" target="_blank" class="btn-primary">Open website</a>
+  <div id="success-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center p-4 hidden z-50">
+    <div class="db-glass p-6 rounded-2xl w-full max-w-sm text-center space-y-5 border border-white/10">
+      <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 text-xl">✓</div>
+      <div>
+        <h3 class="font-display text-xl text-white">Website Created!</h3>
+        <p class="text-xs text-white/40 mt-1">Your site is live and ready to share.</p>
+      </div>
+      <div class="bg-black/50 border border-white/10 p-3 rounded-xl text-xs font-mono text-white/80 break-all" id="result-url"></div>
+      <div class="space-y-2">
+        <button id="copy-btn" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-xl text-sm transition-all">Copy link</button>
+        <a id="open-btn" href="#" target="_blank" class="block w-full bg-white text-black font-semibold py-3 rounded-xl text-sm">Open website</a>
+      </div>
     </div>
   </div>
 
+  <!-- SCRIPT ENGINE -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-
-      // ===== Konfigurasi =====
-      const MAX_FILE_MB = 15;
-      const COVER_MAX_DIM = 1600;
-      const GALLERY_MAX_DIM = 1280;
-      const JPEG_QUALITY = 0.82;
-      const UPLOAD_CONCURRENCY = 3;
-      const SLUG_DEBOUNCE_MS = 450;
-      const GALLERY_SLOTS = 10;
-
-      // ===== State =====
       let supabase = null;
       let selectedCover = null;
-      let selectedGallery = new Array(GALLERY_SLOTS).fill(null);
-      let activeGalleryIndex = null;
-      let slugCheckToken = 0;
-      let slugAvailable = false;
-      let isGenerating = false;
+      let selectedGallery = new Array(10).fill(null);
+      let activeIndex = null;
 
-      // ===== DOM refs =====
-      const slugInput = document.getElementById("slugInput");
-      const slugStatus = document.getElementById("slugStatus");
-      const slugPreview = document.getElementById("slugPreview");
+      const siteNameInput = document.getElementById("site-name");
+      const slugPreview = document.getElementById("slug-preview");
+      const slugStatus = document.getElementById("slug-status");
+      
+      const coverSlot = document.getElementById("cover-slot");
+      const coverInput = document.getElementById("cover-input");
+      const coverImg = document.getElementById("cover-img");
+      const coverPlaceholder = document.getElementById("cover-placeholder");
 
-      const coverBox = document.getElementById("coverBox");
-      const coverInput = document.getElementById("coverInput");
-      const coverPreview = document.getElementById("coverPreview");
-      const coverPlaceholder = document.getElementById("coverPlaceholder");
-      const coverRemoveBtn = document.getElementById("coverRemoveBtn");
-      const coverError = document.getElementById("coverError");
+      const galleryGrid = document.getElementById("gallery-grid");
+      const galleryInput = document.getElementById("gallery-input");
+      const galleryCounter = document.getElementById("gallery-counter");
+      
+      const generateBtn = document.getElementById("generate-btn");
+      const previewImg = document.getElementById("preview-active-img");
+      const previewText = document.getElementById("preview-text");
 
-      const galleryGrid = document.getElementById("galleryGrid");
-      const galleryInput = document.getElementById("galleryInput");
-      const galleryCounter = document.getElementById("galleryCounter");
-      const galleryErrorEl = document.getElementById("galleryError");
-
-      const previewBtn = document.getElementById("previewBtn");
-      const previewModal = document.getElementById("previewModal");
-      const previewBackBtn = document.getElementById("previewBackBtn");
-      const previewSlugText = document.getElementById("previewSlugText");
-      const previewGalleryImg = document.getElementById("previewGalleryImg");
-      const previewCoverImg = document.getElementById("previewCoverImg");
-      const previewPrev = document.getElementById("previewPrev");
-      const previewNext = document.getElementById("previewNext");
-      const previewDots = document.getElementById("previewDots");
-      let previewIndex = 0;
-
-      const generateBtn = document.getElementById("generateBtn");
-      const generateBtnLabel = document.getElementById("generateBtnLabel");
-      const progWrap = document.getElementById("progWrap");
-      const progFill = document.getElementById("progFill");
-      const progLabel = document.getElementById("progLabel");
-
-      const successModal = document.getElementById("successModal");
-      const resultUrl = document.getElementById("resultUrl");
-      const copyBtn = document.getElementById("copyBtn");
-      const openBtn = document.getElementById("openBtn");
-
-      function revoke(url) { if (url) { try { URL.revokeObjectURL(url); } catch (_) {} } }
-
-      function compressImage(file, maxDim, quality) {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          const url = URL.createObjectURL(file);
-          img.onload = () => {
-            let { width, height } = img;
-            if (width > maxDim || height > maxDim) {
-              if (width >= height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
-              else { width = Math.round(width * (maxDim / height)); height = maxDim; }
-            }
-            const canvas = document.createElement("canvas");
-            canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-            URL.revokeObjectURL(url);
-            canvas.toBlob((blob) => {
-              if (!blob) return reject(new Error("Gagal memproses gambar."));
-              const compressedFile = new File([blob], file.name.replace(/\.(png|heic|webp)$/i, ".jpg"), { type: "image/jpeg" });
-              resolve(compressedFile);
-            }, "image/jpeg", quality);
-          };
-          img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("File bukan gambar yang valid.")); };
-          img.src = url;
-        });
-      }
-
-      function validateRawFile(file) {
-        if (!file.type.startsWith("image/")) return "File harus berupa gambar.";
-        if (file.size > MAX_FILE_MB * 1024 * 1024) return `Ukuran gambar maksimal ${MAX_FILE_MB}MB.`;
-        return null;
-      }
-
+      // 1. Fetch Supabase Config
       async function initSupabase() {
         try {
           const res = await fetch("/api/config");
-          if (!res.ok) throw new Error("Config unavailable");
           const config = await res.json();
           if (config.supabaseUrl && config.supabaseAnonKey) {
             supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
           }
-        } catch (err) {
-          console.warn("Supabase config belum terbaca, UI tetap berjalan:", err.message);
-        }
+        } catch (e) {}
       }
 
-      function renderGalleryGrid() {
+      // 2. Render Grid 10 Foto Galeri
+      function renderGallery() {
         galleryGrid.innerHTML = "";
-        let filledCount = 0;
+        let filled = 0;
 
-        selectedGallery.forEach((item, index) => {
-          if (item) filledCount++;
+        selectedGallery.forEach((item, i) => {
+          if (item) filled++;
           const slot = document.createElement("div");
-          slot.className = "gallery-slot";
+          slot.className = "db-frame-slot group relative aspect-square cursor-pointer overflow-hidden rounded-lg transition-transform hover:scale-[1.02]";
 
           if (item) {
             slot.innerHTML = `
-              <img src="${item.previewUrl}" alt="Gallery photo ${index + 1}" class="fade-in">
-              <button type="button" class="remove-btn">✕</button>
+              <img src="${item.preview}" class="h-full w-full object-cover" />
+              <div class="absolute inset-x-2 top-2 z-10 flex items-center justify-between">
+                <span class="rounded bg-black/60 px-1.5 py-0.5 font-mono text-[9px] text-white/80">Photo ${i+1}</span>
+                <button type="button" class="del-btn text-xs text-rose-400 bg-black/60 rounded-full w-4 h-4 flex items-center justify-center">✕</button>
+              </div>
             `;
-            slot.querySelector(".remove-btn").addEventListener("click", (e) => {
+            slot.querySelector('.del-btn').onclick = (e) => {
               e.stopPropagation();
-              revoke(selectedGallery[index].previewUrl);
-              selectedGallery[index] = null;
-              renderGalleryGrid();
-            });
+              selectedGallery[i] = null;
+              renderGallery();
+            };
           } else {
-            slot.innerHTML = `<span class="slot-label">Photo ${index + 1}</span>`;
-            slot.addEventListener("click", () => { activeGalleryIndex = index; galleryInput.click(); });
+            slot.innerHTML = `
+              <div class="absolute inset-0 flex flex-col items-center justify-center p-1 text-center">
+                <span class="rounded bg-black/40 px-1.5 py-0.5 font-mono text-[9px] text-white/50">Photo ${i+1}</span>
+              </div>
+            `;
+            slot.onclick = () => {
+              activeIndex = i;
+              galleryInput.click();
+            };
           }
           galleryGrid.appendChild(slot);
         });
 
-        galleryCounter.innerText = `${filledCount}/${GALLERY_SLOTS}`;
-        checkFormValidity();
+        galleryCounter.innerText = `${filled}/10`;
+        validate();
       }
 
-      function sanitizeSlug(raw) {
-        return raw.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
-      }
+      // 3. Name & Slug Listener
+      siteNameInput.addEventListener("input", async (e) => {
+        const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+        siteNameInput.value = val;
+        slugPreview.innerText = val || "…";
 
-      function setSlugStatus(kind, text) {
-        if (kind === "idle") { slugStatus.className = "slug-status"; return; }
-        slugStatus.innerText = text;
-        slugStatus.className = `slug-status show ${kind}`;
-      }
-
-      let slugDebounceTimer = null;
-      slugInput.addEventListener("input", (e) => {
-        const val = sanitizeSlug(e.target.value);
-        slugInput.value = val;
-        slugPreview.innerText = val || "your-name";
-        slugAvailable = false;
-
-        clearTimeout(slugDebounceTimer);
-
-        if (!val) { setSlugStatus("idle"); checkFormValidity(); return; }
-
-        setSlugStatus("checking", "Checking...");
-        checkFormValidity();
-        slugDebounceTimer = setTimeout(() => checkSlugAvailability(val), SLUG_DEBOUNCE_MS);
-      });
-
-      async function checkSlugAvailability(val) {
-        const myToken = ++slugCheckToken;
-
-        if (!supabase) {
-          if (myToken !== slugCheckToken) return;
-          slugAvailable = true;
-          setSlugStatus("unknown", "OK");
-          checkFormValidity();
+        if (!val) {
+          slugStatus.classList.add("hidden");
+          validate();
           return;
         }
 
-        try {
-          const { data, error } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
-          if (myToken !== slugCheckToken) return;
-          if (error) throw error;
-          if (!data) { slugAvailable = true; setSlugStatus("available", "Available"); }
-          else { slugAvailable = false; setSlugStatus("taken", "Taken"); }
-        } catch (err) {
-          if (myToken !== slugCheckToken) return;
-          slugAvailable = false;
-          setSlugStatus("unknown", "Error");
-        }
-        checkFormValidity();
-      }
-
-      coverBox.addEventListener("click", (e) => { if (e.target === coverRemoveBtn) return; coverInput.click(); });
-
-      coverInput.addEventListener("change", async (e) => {
-        const file = e.target.files[0];
-        e.target.value = "";
-        if (!file) return;
-
-        coverError.classList.remove("show");
-        const err = validateRawFile(file);
-        if (err) { coverError.innerText = err; coverError.classList.add("show"); return; }
-
-        try {
-          const compressed = await compressImage(file, COVER_MAX_DIM, JPEG_QUALITY);
-          if (selectedCover) revoke(selectedCover.previewUrl);
-          selectedCover = { file: compressed, previewUrl: URL.createObjectURL(compressed) };
-          coverPreview.src = selectedCover.previewUrl;
-          coverPreview.classList.add("show");
-          coverPlaceholder.style.display = "none";
-          coverRemoveBtn.classList.add("show");
-          checkFormValidity();
-        } catch (err) {
-          coverError.innerText = "Gagal memproses gambar, coba foto lain.";
-          coverError.classList.add("show");
-        }
-      });
-
-      coverRemoveBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (selectedCover) revoke(selectedCover.previewUrl);
-        selectedCover = null;
-        coverPreview.classList.remove("show");
-        coverPreview.src = "";
-        coverPlaceholder.style.display = "";
-        coverRemoveBtn.classList.remove("show");
-        checkFormValidity();
-      });
-
-      galleryInput.addEventListener("change", async (e) => {
-        const file = e.target.files[0];
-        e.target.value = "";
-        if (!file || activeGalleryIndex === null) return;
-
-        galleryErrorEl.classList.remove("show");
-        const err = validateRawFile(file);
-        if (err) { galleryErrorEl.innerText = err; galleryErrorEl.classList.add("show"); activeGalleryIndex = null; return; }
-
-        const targetIndex = activeGalleryIndex;
-        activeGalleryIndex = null;
-
-        try {
-          const compressed = await compressImage(file, GALLERY_MAX_DIM, JPEG_QUALITY);
-          selectedGallery[targetIndex] = { file: compressed, previewUrl: URL.createObjectURL(compressed) };
-          renderGalleryGrid();
-        } catch (err) {
-          galleryErrorEl.innerText = "Gagal memproses salah satu foto, coba lagi.";
-          galleryErrorEl.classList.add("show");
-        }
-      });
-
-      function checkFormValidity() {
-        const hasSlug = slugInput.value.trim().length > 0;
-        const isGalleryFull = selectedGallery.every((item) => item !== null);
-        const valid = hasSlug && slugAvailable && !!selectedCover && isGalleryFull && !isGenerating;
-
-        previewBtn.disabled = !valid;
-        previewBtn.className = valid ? "generate-btn valid" : "generate-btn";
-      }
-
-      // ===== Preview modal: swipe gallery pakai foto lokal (belum upload) =====
-      function renderPreviewStage() {
-        const item = selectedGallery[previewIndex];
-        if (item) previewGalleryImg.src = item.previewUrl;
-
-        previewDots.innerHTML = "";
-        selectedGallery.forEach((_, i) => {
-          const dot = document.createElement("span");
-          dot.className = "dot" + (i === previewIndex ? " active" : "");
-          previewDots.appendChild(dot);
-        });
-      }
-
-      function openPreview() {
-        if (previewBtn.disabled) return;
-        previewIndex = 0;
-        previewSlugText.innerText = slugInput.value.trim();
-        previewCoverImg.src = selectedCover.previewUrl;
-        renderPreviewStage();
-        previewModal.classList.add("show");
-      }
-
-      previewBtn.addEventListener("click", openPreview);
-      previewBackBtn.addEventListener("click", () => previewModal.classList.remove("show"));
-
-      previewPrev.addEventListener("click", () => {
-        previewIndex = (previewIndex - 1 + selectedGallery.length) % selectedGallery.length;
-        renderPreviewStage();
-      });
-      previewNext.addEventListener("click", () => {
-        previewIndex = (previewIndex + 1) % selectedGallery.length;
-        renderPreviewStage();
-      });
-
-      async function uploadWithConcurrency(tasks, concurrency, onProgress) {
-        let completed = 0, cursor = 0;
-        const results = new Array(tasks.length);
-        async function worker() {
-          while (cursor < tasks.length) {
-            const myIndex = cursor++;
-            results[myIndex] = await tasks[myIndex]();
-            completed++;
-            onProgress(completed, tasks.length);
+        if (supabase) {
+          const { data } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
+          slugStatus.classList.remove("hidden");
+          if (!data) {
+            slugStatus.innerText = "Available";
+            slugStatus.className = "text-emerald-400 font-mono text-xs";
+          } else {
+            slugStatus.innerText = "Taken";
+            slugStatus.className = "text-rose-400 font-mono text-xs";
           }
         }
-        const workers = Array.from({ length: Math.min(concurrency, tasks.length) }, worker);
-        await Promise.all(workers);
-        return results;
+        validate();
+      });
+
+      // 4. Upload Song Cover
+      coverSlot.onclick = () => coverInput.click();
+      coverInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          selectedCover = file;
+          const url = URL.createObjectURL(file);
+          coverImg.src = url;
+          coverImg.classList.remove("hidden");
+          coverPlaceholder.classList.add("hidden");
+
+          previewImg.src = url;
+          previewImg.classList.remove("hidden");
+          previewText.classList.add("hidden");
+          validate();
+        }
+      };
+
+      // 5. Upload Gallery Photos
+      galleryInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file && activeIndex !== null) {
+          selectedGallery[activeIndex] = { file, preview: URL.createObjectURL(file) };
+          activeIndex = null;
+          e.target.value = "";
+          renderGallery();
+        }
+      };
+
+      // 6. Validation
+      function validate() {
+        const hasName = siteNameInput.value.trim().length > 0 && slugStatus.innerText !== "Taken";
+        const hasCover = selectedCover !== null;
+        const has10Photos = selectedGallery.every(x => x !== null);
+
+        if (hasName && hasCover && has10Photos) {
+          generateBtn.disabled = false;
+          generateBtn.className = "w-full rounded-lg px-4 py-3 font-display text-base transition-all bg-white text-black font-bold cursor-pointer hover:bg-white/90 shadow-lg";
+        } else {
+          generateBtn.disabled = true;
+          generateBtn.className = "w-full rounded-lg px-4 py-3 font-display text-base transition-all bg-white/10 text-white/35 cursor-not-allowed";
+        }
       }
 
-      function setProgress(pct, label) {
-        progWrap.classList.add("show");
-        progFill.style.width = `${pct}%`;
-        progLabel.innerText = label;
-      }
-
-      function setGenerating(state, label) {
-        isGenerating = state;
-        generateBtn.disabled = state;
-        generateBtnLabel.innerHTML = state ? `<span class="spinner"></span>${label}` : "Confirm &amp; Generate";
-        checkFormValidity();
-      }
-
-      generateBtn.addEventListener("click", async () => {
-        if (!supabase) return alert("Koneksi database bermasalah. Pastikan API terhubung!");
-        if (isGenerating) return;
-
-        const slug = slugInput.value.trim();
-        const uploadedPaths = [];
-
-        setGenerating(true, "Uploading cover...");
-        setProgress(0, "Uploading cover...");
+      // 7. Submit Process
+      generateBtn.onclick = async () => {
+        if (!supabase) return alert("Database connection error!");
+        generateBtn.disabled = true;
+        const slug = siteNameInput.value.trim();
 
         try {
-          const coverExt = selectedCover.file.name.split(".").pop();
-          const coverPath = `${slug}/cover_${Date.now()}.${coverExt}`;
-          const { error: coverErr } = await supabase.storage.from("uploads").upload(coverPath, selectedCover.file, { contentType: selectedCover.file.type });
-          if (coverErr) throw coverErr;
-          uploadedPaths.push(coverPath);
+          generateBtn.innerText = "Uploading Cover...";
+          const coverPath = `${slug}/cover_${Date.now()}.${selectedCover.name.split('.').pop()}`;
+          await supabase.storage.from("uploads").upload(coverPath, selectedCover);
           const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
 
-          setGenerating(true, "Uploading gallery...");
-          const galleryTasks = selectedGallery.map((item, i) => async () => {
-            const ext = item.file.name.split(".").pop();
-            const path = `${slug}/gallery_${i}_${Date.now()}.${ext}`;
-            const { error } = await supabase.storage.from("uploads").upload(path, item.file, { contentType: item.file.type });
-            if (error) throw error;
-            uploadedPaths.push(path);
-            return supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
-          });
+          const galleryUrls = [];
+          for (let i = 0; i < selectedGallery.length; i++) {
+            generateBtn.innerText = `Uploading Photo (${i + 1}/10)...`;
+            const file = selectedGallery[i].file;
+            const path = `${slug}/gallery_${i}_${Date.now()}.${file.name.split('.').pop()}`;
+            await supabase.storage.from("uploads").upload(path, file);
+            galleryUrls.push(supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl);
+          }
 
-          const galleryUrls = await uploadWithConcurrency(galleryTasks, UPLOAD_CONCURRENCY, (done, total) => {
-            const pct = Math.round((done / total) * 90) + 10;
-            setProgress(pct, `Uploading gallery (${done}/${total})...`);
-          });
-
-          setGenerating(true, "Saving your website...");
-          setProgress(100, "Saving your website...");
-          const { error: insertErr } = await supabase.from("sites").insert([{ slug, cover_url: coverUrl, gallery_urls: galleryUrls }]);
-          if (insertErr) throw insertErr;
+          generateBtn.innerText = "Saving site...";
+          const { error } = await supabase.from("sites").insert([{ slug, cover_url: coverUrl, gallery_urls: galleryUrls }]);
+          if (error) throw error;
 
           const fullUrl = `${window.location.origin}/${slug}`;
-          resultUrl.innerText = fullUrl;
-          openBtn.href = fullUrl;
-          previewModal.classList.remove("show");
-          successModal.classList.add("show");
-          progWrap.classList.remove("show");
-          setGenerating(false, "");
+          document.getElementById("result-url").innerText = fullUrl;
+          document.getElementById("open-btn").href = fullUrl;
+          document.getElementById("success-modal").classList.remove("hidden");
+
         } catch (err) {
-          if (uploadedPaths.length > 0) {
-            try { await supabase.storage.from("uploads").remove(uploadedPaths); } catch (_) {}
-          }
-          alert("Error: " + (err.message || "Terjadi kesalahan saat membuat website."));
-          progWrap.classList.remove("show");
-          setGenerating(false, "");
+          alert("Error: " + err.message);
+          generateBtn.innerText = "Generate website";
+          validate();
         }
-      });
+      };
 
-      copyBtn.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(resultUrl.innerText); }
-        catch (_) {
-          const ta = document.createElement("textarea");
-          ta.value = resultUrl.innerText;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-        }
-        copyBtn.innerText = "Copied!";
-        setTimeout(() => (copyBtn.innerText = "Copy link"), 2000);
-      });
-
-      window.addEventListener("beforeunload", () => {
-        if (selectedCover) revoke(selectedCover.previewUrl);
-        selectedGallery.forEach((item) => item && revoke(item.previewUrl));
-      });
+      document.getElementById("copy-btn").onclick = () => {
+        navigator.clipboard.writeText(document.getElementById("result-url").innerText);
+        document.getElementById("copy-btn").innerText = "Copied!";
+        setTimeout(() => document.getElementById("copy-btn").innerText = "Copy link", 2000);
+      };
 
       initSupabase();
-      renderGalleryGrid();
+      renderGallery();
     });
   </script>
 </body>

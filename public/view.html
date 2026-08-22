@@ -80,6 +80,30 @@
   <!-- Audio Element -->
   <audio id="bgAudio" src="/audio.mp3" preload="auto"></audio>
 
+  <!-- Debug Panel (sementara, buat lacak kenapa foto gak muncul) -->
+  <div id="debugPanel" style="position:fixed; top:0; left:0; right:0; max-height:38vh; overflow-y:auto; background:rgba(0,0,0,.92); color:#4ade80; font-family:monospace; font-size:10px; padding:8px; z-index:999; border-bottom:2px solid #22c55e; white-space:pre-wrap; word-break:break-all;"></div>
+
+  <script>
+    (function () {
+      const panel = document.getElementById('debugPanel');
+      function log(...args) {
+        const line = document.createElement('div');
+        line.textContent = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+        panel.appendChild(line);
+        panel.scrollTop = panel.scrollHeight;
+      }
+      window.__debugLog = log;
+      window.onerror = function (msg, src, line, col, err) {
+        log('❌ window.onerror:', msg, 'at line', line);
+      };
+      window.addEventListener('unhandledrejection', (e) => {
+        log('❌ unhandledrejection:', e.reason?.message || e.reason);
+      });
+      log('✅ Debug panel aktif. slug =', new URLSearchParams(location.search).get('id'));
+      log('supabase-js CDN loaded?', typeof window.supabase !== 'undefined' ? 'YES' : 'NO (belum/masih loading)');
+    })();
+  </script>
+
   <script>
     // DURATION AUDIOPLAYER (0 - 24 DETIK)
     const START_TIME = 0;
@@ -122,19 +146,34 @@
       }
 
       try {
+        window.__debugLog('→ fetching /api/config...');
         const res = await fetch('/api/config');
+        window.__debugLog('/api/config status:', res.status);
         if (!res.ok) {
           loadingText.innerText = `Config error: HTTP ${res.status}`;
           return;
         }
         const config = await res.json();
+        window.__debugLog('config.supabaseUrl:', config.supabaseUrl);
+        window.__debugLog('config.supabaseAnonKey (10 char):', (config.supabaseAnonKey || '').slice(0, 10));
         if (!config.supabaseUrl || !config.supabaseAnonKey) {
           loadingText.innerText = "Config error: supabaseUrl/anonKey kosong.";
           return;
         }
-        const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
 
+        window.__debugLog('typeof window.supabase:', typeof window.supabase);
+        if (typeof window.supabase === 'undefined') {
+          loadingText.innerText = "supabase-js CDN gagal load (cek koneksi/adblock).";
+          window.__debugLog('❌ window.supabase undefined, CDN jsdelivr kemungkinan diblokir.');
+          return;
+        }
+
+        const supabase = window.supabase.createClient(config.supabaseUrl.trim(), config.supabaseAnonKey.trim());
+        window.__debugLog('✅ supabase client created');
+
+        window.__debugLog('→ querying sites where slug =', slug);
         const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
+        window.__debugLog('query done. error:', error ? error.message : 'null', '| data exists:', !!data);
 
         if (error) {
           loadingText.innerText = `DB error: ${error.message}`;
@@ -147,11 +186,20 @@
         }
 
         galleryUrls = Array.isArray(data.gallery_urls) ? data.gallery_urls : [];
+        window.__debugLog('galleryUrls[0]:', galleryUrls[0] || '(kosong)');
+        window.__debugLog('cover_url:', data.cover_url || '(kosong)');
         playerCover.src = data.cover_url || "";
 
         if (galleryUrls.length > 0) {
-          galleryImg.onerror = () => { loadingText.innerText = "Gagal load gambar (cek URL/permission storage)."; };
-          galleryImg.onload = () => { loadingText.classList.add('hidden'); };
+          galleryImg.onerror = (e) => {
+            loadingText.innerText = "Gagal load gambar (cek URL/permission storage).";
+            window.__debugLog('❌ galleryImg.onerror fired for src:', galleryImg.src);
+          };
+          galleryImg.onload = () => {
+            loadingText.classList.add('hidden');
+            window.__debugLog('✅ galleryImg.onload fired, foto berhasil tampil.');
+          };
+          window.__debugLog('→ setting galleryImg.src =', galleryUrls[0]);
           galleryImg.src = galleryUrls[0];
           galleryImg.classList.add('show');
         } else {
@@ -160,6 +208,7 @@
 
       } catch (err) {
         loadingText.innerText = `Fatal error: ${err.message}`;
+        window.__debugLog('❌ CATCH fatal error:', err.message);
         console.error(err);
       }
     }

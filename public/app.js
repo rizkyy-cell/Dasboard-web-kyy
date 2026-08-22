@@ -8,12 +8,9 @@ let activeGalleryIndex = null;
 const slugInput = document.getElementById("slugInput");
 const slugStatus = document.getElementById("slugStatus");
 const slugPreview = document.getElementById("slugPreview");
-const coverBox = document.getElementById("coverBox");
-const coverInput = document.getElementById("coverInput");
 const coverPreview = document.getElementById("coverPreview");
 const coverPlaceholder = document.getElementById("coverPlaceholder");
 const galleryGrid = document.getElementById("galleryGrid");
-const galleryInput = document.getElementById("galleryInput");
 const galleryCounter = document.getElementById("galleryCounter");
 const generateBtn = document.getElementById("generateBtn");
 const successModal = document.getElementById("successModal");
@@ -21,24 +18,19 @@ const resultUrl = document.getElementById("resultUrl");
 const copyBtn = document.getElementById("copyBtn");
 const openBtn = document.getElementById("openBtn");
 
-// 1. INIT SUPABASE FROM VERCEL ENV API
+// 1. INIT SUPABASE
 async function initSupabase() {
   try {
     const res = await fetch("/api/config");
     const config = await res.json();
-    
-    if (!config.supabaseUrl || !config.supabaseAnonKey) {
-      console.error("Environment Variables Vercel belum diset!");
-      return;
-    }
-
+    if (!config.supabaseUrl || !config.supabaseAnonKey) return;
     supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
   } catch (err) {
-    console.error("Gagal mengambil konfigurasi dari /api/config:", err);
+    console.error("Gagal load config:", err);
   }
 }
 
-// 2. INITIALIZE GALLERY GRID
+// 2. RENDER GALLERY GRID
 function renderGalleryGrid() {
   galleryGrid.innerHTML = "";
   let filledCount = 0;
@@ -54,12 +46,10 @@ function renderGalleryGrid() {
         <button onclick="removeGalleryImage(event, ${index})" class="absolute top-1 right-1 bg-black/60 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs z-10">✕</button>
       `;
     } else {
-      slot.innerHTML = `
-        <span class="text-[10px] text-zinc-500 font-mono">Photo ${index + 1}</span>
-      `;
+      slot.innerHTML = `<span class="text-[10px] text-zinc-500 font-mono">Photo ${index + 1}</span>`;
       slot.onclick = () => {
         activeGalleryIndex = index;
-        galleryInput.click();
+        document.getElementById("galleryInput").click();
       };
     }
     galleryGrid.appendChild(slot);
@@ -69,7 +59,7 @@ function renderGalleryGrid() {
   checkFormValidity();
 }
 
-// 3. EVENT LISTENERS - SLUG CHECK
+// 3. SLUG VALIDATION
 slugInput.addEventListener("input", async (e) => {
   const val = e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
   slugInput.value = val;
@@ -80,11 +70,9 @@ slugInput.addEventListener("input", async (e) => {
     checkFormValidity();
     return;
   }
-
   if (!supabase) return;
 
   const { data } = await supabase.from("sites").select("slug").eq("slug", val).maybeSingle();
-
   if (!data) {
     slugStatus.classList.remove("hidden");
     slugStatus.innerText = "Available";
@@ -97,9 +85,8 @@ slugInput.addEventListener("input", async (e) => {
   checkFormValidity();
 });
 
-// 4. COVER IMAGE HANDLING
-coverBox.onclick = () => coverInput.click();
-coverInput.onchange = (e) => {
+// 4. GLOBAL FUNCTIONS UNTUK HTML ONCHANGE
+window.handleCoverSelect = (e) => {
   const file = e.target.files[0];
   if (file) {
     selectedCover = file;
@@ -110,8 +97,7 @@ coverInput.onchange = (e) => {
   }
 };
 
-// 5. GALLERY IMAGE HANDLING
-galleryInput.onchange = (e) => {
+window.handleGallerySelect = (e) => {
   const file = e.target.files[0];
   if (file && activeGalleryIndex !== null) {
     selectedGallery[activeGalleryIndex] = {
@@ -119,7 +105,7 @@ galleryInput.onchange = (e) => {
       preview: URL.createObjectURL(file)
     };
     activeGalleryIndex = null;
-    galleryInput.value = "";
+    e.target.value = ""; // Reset input
     renderGalleryGrid();
   }
 };
@@ -130,7 +116,7 @@ window.removeGalleryImage = (e, index) => {
   renderGalleryGrid();
 };
 
-// 6. VALIDATION & BUTTON STATE
+// 5. BUTTON VALIDATION
 function checkFormValidity() {
   const isSlugValid = slugInput.value.trim().length > 0 && slugStatus.innerText === "Available";
   const isGalleryFull = selectedGallery.every(item => item !== null);
@@ -144,58 +130,35 @@ function checkFormValidity() {
   }
 }
 
-// 7. UPLOAD & GENERATE PROCESS
+// 6. SUBMIT DATA
 generateBtn.onclick = async () => {
-  if (!supabase) {
-    alert("Supabase belum terkonfigurasi dengan benar!");
-    return;
-  }
-
+  if (!supabase) return alert("Supabase error!");
   generateBtn.disabled = true;
   const slug = slugInput.value.trim();
 
   try {
-    // Upload Cover
     generateBtn.innerText = "Uploading cover...";
-    const coverExt = selectedCover.name.split('.').pop();
-    const coverPath = `${slug}/cover_${Date.now()}.${coverExt}`;
-    
-    const { error: coverErr } = await supabase.storage.from("uploads").upload(coverPath, selectedCover);
-    if (coverErr) throw coverErr;
-
+    const coverPath = `${slug}/cover_${Date.now()}.${selectedCover.name.split('.').pop()}`;
+    await supabase.storage.from("uploads").upload(coverPath, selectedCover);
     const coverUrl = supabase.storage.from("uploads").getPublicUrl(coverPath).data.publicUrl;
 
-    // Upload 10 Foto Galeri
     const galleryUrls = [];
     for (let i = 0; i < selectedGallery.length; i++) {
       generateBtn.innerText = `Uploading gallery (${i + 1}/10)...`;
       const file = selectedGallery[i].file;
-      const ext = file.name.split('.').pop();
-      const path = `${slug}/gallery_${i}_${Date.now()}.${ext}`;
-
-      const { error: galErr } = await supabase.storage.from("uploads").upload(path, file);
-      if (galErr) throw galErr;
-
-      const publicUrl = supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl;
-      galleryUrls.push(publicUrl);
+      const path = `${slug}/gallery_${i}_${Date.now()}.${file.name.split('.').pop()}`;
+      await supabase.storage.from("uploads").upload(path, file);
+      galleryUrls.push(supabase.storage.from("uploads").getPublicUrl(path).data.publicUrl);
     }
 
-    // Simpan ke Database
     generateBtn.innerText = "Saving your website...";
-    const { error: dbErr } = await supabase.from("sites").insert([{
-      slug: slug,
-      cover_url: coverUrl,
-      gallery_urls: galleryUrls
-    }]);
+    const { error } = await supabase.from("sites").insert([{ slug, cover_url: coverUrl, gallery_urls: galleryUrls }]);
+    if (error) throw error;
 
-    if (dbErr) throw dbErr;
-
-    // Tampilkan Link Modal Hasil
-    const fullUrl = `${window.location.origin}/view.html?id=${slug}`;
+    const fullUrl = `${window.location.origin}/${slug}`;
     resultUrl.innerText = fullUrl;
     openBtn.href = fullUrl;
     successModal.classList.remove("hidden");
-
   } catch (err) {
     alert("Error: " + err.message);
   } finally {
@@ -204,13 +167,12 @@ generateBtn.onclick = async () => {
   }
 };
 
-// 8. COPY LINK BUTTON
 copyBtn.onclick = () => {
   navigator.clipboard.writeText(resultUrl.innerText);
   copyBtn.innerText = "Copied!";
   setTimeout(() => copyBtn.innerText = "Copy link", 2000);
 };
 
-// INITIALIZE APP
+// INIT
 initSupabase();
 renderGalleryGrid();

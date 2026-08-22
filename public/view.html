@@ -4,105 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About You</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      background-color: #0d0d0d; color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0; min-height: 100vh; padding: 16px 16px 112px;
-      display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-    }
-    .italic-serif { font-family: Georgia, "Times New Roman", serif; font-style: italic; }
-
-    #mainContent { width: 100%; max-width: 380px; margin: auto 0; padding-top: 24px; text-align: center; }
-
-    .photo-card { background-color: #141414; border: 1px solid #262626; padding: 12px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,.6); position: relative; }
-    .photo-frame { position: relative; aspect-ratio: 1/1; width: 100%; border-radius: 14px; overflow: hidden; background: #18181b; }
-    #galleryImg { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .3s ease; opacity: 0; }
-    #galleryImg.show { opacity: 1; }
-    #loadingText { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; font-size: 12px; color: #71717a; font-family: monospace; }
-    #loadingText.hidden { display: none; }
-
-    .lyric-box { min-height: 60px; display: flex; align-items: center; justify-content: center; padding: 0 16px; margin-top: 24px; }
-    #lyricText { font-size: 20px; color: #d4d4d8; margin: 0; transition: all .3s ease; }
-
-    .player-bar {
-      position: fixed; bottom: 16px; left: 16px; right: 16px; max-width: 420px; margin: 0 auto;
-      background-color: rgba(24,24,27,.9); backdrop-filter: blur(8px); border: 1px solid #27272a;
-      padding: 12px; border-radius: 18px; display: flex; align-items: center; gap: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,.5);
-    }
-    #playerCover { width: 48px; height: 48px; border-radius: 10px; object-fit: cover; background: #27272a; flex-shrink: 0; }
-    .song-info { flex: 1; min-width: 0; text-align: left; }
-    .song-title { font-size: 12px; font-weight: 600; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .song-artist { font-size: 10px; color: #a1a1aa; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .progress-track { width: 100%; background: #27272a; height: 4px; border-radius: 999px; margin-top: 8px; overflow: hidden; }
-    #progressBar { background: #fff; height: 100%; width: 0%; transition: width .2s linear; }
-    #playBtn {
-      width: 40px; height: 40px; background: #fff; color: #000; border: none; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; cursor: pointer;
-    }
+    body { background-color: #0d0d0d; color: #ffffff; font-family: sans-serif; }
+    .card-bg { background-color: #141414; border: 1px solid #262626; }
+    .italic-serif { font-family: Georgia, serif; font-style: italic; }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 pb-28">
 
   <!-- Main Container -->
-  <div id="mainContent">
-
+  <div class="w-full max-w-sm space-y-6 my-auto pt-6 text-center" id="mainContent">
+    
     <!-- Photo Display Box -->
-    <div class="photo-card">
-      <div class="photo-frame">
-        <img id="galleryImg" src="" alt="Gallery">
-        <div id="loadingText">Loading memories...</div>
+    <div class="card-bg p-3 rounded-2xl shadow-2xl relative">
+      <div class="relative aspect-square w-full rounded-xl overflow-hidden bg-zinc-900">
+        <img id="galleryImg" src="" alt="Gallery" class="w-full h-full object-cover transition-all duration-300 opacity-0">
+        <div id="loadingText" class="absolute inset-0 flex items-center justify-center text-xs text-zinc-500 font-mono">
+          Loading memories...
+        </div>
       </div>
     </div>
 
     <!-- Lyrics Display Box -->
-    <div class="lyric-box">
-      <p id="lyricText" class="italic-serif">"Press play to start..."</p>
+    <div class="min-h-[60px] flex items-center justify-center px-4">
+      <p id="lyricText" class="text-xl md:text-2xl italic-serif text-zinc-200 transition-all duration-300 transform">
+        "Press play to start..."
+      </p>
     </div>
 
   </div>
 
-  <!-- Audio Player Floating Bar -->
-  <div class="player-bar">
-    <img id="playerCover" src="">
-    <div class="song-info">
-      <h4 class="song-title">Merry Christmas, Please Don't Call</h4>
-      <p class="song-artist">Bleach-Ears</p>
-      <div class="progress-track"><div id="progressBar"></div></div>
+  <!-- Audio Player Floating Bar (Sticky Bottom) -->
+  <div class="fixed bottom-4 left-4 right-4 max-w-md mx-auto card-bg p-3 rounded-2xl flex items-center space-x-3 shadow-xl backdrop-blur-md bg-zinc-900/90 border border-zinc-800">
+    <!-- Album Cover Thumbnail -->
+    <img id="playerCover" src="" class="w-12 h-12 rounded-lg object-cover bg-zinc-800 flex-shrink-0">
+    
+    <!-- Song Details -->
+    <div class="flex-1 min-w-0 text-left">
+      <h4 class="text-xs font-semibold text-white truncate">Merry Christmas, Please Don't Call</h4>
+      <p class="text-[10px] text-zinc-400 truncate mt-0.5">Bleach-Ears</p>
+      <!-- Progress Line -->
+      <div class="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+        <div id="progressBar" class="bg-white h-full w-0 transition-all duration-200"></div>
+      </div>
     </div>
-    <button id="playBtn">▶</button>
+
+    <!-- Play/Pause Button -->
+    <button id="playBtn" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+      ▶
+    </button>
   </div>
 
   <!-- Audio Element -->
   <audio id="bgAudio" src="/audio.mp3" preload="auto"></audio>
-
-  <!-- Debug Panel (sementara, buat lacak kenapa foto gak muncul) -->
-  <div id="debugPanel" style="position:fixed; top:0; left:0; right:0; max-height:38vh; overflow-y:auto; background:rgba(0,0,0,.92); color:#4ade80; font-family:monospace; font-size:10px; padding:8px; z-index:999; border-bottom:2px solid #22c55e; white-space:pre-wrap; word-break:break-all;"></div>
-
-  <script>
-    (function () {
-      const panel = document.getElementById('debugPanel');
-      function log(...args) {
-        const line = document.createElement('div');
-        line.textContent = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
-        panel.appendChild(line);
-        panel.scrollTop = panel.scrollHeight;
-      }
-      window.__debugLog = log;
-      window.onerror = function (msg, src, line, col, err) {
-        log('❌ window.onerror:', msg, 'at line', line);
-      };
-      window.addEventListener('unhandledrejection', (e) => {
-        log('❌ unhandledrejection:', e.reason?.message || e.reason);
-      });
-      log('✅ Debug panel aktif. slug =', new URLSearchParams(location.search).get('id'));
-      log('supabase-js CDN loaded?', typeof window.supabase !== 'undefined' ? 'YES' : 'NO (belum/masih loading)');
-    })();
-  </script>
 
   <script>
     // DURATION AUDIOPLAYER (0 - 24 DETIK)
@@ -135,81 +93,59 @@
     const playerCover = document.getElementById('playerCover');
     const progressBar = document.getElementById('progressBar');
 
+    // FUNGSI DETEKSI SLUG SECARA AKURAT (PATH ATAU QUERY PARAM)
+    function getSlugFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryId = urlParams.get('id');
+      if (queryId) return queryId;
+
+      // Ambil dari URL Path misal: /ytjugv
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      if (pathSegments.length > 0 && pathSegments[0] !== 'view.html') {
+        return pathSegments[0];
+      }
+      return null;
+    }
+
     // Fetch Site Data from Supabase
     async function loadSiteData() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const slug = urlParams.get('id');
+      const slug = getSlugFromURL();
 
       if (!slug) {
-        lyricText.innerText = "Website not found.";
+        lyricText.innerText = "Website ID not found.";
         return;
       }
 
       try {
-        window.__debugLog('→ fetching /api/config...');
         const res = await fetch('/api/config');
-        window.__debugLog('/api/config status:', res.status);
-        if (!res.ok) {
-          loadingText.innerText = `Config error: HTTP ${res.status}`;
-          return;
-        }
         const config = await res.json();
-        window.__debugLog('config.supabaseUrl:', config.supabaseUrl);
-        window.__debugLog('config.supabaseAnonKey (10 char):', (config.supabaseAnonKey || '').slice(0, 10));
+
         if (!config.supabaseUrl || !config.supabaseAnonKey) {
-          loadingText.innerText = "Config error: supabaseUrl/anonKey kosong.";
+          lyricText.innerText = "Configuration Error.";
           return;
         }
 
-        window.__debugLog('typeof window.supabase:', typeof window.supabase);
-        if (typeof window.supabase === 'undefined') {
-          loadingText.innerText = "supabase-js CDN gagal load (cek koneksi/adblock).";
-          window.__debugLog('❌ window.supabase undefined, CDN jsdelivr kemungkinan diblokir.');
-          return;
-        }
-
-        const supabase = window.supabase.createClient(config.supabaseUrl.trim(), config.supabaseAnonKey.trim());
-        window.__debugLog('✅ supabase client created');
-
-        window.__debugLog('→ querying sites where slug =', slug);
+        const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
         const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
-        window.__debugLog('query done. error:', error ? error.message : 'null', '| data exists:', !!data);
 
-        if (error) {
-          loadingText.innerText = `DB error: ${error.message}`;
-          console.error("Supabase error:", error);
-          return;
-        }
-        if (!data) {
-          loadingText.innerText = `Data untuk slug "${slug}" tidak ditemukan.`;
+        if (error || !data) {
+          lyricText.innerText = "Website data not found.";
           return;
         }
 
-        galleryUrls = Array.isArray(data.gallery_urls) ? data.gallery_urls : [];
-        window.__debugLog('galleryUrls[0]:', galleryUrls[0] || '(kosong)');
-        window.__debugLog('cover_url:', data.cover_url || '(kosong)');
-        playerCover.src = data.cover_url || "";
+        galleryUrls = data.gallery_urls || [];
+        playerCover.src = data.cover_url || '';
 
+        // Tampilkan foto pertama
         if (galleryUrls.length > 0) {
-          galleryImg.onerror = (e) => {
-            loadingText.innerText = "Gagal load gambar (cek URL/permission storage).";
-            window.__debugLog('❌ galleryImg.onerror fired for src:', galleryImg.src);
-          };
-          galleryImg.onload = () => {
-            loadingText.classList.add('hidden');
-            window.__debugLog('✅ galleryImg.onload fired, foto berhasil tampil.');
-          };
-          window.__debugLog('→ setting galleryImg.src =', galleryUrls[0]);
           galleryImg.src = galleryUrls[0];
-          galleryImg.classList.add('show');
-        } else {
-          loadingText.innerText = "gallery_urls kosong di database.";
+          galleryImg.classList.remove('opacity-0');
+          loadingText.classList.add('hidden');
         }
 
       } catch (err) {
-        loadingText.innerText = `Fatal error: ${err.message}`;
-        window.__debugLog('❌ CATCH fatal error:', err.message);
-        console.error(err);
+        console.error("Error loading site data:", err);
+        lyricText.innerText = "Failed to load data.";
       }
     }
 
@@ -238,7 +174,7 @@
     audio.ontimeupdate = () => {
       const current = audio.currentTime;
 
-      // Batasi Audio sampai Detik 24 -> Loop kembali ke Detik 0
+      // Loop Audio
       if (current >= END_TIME) {
         audio.currentTime = START_TIME;
         return;
@@ -248,20 +184,19 @@
       const progressPercent = (current / END_TIME) * 100;
       progressBar.style.width = `${Math.max(0, Math.min(100, progressPercent))}%`;
 
-      // Sync Lirik & Foto Galeri berdasarkan Waktu
+      // Sync Lirik & Foto Galeri
       for (let i = TIMELINE.length - 1; i >= 0; i--) {
         if (current >= TIMELINE[i].time) {
           const currentText = `"${TIMELINE[i].text}"`;
           if (lyricText.innerText !== currentText) {
             lyricText.innerText = currentText;
-
-            // Ganti foto jika foto baru tersedia
+            
             const photoIdx = TIMELINE[i].photoIdx;
             if (galleryUrls[photoIdx] && galleryImg.src !== galleryUrls[photoIdx]) {
-              galleryImg.classList.remove('show');
+              galleryImg.classList.add('opacity-0');
               setTimeout(() => {
                 galleryImg.src = galleryUrls[photoIdx];
-                galleryImg.classList.add('show');
+                galleryImg.classList.remove('opacity-0');
               }, 150);
             }
           }

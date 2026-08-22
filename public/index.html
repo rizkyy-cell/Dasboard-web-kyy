@@ -1299,18 +1299,20 @@ html, body {
         }
     }
 
-    // Tombol share di kartu Web — coba native share sheet Android dulu (WhatsApp/Telegram
-    // dll langsung muncul di situ), kalau browser gak support baru fallback copy link + toast.
-    function shareWebLink(link, namaWeb) {
+    // Tombol share di kartu Web — ngarah ke domain SENDIRI dulu (/api/share) biar preview
+    // link-nya bagus & branded pas di-share ke WhatsApp/Telegram (bukan link mentah situs
+    // orang lain), baru dari situ pengunjung diarahin balik ke halaman Home dashboard ini.
+    function shareWebLink(webId, namaWeb) {
+        const shareUrl = `${window.location.origin}/api/share?type=web&id=${webId}`;
         if (navigator.share) {
-            navigator.share({ title: namaWeb, url: link }).catch(() => {}); // dibatalkan user = biarin aja
+            navigator.share({ title: namaWeb, url: shareUrl }).catch(() => {}); // dibatalkan user = biarin aja
             return;
         }
-        navigator.clipboard.writeText(link).then(() => {
+        navigator.clipboard.writeText(shareUrl).then(() => {
             const toast = document.getElementById('custom-toast');
             const toastMsg = document.getElementById('toast-message');
             if (toast && toastMsg) {
-                toastMsg.innerText = `Link ${namaWeb} berhasil disalin!`;
+                toastMsg.innerText = `Link Share ${namaWeb} berhasil disalin!`;
                 toast.style.top = "20px";
                 setTimeout(() => { toast.style.top = "-100px"; }, 2500);
             }
@@ -1718,7 +1720,21 @@ html, body {
         });
         
         container.innerHTML = '';
-        dataWebLokal.forEach(web => {
+
+        // Kalau dibuka dari link share (?web_id=...), lempar item target ke urutan
+        // pertama biar langsung kelihatan tanpa perlu scroll cari — sama kayak app_id.
+        const urlParamsWeb = new URLSearchParams(window.location.search);
+        const webIdTarget = urlParamsWeb.get('web_id');
+        let websToRender = [...dataWebLokal];
+        if (webIdTarget) {
+            const targetIdx = websToRender.findIndex(w => String(w.id) === String(webIdTarget));
+            if (targetIdx > -1) {
+                const [targetWeb] = websToRender.splice(targetIdx, 1);
+                websToRender.unshift(targetWeb);
+            }
+        }
+
+        websToRender.forEach(web => {
             const kategoriWeb = (web.kategori || 'lainnya').toLowerCase();
             const namaWebStr = (web.nama_web || '').toLowerCase();
             
@@ -1745,7 +1761,7 @@ html, body {
                         <div class="chat-top"><span class="chat-title">${escapeHtml(web.nama_web)}</span><span class="chat-time" style="color:#10b981;">🌐 Active</span></div>
                         <div class="chat-bottom"><span class="chat-msg">${deskripsiTampil}</span></div>
                     </div>
-                    <button onclick="shareWebLink('${linkWebSafe}', '${namaWebSafe}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; width: 40px; height:40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; position:relative; z-index:1;" title="Bagikan Link">
+                    <button onclick="shareWebLink(${web.id}, '${namaWebSafe}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white; width: 40px; height:40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; position:relative; z-index:1;" title="Bagikan Link">
                         <i class="fas fa-share-alt" style="color: var(--tg-accent);"></i>
                     </button>
                 </div>`;
@@ -1990,10 +2006,11 @@ window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
 });
 
-// FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD DARI LINK WA (VERSI ASYNC)
+// FUNGSI DETEKSI OTOMATIS PENUJUAN TAB APP MOD / HOME DARI LINK SHARE (VERSI ASYNC)
 async function cekParamUrlShare() {
     const urlParams = new URLSearchParams(window.location.search);
     const appIdTarget = urlParams.get('app_id');
+    const webIdTarget = urlParams.get('web_id');
 
     if (appIdTarget) {
         // 1. Pindah ke Tab App Mod (Indeks Navigasi ke-1)
@@ -2012,6 +2029,25 @@ async function cekParamUrlShare() {
             const pageAppMod = document.getElementById('page-appmod');
             if (pageAppMod) {
                 pageAppMod.scrollTop = 0;
+            }
+        }, 100);
+    } else if (webIdTarget) {
+        // 1. Pindah ke Tab Home (Indeks Navigasi ke-0) — link share Web selalu ke sini
+        const navHomeBtn = document.querySelectorAll('.nav-item')[0];
+        switchNav('home', 0, navHomeBtn);
+
+        // 2. Tarik Data Web dulu jika belum dimuat
+        if (dataWebLokal.length === 0) {
+            await ambilDataWeb();
+        } else {
+            renderHomeList();
+        }
+
+        // 3. Reset Posisi Scroll Layar langsung ke Paling Atas (0)
+        setTimeout(() => {
+            const pageHome = document.getElementById('page-home');
+            if (pageHome) {
+                pageHome.scrollTop = 0;
             }
         }, 100);
     }

@@ -105,27 +105,43 @@
 
       try {
         const res = await fetch('/api/config');
+        if (!res.ok) {
+          loadingText.innerText = `Config error: HTTP ${res.status}`;
+          return;
+        }
         const config = await res.json();
+        if (!config.supabaseUrl || !config.supabaseAnonKey) {
+          loadingText.innerText = "Config error: supabaseUrl/anonKey kosong.";
+          return;
+        }
         const supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
 
         const { data, error } = await supabase.from('sites').select('*').eq('slug', slug).single();
 
-        if (error || !data) {
-          lyricText.innerText = "Website data not found.";
+        if (error) {
+          loadingText.innerText = `DB error: ${error.message}`;
+          console.error("Supabase error:", error);
+          return;
+        }
+        if (!data) {
+          loadingText.innerText = `Data untuk slug "${slug}" tidak ditemukan.`;
           return;
         }
 
-        galleryUrls = data.gallery_urls;
-        playerCover.src = data.cover_url;
+        galleryUrls = Array.isArray(data.gallery_urls) ? data.gallery_urls : [];
+        playerCover.src = data.cover_url || "";
 
-        // Set awal foto pertama
         if (galleryUrls.length > 0) {
+          galleryImg.onerror = () => { loadingText.innerText = "Gagal load gambar (cek URL/permission storage)."; };
+          galleryImg.onload = () => { loadingText.classList.add('hidden'); };
           galleryImg.src = galleryUrls[0];
           galleryImg.classList.remove('opacity-0');
-          loadingText.classList.add('hidden');
+        } else {
+          loadingText.innerText = "gallery_urls kosong di database.";
         }
 
       } catch (err) {
+        loadingText.innerText = `Fatal error: ${err.message}`;
         console.error(err);
       }
     }

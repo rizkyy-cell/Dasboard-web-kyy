@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Website Builder</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { background-color: #0a0a0a; color: #e5e5e5; font-family: sans-serif; }
@@ -16,7 +14,6 @@
 <body class="min-h-screen p-4 flex justify-center items-start">
 
   <div class="w-full max-w-md space-y-6 my-6">
-    <!-- Header -->
     <div>
       <p class="text-xs uppercase tracking-widest text-zinc-500 font-semibold">Website Builder</p>
       <h1 class="text-3xl font-serif font-bold text-white mt-1">Build your website</h1>
@@ -38,8 +35,9 @@
     <!-- Card 2: Song Cover -->
     <div class="card-bg p-5 rounded-2xl space-y-3">
       <label class="block text-sm font-medium text-zinc-300">Song cover</label>
-      <div id="coverBox" class="relative aspect-square w-full bg-zinc-900 border border-dashed border-zinc-800 rounded-xl flex flex-col justify-center items-center cursor-pointer overflow-hidden group">
-        <input type="file" id="coverInput" accept="image/*" class="hidden">
+      <div id="coverBox" onclick="document.getElementById('coverInput').click()" 
+           class="relative aspect-square w-full bg-zinc-900 border border-dashed border-zinc-800 rounded-xl flex flex-col justify-center items-center cursor-pointer overflow-hidden group">
+        <input type="file" id="coverInput" accept="image/*" class="hidden" onchange="handleCoverSelect(event)">
         <div id="coverPlaceholder" class="text-center p-4">
           <span class="text-xs bg-zinc-800 text-zinc-300 px-3 py-1 rounded-md">Cover</span>
           <p class="text-xs text-zinc-500 mt-2">Ketuk untuk upload foto sampul</p>
@@ -55,10 +53,8 @@
         <span id="galleryCounter" class="text-xs text-zinc-500 font-mono">0/10</span>
       </div>
       
-      <!-- Grid 10 Foto -->
       <div class="grid grid-cols-3 gap-2" id="galleryGrid"></div>
-      <!-- ATRIBUT MULTIPLE DIHAPUS AGAR PICKER HP STABEL -->
-      <input type="file" id="galleryInput" accept="image/*" class="hidden">
+      <input type="file" id="galleryInput" accept="image/*" class="hidden" onchange="handleGallerySelect(event)">
     </div>
 
     <!-- Generate Button -->

@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Merry Christmas, Please Don't Call</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,16 +15,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body {
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      margin: 0;
+      padding: 0;
       background-color: #050507;
       color: #ffffff;
       font-family: 'Inter', sans-serif;
       overflow: hidden;
-      margin: 0;
       user-select: none;
     }
 
-    /* 3D INFINITE FILM STRIP SCENE */
+    /* 3D INFINITE FILM STRIP BACKGROUND */
     .film-strip-scene {
       position: fixed;
       inset: -50%;
@@ -65,29 +70,29 @@
     .cinematic-vignette {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle, transparent 25%, rgba(0,0,0,0.92) 100%);
+      background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.95) 100%);
       pointer-events: none;
       z-index: 2;
     }
 
-    /* START OVERLAY CARD (CARD MODEL AWAL) */
+    /* START OVERLAY CARD MODEL AWAL */
     #start-overlay {
       position: fixed;
       inset: 0;
       z-index: 50;
-      background: rgba(5, 5, 7, 0.88);
+      background: rgba(5, 5, 7, 0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #start-overlay.hidden-overlay {
       opacity: 0;
-      transform: translateY(20px) scale(0.95);
+      transform: translateY(40px) scale(0.95);
       pointer-events: none;
     }
 
@@ -97,14 +102,14 @@
       border-radius: 28px;
       padding: 20px;
       width: 100%;
-      max-width: 320px;
+      max-width: 310px;
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
 
-    /* CENTER ACTIVE FOCUS FRAME (ANIMASI DEDIKASI SUDUT DUA DIMENSI) */
+    /* MAIN VIEWPORT FULLSCREEN */
     #infinite-viewport {
       position: fixed;
       inset: 0;
@@ -113,28 +118,38 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding-bottom: 80px;
+    }
+
+    /* KONTEN UTAMA (GAMBAR & LIRIK DISATUKAN AGAR MOVING BERSAMA) */
+    #fly-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      will-change: transform, opacity;
     }
 
     #focus-box {
-      width: 290px;
-      height: 290px;
+      width: 280px;
+      height: 280px;
       border-radius: 24px;
       overflow: hidden;
       background: #0f0f12;
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
       position: relative;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-      will-change: transform, opacity;
     }
 
-    /* VARIASI POP-UP VARIAN MOTION */
-    .motion-variant-0 { transform: scale(0.85) translate(-20px, -15px) rotate(-4deg); opacity: 0; }
-    .motion-variant-1 { transform: scale(0.85) translate(20px, 15px) rotate(4deg); opacity: 0; }
-    .motion-variant-2 { transform: scale(1.1) translate(0px, 20px) rotate(-2deg); opacity: 0; }
-    .motion-variant-3 { transform: scale(0.85) translate(-15px, 20px) rotate(3deg); opacity: 0; }
+    /* FLY-IN MOTION CLASSES */
+    .fly-left   { transform: translateX(-120vw) rotate(-10deg); opacity: 0; }
+    .fly-right  { transform: translateX(120vw) rotate(10deg); opacity: 0; }
+    .fly-top    { transform: translateY(-100vh) scale(0.8); opacity: 0; }
+    .fly-bottom { transform: translateY(100vh) scale(0.8); opacity: 0; }
+    .fly-center { transform: translateX(0) translateY(0) rotate(0deg) scale(1); opacity: 1; }
 
-    /* LYRICS WORD HIGHLIGHT */
+    /* WORD HIGHLIGHT STYLES */
     .word-span {
       opacity: 0.3;
       transition: opacity 0.25s ease, font-weight 0.25s ease;
@@ -159,14 +174,14 @@
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 20px;
-      padding: 14px 16px;
+      padding: 12px 16px;
       width: 100%;
-      max-width: 380px;
+      max-width: 360px;
     }
   </style>
 </head>
 
-<body>
+<body class="w-full h-full">
 
   <!-- Background 3D Film Strips -->
   <div class="film-strip-scene">
@@ -177,22 +192,19 @@
 
   <div class="cinematic-vignette"></div>
 
-  <!-- START OVERLAY CARD (CARD MODEL AWAL) -->
+  <!-- START OVERLAY CARD MODEL -->
   <div id="start-overlay">
     <div class="start-card">
-      <!-- Album Cover -->
       <div class="aspect-square w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 relative">
         <img id="overlayCover" src="" class="w-full h-full object-cover" />
         <div id="overlayCoverLoading" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30">Loading...</div>
       </div>
 
-      <!-- Title & Artist -->
       <div class="text-left space-y-0.5">
         <h2 class="text-lg font-bold text-white tracking-tight">Merry Christmas, Please Don't Call</h2>
         <p class="text-xs text-white/50 font-medium">Bleach-Ears</p>
       </div>
 
-      <!-- Time & Progress Bar -->
       <div class="space-y-1.5">
         <div class="flex justify-between text-[11px] font-mono text-white/40">
           <span>0:00</span>
@@ -203,13 +215,11 @@
         </div>
       </div>
 
-      <!-- Controls Row -->
       <div class="flex items-center justify-between pt-1">
         <button class="text-white/30 cursor-not-allowed">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><polygon points="9 20 1 12 9 4 9 20"></polygon></svg>
         </button>
         
-        <!-- MAIN PLAY BUTTON -->
         <button id="overlayPlayBtn" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>
         </button>
@@ -219,7 +229,6 @@
         </button>
       </div>
 
-      <!-- Volume Bar Dummy -->
       <div class="flex items-center space-x-2 pt-1 opacity-30">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon></svg>
         <div class="flex-1 bg-white/20 h-1 rounded-full"><div class="bg-white h-full w-2/3"></div></div>
@@ -227,23 +236,27 @@
     </div>
   </div>
 
-  <!-- Camera Viewport & Active Content -->
+  <!-- Main Viewport -->
   <div id="infinite-viewport">
-    <div id="focus-box">
-      <img id="activeImage" src="" class="w-full h-full object-cover transition-opacity duration-300 opacity-0" />
-      <div id="loadingText" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30 uppercase tracking-widest">
-        Loading...
+    <div id="fly-container" class="fly-center">
+      <!-- Photo Box -->
+      <div id="focus-box">
+        <img id="activeImage" src="" class="w-full h-full object-cover transition-opacity duration-300 opacity-0" />
+        <div id="loadingText" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30 uppercase tracking-widest">
+          Loading...
+        </div>
       </div>
-    </div>
 
-    <div class="mt-6 min-h-[60px] max-w-sm text-center px-4">
-      <p id="lyricsContainer" class="text-xl md:text-2xl italic-serif text-white/90 leading-snug">
-        "Press play to start..."
-      </p>
+      <!-- Lyrics Floating Directly Below Photo -->
+      <div class="mt-6 min-h-[60px] max-w-xs text-center px-2">
+        <p id="lyricsContainer" class="text-xl md:text-2xl italic-serif text-white/90 leading-snug">
+          "Press play to start..."
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- Bottom Player Floating Card -->
+  <!-- Bottom Floating Widget -->
   <div class="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4">
     <div class="glass-card">
       <div class="flex items-center space-x-3.5">
@@ -275,19 +288,21 @@
     document.addEventListener("DOMContentLoaded", () => {
       const END_TIME = 24;
 
-      // TIMELINE LIRIK & FOTO SINKRONISASI PRESISI (10 FOTO)
+      // TIMELINE LIRIK & FOTO PRESISI
       const TIMELINE = [
         { time: 0, text: "...", photoIdx: 0 },
-        { time: 2.5, photoIdx: 1, words: [{ w: "but", t: 2.5 }, { w: "you", t: 2.8 }, { w: "should", t: 3.1 }, { w: "know", t: 3.4 }, { w: "that", t: 3.8 }, { w: "i", t: 4.1 }, { w: "died", t: 4.4 }, { w: "slow", t: 4.9 }] },
-        { time: 6.8, photoIdx: 2, words: [{ w: "running", t: 6.8 }, { w: "through", t: 7.2 }, { w: "the", t: 7.5 }, { w: "halls", t: 7.8 }, { w: "of", t: 8.2 }, { w: "your", t: 8.5 }, { w: "haunted", t: 8.8 }, { w: "home", t: 9.3 }] },
-        { time: 10.8, photoIdx: 3, words: [{ w: "and", t: 10.8 }, { w: "the", t: 11.1 }, { w: "toughest", t: 11.4 }, { w: "part", t: 11.8 }, { w: "is", t: 12.2 }, { w: "that", t: 12.5 }, { w: "we", t: 12.8 }, { w: "both", t: 13.1 }, { w: "know", t: 13.5 }] },
-        { time: 14.5, photoIdx: 4, words: [{ w: "what", t: 14.5 }, { w: "happened", t: 14.9 }, { w: "to", t: 15.3 }, { w: "you", t: 15.8 }] },
-        { time: 16.5, photoIdx: 5, words: [{ w: "why", t: 16.5 }, { w: "you're", t: 17.0 }, { w: "out", t: 17.4 }, { w: "on", t: 17.8 }, { w: "your", t: 18.2 }, { w: "own", t: 18.6 }] },
-        { time: 19.5, photoIdx: 6, words: [{ w: "merry", t: 19.5 }, { w: "christmas", t: 20.0 }] },
-        { time: 21.0, photoIdx: 7, words: [{ w: "please", t: 21.0 }, { w: "don't", t: 21.4 }, { w: "call", t: 21.8 }] },
-        { time: 22.4, photoIdx: 8, words: [{ w: "merry", t: 22.4 }, { w: "christmas", t: 22.7 }] },
-        { time: 23.2, photoIdx: 9, words: [{ w: "please", t: 23.2 }, { w: "don't", t: 23.5 }, { w: "call", t: 23.8 }] }
+        { time: 3.5, photoIdx: 1, words: [{ w: "but", t: 3.5 }, { w: "you", t: 3.8 }, { w: "should", t: 4.1 }, { w: "know", t: 4.4 }, { w: "that", t: 4.8 }, { w: "i", t: 5.1 }, { w: "died", t: 5.4 }, { w: "slow", t: 6.0 }] },
+        { time: 7.8, photoIdx: 2, words: [{ w: "running", t: 7.8 }, { w: "through", t: 8.2 }, { w: "the", t: 8.5 }, { w: "halls", t: 8.8 }, { w: "of", t: 9.2 }, { w: "your", t: 9.5 }, { w: "haunted", t: 9.8 }, { w: "home", t: 10.3 }] },
+        { time: 11.5, photoIdx: 3, words: [{ w: "and", t: 11.5 }, { w: "the", t: 11.8 }, { w: "toughest", t: 12.1 }, { w: "part", t: 12.5 }, { w: "is", t: 12.9 }, { w: "that", t: 13.2 }, { w: "we", t: 13.5 }, { w: "both", t: 13.8 }, { w: "know", t: 14.1 }] },
+        { time: 15.2, photoIdx: 4, words: [{ w: "what", t: 15.2 }, { w: "happened", t: 15.6 }, { w: "to", t: 16.0 }, { w: "you", t: 16.4 }] },
+        { time: 17.2, photoIdx: 5, words: [{ w: "why", t: 17.2 }, { w: "you're", t: 17.6 }, { w: "out", t: 18.0 }, { w: "on", t: 18.4 }, { w: "your", t: 18.8 }, { w: "own", t: 19.2 }] },
+        { time: 20.0, photoIdx: 6, words: [{ w: "merry", t: 20.0 }, { w: "christmas", t: 20.5 }] },
+        { time: 21.3, photoIdx: 7, words: [{ w: "please", t: 21.3 }, { w: "don't", t: 21.7 }, { w: "call", t: 22.1 }] },
+        { time: 22.7, photoIdx: 8, words: [{ w: "merry", t: 22.7 }, { w: "christmas", t: 23.0 }] },
+        { time: 23.5, photoIdx: 9, words: [{ w: "please", t: 23.5 }, { w: "don't", t: 23.8 }, { w: "call", t: 23.9 }] }
       ];
+
+      const FLY_DIRECTIONS = ['fly-left', 'fly-right', 'fly-top', 'fly-bottom'];
 
       let galleryUrls = [];
       let isPlaying = false;
@@ -301,7 +316,7 @@
       const pauseIcon = document.getElementById('pauseIcon');
       const lyricsContainer = document.getElementById('lyricsContainer');
       const activeImage = document.getElementById('activeImage');
-      const focusBox = document.getElementById('focus-box');
+      const flyContainer = document.getElementById('fly-container');
       const loadingText = document.getElementById('loadingText');
       const playerCover = document.getElementById('playerCover');
       const overlayCover = document.getElementById('overlayCover');
@@ -332,16 +347,14 @@
           if (!data) return;
 
           galleryUrls = data.gallery_urls || [];
-          
-          // Set Cover ke Modal & Player
           const cUrl = data.cover_url || (galleryUrls.length > 0 ? galleryUrls[0] : '');
+
           if (cUrl) {
             overlayCover.src = cUrl;
             playerCover.src = cUrl;
             overlayCoverLoading.classList.add('hidden');
           }
 
-          // Populate Film Tracks Background
           const allImgs = [cUrl, ...galleryUrls, ...galleryUrls];
           ['track1', 'track2', 'track3'].forEach(trackId => {
             const track = document.getElementById(trackId);
@@ -354,7 +367,6 @@
             });
           });
 
-          // Set Photo Pertama
           if (galleryUrls.length > 0) {
             activeImage.src = galleryUrls[0];
             activeImage.classList.remove('opacity-0');
@@ -374,8 +386,17 @@
             audio.currentTime = 0;
             activeIndex = -1;
           }
-          audio.play();
+
+          // KARTU MENUTUP DULU, LAGU DIPUTAR SETELAH DELAY ANIMASI (400ms)
           startOverlay.classList.add('hidden-overlay');
+          
+          setTimeout(() => {
+            audio.play().catch(() => {});
+          }, 400);
+
+          if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
         }
       }
 
@@ -394,7 +415,6 @@
         pauseIcon.classList.add('hidden');
       };
 
-      // FUNGSI AUTO-RESET KETIKA LAGU SELESAI
       audio.onended = resetToStartOverlay;
 
       function resetToStartOverlay() {
@@ -409,14 +429,17 @@
         timeRemaining.innerText = '-0:24';
         lyricsContainer.innerText = '"Press play to start..."';
         
-        // Buka Kembali Start Modal Overlay
+        flyContainer.className = "fly-center";
         startOverlay.classList.remove('hidden-overlay');
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
       }
 
       audio.ontimeupdate = () => {
         const cur = audio.currentTime;
 
-        // Jika Mencapai Detik 24 -> Auto Reset ke Overlay Awal
         if (cur >= END_TIME) {
           resetToStartOverlay();
           return;
@@ -442,21 +465,22 @@
 
           const pIdx = sec.photoIdx;
           if (galleryUrls[pIdx]) {
-            // VARIASI POP-UP MULTI SUDUT (TIDAK MANTUL DI TEMPAT)
-            const variantClass = `motion-variant-${activeIndex % 4}`;
-            focusBox.className = variantClass;
+            // TERBANG BERSAMA-SAMA (GAMBAR & LIRIK BERSATU DI CONTAINER)
+            const dirClass = FLY_DIRECTIONS[activeIndex % FLY_DIRECTIONS.length];
+            flyContainer.className = dirClass;
 
             setTimeout(() => {
               activeImage.src = galleryUrls[pIdx];
               activeImage.classList.remove('opacity-0');
-              focusBox.className = ""; // Reset ke posisi center normal
-            }, 180);
-          }
 
-          if (sec.words) {
-            lyricsContainer.innerHTML = `"${sec.words.map(item => `<span class="word-span" data-time="${item.t}">${item.w}</span>`).join(' ')}"`;
-          } else {
-            lyricsContainer.innerHTML = `"${sec.text}"`;
+              if (sec.words) {
+                lyricsContainer.innerHTML = `"${sec.words.map(item => `<span class="word-span" data-time="${item.t}">${item.w}</span>`).join(' ')}"`;
+              } else {
+                lyricsContainer.innerHTML = `"${sec.text}"`;
+              }
+
+              flyContainer.className = "fly-center";
+            }, 200);
           }
         }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>About You — Interactive Experience</title>
+  <title>Merry Christmas, Please Don't Call</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -70,24 +70,24 @@
       z-index: 2;
     }
 
-    /* START OVERLAY CARD (SCREENSHOT REPLICATION) */
+    /* START OVERLAY CARD (CARD MODEL AWAL) */
     #start-overlay {
       position: fixed;
       inset: 0;
       z-index: 50;
-      background: rgba(5, 5, 7, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(5, 5, 7, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     #start-overlay.hidden-overlay {
       opacity: 0;
-      transform: translateY(30px) scale(0.95);
+      transform: translateY(20px) scale(0.95);
       pointer-events: none;
     }
 
@@ -101,10 +101,10 @@
       box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
-    /* CENTER ACTIVE FOCUS FRAME & CAMERA PAN */
+    /* CENTER ACTIVE FOCUS FRAME (ANIMASI DEDIKASI SUDUT DUA DIMENSI) */
     #infinite-viewport {
       position: fixed;
       inset: 0;
@@ -113,10 +113,9 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .center-frame {
+    #focus-box {
       width: 290px;
       height: 290px;
       border-radius: 24px;
@@ -125,8 +124,15 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.95);
       position: relative;
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      will-change: transform, opacity;
     }
+
+    /* VARIASI POP-UP VARIAN MOTION */
+    .motion-variant-0 { transform: scale(0.85) translate(-20px, -15px) rotate(-4deg); opacity: 0; }
+    .motion-variant-1 { transform: scale(0.85) translate(20px, 15px) rotate(4deg); opacity: 0; }
+    .motion-variant-2 { transform: scale(1.1) translate(0px, 20px) rotate(-2deg); opacity: 0; }
+    .motion-variant-3 { transform: scale(0.85) translate(-15px, 20px) rotate(3deg); opacity: 0; }
 
     /* LYRICS WORD HIGHLIGHT */
     .word-span {
@@ -148,12 +154,12 @@
     }
 
     .glass-card {
-      background: rgba(18, 18, 22, 0.75);
+      background: rgba(18, 18, 22, 0.85);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 20px;
-      padding: 16px;
+      padding: 14px 16px;
       width: 100%;
       max-width: 380px;
     }
@@ -171,18 +177,19 @@
 
   <div class="cinematic-vignette"></div>
 
-  <!-- START OVERLAY CARD (PETA PERSIS SCREENSHOT) -->
+  <!-- START OVERLAY CARD (CARD MODEL AWAL) -->
   <div id="start-overlay">
     <div class="start-card">
       <!-- Album Cover -->
-      <div class="aspect-square w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+      <div class="aspect-square w-full rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 relative">
         <img id="overlayCover" src="" class="w-full h-full object-cover" />
+        <div id="overlayCoverLoading" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30">Loading...</div>
       </div>
 
       <!-- Title & Artist -->
       <div class="text-left space-y-0.5">
-        <h2 id="overlaySlug" class="text-xl font-bold text-white tracking-tight">About You</h2>
-        <p class="text-xs text-white/50 font-medium">Bleach Ears</p>
+        <h2 class="text-lg font-bold text-white tracking-tight">Merry Christmas, Please Don't Call</h2>
+        <p class="text-xs text-white/50 font-medium">Bleach-Ears</p>
       </div>
 
       <!-- Time & Progress Bar -->
@@ -192,7 +199,7 @@
           <span>-0:24</span>
         </div>
         <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
-          <div class="bg-white h-full w-0"></div>
+          <div id="overlayProgress" class="bg-white h-full w-0"></div>
         </div>
       </div>
 
@@ -222,7 +229,7 @@
 
   <!-- Camera Viewport & Active Content -->
   <div id="infinite-viewport">
-    <div id="focus-box" class="center-frame">
+    <div id="focus-box">
       <img id="activeImage" src="" class="w-full h-full object-cover transition-opacity duration-300 opacity-0" />
       <div id="loadingText" class="absolute inset-0 flex items-center justify-center font-mono text-xs text-white/30 uppercase tracking-widest">
         Loading...
@@ -236,17 +243,18 @@
     </div>
   </div>
 
-  <!-- Next.js Bottom Player Floating Card -->
+  <!-- Bottom Player Floating Card -->
   <div class="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4">
     <div class="glass-card">
       <div class="flex items-center space-x-3.5">
         <img id="playerCover" src="" class="w-12 h-12 rounded-xl object-cover bg-zinc-900 border border-white/10 flex-shrink-0" />
         
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 text-left">
           <div class="flex justify-between items-baseline mb-1">
-            <h1 id="siteSlug" class="text-xs font-bold text-white truncate">About You</h1>
+            <h1 class="text-xs font-bold text-white truncate">Merry Christmas, Please Don't Call</h1>
             <span id="timeRemaining" class="font-mono text-[10px] text-white/40">-0:24</span>
           </div>
+          <p class="text-[10px] text-white/40 mb-1">Bleach-Ears</p>
           
           <div class="w-full bg-white/10 h-1 rounded-full overflow-hidden">
             <div id="progressFill" class="bg-white h-full w-0 transition-all duration-100"></div>
@@ -267,17 +275,18 @@
     document.addEventListener("DOMContentLoaded", () => {
       const END_TIME = 24;
 
+      // TIMELINE LIRIK & FOTO SINKRONISASI PRESISI (10 FOTO)
       const TIMELINE = [
         { time: 0, text: "...", photoIdx: 0 },
-        { time: 3.8, photoIdx: 1, words: [{ w: "but", t: 3.8 }, { w: "you", t: 4.1 }, { w: "should", t: 4.3 }, { w: "know", t: 4.6 }, { w: "that", t: 5.0 }, { w: "i", t: 5.3 }, { w: "died", t: 5.6 }, { w: "slow", t: 6.2 }] },
-        { time: 7.8, photoIdx: 2, words: [{ w: "running", t: 7.8 }, { w: "through", t: 8.2 }, { w: "the", t: 8.5 }, { w: "halls", t: 8.8 }, { w: "of", t: 9.2 }, { w: "your", t: 9.5 }, { w: "haunted", t: 9.8 }, { w: "home", t: 10.3 }] },
-        { time: 11.2, photoIdx: 3, words: [{ w: "and", t: 11.2 }, { w: "the", t: 11.5 }, { w: "toughest", t: 11.8 }, { w: "part", t: 12.2 }, { w: "is", t: 12.6 }, { w: "that", t: 12.9 }, { w: "we", t: 13.2 }, { w: "both", t: 13.8 }, { w: "know", t: 13.8 }] },
-        { time: 14.5, photoIdx: 4, words: [{ w: "what", t: 14.5 }, { w: "happened", t: 15.0 }, { w: "to", t: 15.5 }, { w: "you", t: 16.0 }] },
-        { time: 16.8, photoIdx: 5, words: [{ w: "why", t: 16.8 }, { w: "you're", t: 17.3 }, { w: "out", t: 17.8 }, { w: "on", t: 18.2 }, { w: "your", t: 18.6 }, { w: "own", t: 19.0 }] },
-        { time: 19.8, photoIdx: 6, words: [{ w: "merry", t: 19.8 }, { w: "christmas", t: 20.3 }] },
+        { time: 2.5, photoIdx: 1, words: [{ w: "but", t: 2.5 }, { w: "you", t: 2.8 }, { w: "should", t: 3.1 }, { w: "know", t: 3.4 }, { w: "that", t: 3.8 }, { w: "i", t: 4.1 }, { w: "died", t: 4.4 }, { w: "slow", t: 4.9 }] },
+        { time: 6.8, photoIdx: 2, words: [{ w: "running", t: 6.8 }, { w: "through", t: 7.2 }, { w: "the", t: 7.5 }, { w: "halls", t: 7.8 }, { w: "of", t: 8.2 }, { w: "your", t: 8.5 }, { w: "haunted", t: 8.8 }, { w: "home", t: 9.3 }] },
+        { time: 10.8, photoIdx: 3, words: [{ w: "and", t: 10.8 }, { w: "the", t: 11.1 }, { w: "toughest", t: 11.4 }, { w: "part", t: 11.8 }, { w: "is", t: 12.2 }, { w: "that", t: 12.5 }, { w: "we", t: 12.8 }, { w: "both", t: 13.1 }, { w: "know", t: 13.5 }] },
+        { time: 14.5, photoIdx: 4, words: [{ w: "what", t: 14.5 }, { w: "happened", t: 14.9 }, { w: "to", t: 15.3 }, { w: "you", t: 15.8 }] },
+        { time: 16.5, photoIdx: 5, words: [{ w: "why", t: 16.5 }, { w: "you're", t: 17.0 }, { w: "out", t: 17.4 }, { w: "on", t: 17.8 }, { w: "your", t: 18.2 }, { w: "own", t: 18.6 }] },
+        { time: 19.5, photoIdx: 6, words: [{ w: "merry", t: 19.5 }, { w: "christmas", t: 20.0 }] },
         { time: 21.0, photoIdx: 7, words: [{ w: "please", t: 21.0 }, { w: "don't", t: 21.4 }, { w: "call", t: 21.8 }] },
-        { time: 22.2, photoIdx: 8, words: [{ w: "merry", t: 22.2 }, { w: "christmas", t: 22.5 }] },
-        { time: 23.0, photoIdx: 9, words: [{ w: "please", t: 23.0 }, { w: "don't", t: 23.3 }, { w: "call", t: 23.6 }] }
+        { time: 22.4, photoIdx: 8, words: [{ w: "merry", t: 22.4 }, { w: "christmas", t: 22.7 }] },
+        { time: 23.2, photoIdx: 9, words: [{ w: "please", t: 23.2 }, { w: "don't", t: 23.5 }, { w: "call", t: 23.8 }] }
       ];
 
       let galleryUrls = [];
@@ -296,10 +305,10 @@
       const loadingText = document.getElementById('loadingText');
       const playerCover = document.getElementById('playerCover');
       const overlayCover = document.getElementById('overlayCover');
+      const overlayCoverLoading = document.getElementById('overlayCoverLoading');
       const progressFill = document.getElementById('progressFill');
+      const overlayProgress = document.getElementById('overlayProgress');
       const timeRemaining = document.getElementById('timeRemaining');
-      const siteSlug = document.getElementById('siteSlug');
-      const overlaySlug = document.getElementById('overlaySlug');
 
       function getSlug() {
         const q = new URLSearchParams(window.location.search).get('id');
@@ -312,9 +321,6 @@
         const slug = getSlug();
         if (!slug) return;
 
-        siteSlug.innerText = `@${slug}`;
-        overlaySlug.innerText = `@${slug}`;
-
         try {
           const res = await fetch('/api/config');
           const config = await res.json();
@@ -326,11 +332,17 @@
           if (!data) return;
 
           galleryUrls = data.gallery_urls || [];
-          playerCover.src = data.cover_url || '';
-          overlayCover.src = data.cover_url || '';
+          
+          // Set Cover ke Modal & Player
+          const cUrl = data.cover_url || (galleryUrls.length > 0 ? galleryUrls[0] : '');
+          if (cUrl) {
+            overlayCover.src = cUrl;
+            playerCover.src = cUrl;
+            overlayCoverLoading.classList.add('hidden');
+          }
 
-          // Populate Film Tracks
-          const allImgs = [data.cover_url, ...galleryUrls, ...galleryUrls];
+          // Populate Film Tracks Background
+          const allImgs = [cUrl, ...galleryUrls, ...galleryUrls];
           ['track1', 'track2', 'track3'].forEach(trackId => {
             const track = document.getElementById(trackId);
             track.innerHTML = "";
@@ -342,6 +354,7 @@
             });
           });
 
+          // Set Photo Pertama
           if (galleryUrls.length > 0) {
             activeImage.src = galleryUrls[0];
             activeImage.classList.remove('opacity-0');
@@ -357,7 +370,10 @@
         if (isPlaying) {
           audio.pause();
         } else {
-          if (audio.currentTime >= END_TIME) audio.currentTime = 0;
+          if (audio.currentTime >= END_TIME) {
+            audio.currentTime = 0;
+            activeIndex = -1;
+          }
           audio.play();
           startOverlay.classList.add('hidden-overlay');
         }
@@ -378,16 +394,39 @@
         pauseIcon.classList.add('hidden');
       };
 
+      // FUNGSI AUTO-RESET KETIKA LAGU SELESAI
+      audio.onended = resetToStartOverlay;
+
+      function resetToStartOverlay() {
+        audio.pause();
+        audio.currentTime = 0;
+        isPlaying = false;
+        activeIndex = -1;
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        progressFill.style.width = '0%';
+        overlayProgress.style.width = '0%';
+        timeRemaining.innerText = '-0:24';
+        lyricsContainer.innerText = '"Press play to start..."';
+        
+        // Buka Kembali Start Modal Overlay
+        startOverlay.classList.remove('hidden-overlay');
+      }
+
       audio.ontimeupdate = () => {
         const cur = audio.currentTime;
+
+        // Jika Mencapai Detik 24 -> Auto Reset ke Overlay Awal
         if (cur >= END_TIME) {
-          audio.currentTime = 0;
+          resetToStartOverlay();
           return;
         }
 
         const rem = Math.max(0, END_TIME - cur);
         timeRemaining.innerText = `-0:${Math.ceil(rem).toString().padStart(2, '0')}`;
-        progressFill.style.width = `${(cur / END_TIME) * 100}%`;
+        const pPercent = (cur / END_TIME) * 100;
+        progressFill.style.width = `${pPercent}%`;
+        overlayProgress.style.width = `${pPercent}%`;
 
         let currentIdx = -1;
         for (let i = TIMELINE.length - 1; i >= 0; i--) {
@@ -403,15 +442,15 @@
 
           const pIdx = sec.photoIdx;
           if (galleryUrls[pIdx]) {
-            focusBox.style.transform = "scale(0.9) translateY(10px)";
-            activeImage.classList.add('opacity-0');
+            // VARIASI POP-UP MULTI SUDUT (TIDAK MANTUL DI TEMPAT)
+            const variantClass = `motion-variant-${activeIndex % 4}`;
+            focusBox.className = variantClass;
 
             setTimeout(() => {
               activeImage.src = galleryUrls[pIdx];
               activeImage.classList.remove('opacity-0');
-              focusBox.style.transform = "scale(1.04) translateY(-5px)";
-              setTimeout(() => focusBox.style.transform = "scale(1) translateY(0)", 250);
-            }, 150);
+              focusBox.className = ""; // Reset ke posisi center normal
+            }, 180);
           }
 
           if (sec.words) {

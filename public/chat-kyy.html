@@ -4740,7 +4740,9 @@ async function createNewProject(){
   const nama = prompt('Nama Project baru:');
   if(!nama || !nama.trim()) return;
 
-  const result = await kyyStorageCall({ action: 'create_project', projectName: nama.trim() });
+  const deskripsi = prompt('Mau capai apa di project ini? (boleh dikosongin)') || '';
+
+  const result = await kyyStorageCall({ action: 'create_project', projectName: nama.trim(), description: deskripsi.trim() });
   if(result.error){
     kyyToast(result.error, 'zap', true);
     return;
@@ -4826,6 +4828,7 @@ async function loadProjectDetail(projectId){
     : '<div class="storage-empty-hint">Belum ada file Knowledge.</div>';
 
   body.innerHTML = `
+    ${result.project.description ? `<div class="storage-empty-hint" style="margin-bottom:16px;">${escapeHtml(result.project.description)}</div>` : ''}
     <div class="project-detail-section">
       <div class="project-detail-section-title">Project Knowledge</div>
       ${knowledgeRows}

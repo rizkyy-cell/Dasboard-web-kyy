@@ -147,9 +147,13 @@ module.exports = async function handler(req, res) {
             if (files && files.length > 0) {
                 await admin.storage.from(STORAGE_BUCKET).remove(files.map(f => f.storage_path));
             }
-            // Hapus row project — file di tabel ikut kehapus otomatis lewat ON DELETE CASCADE,
-            // tapi kita hapus eksplisit juga di sini biar aman walau cascade-nya belum aktif.
+            // Hapus row project — file & chat session di tabel lain ikut kehapus otomatis
+            // lewat ON DELETE CASCADE, tapi kita hapus eksplisit juga di sini biar aman
+            // walau cascade-nya belum aktif.
             await admin.from('user_project_files').delete().eq('project_id', projectId).eq('user_id', userId);
+            // PENTING: chat_sessions yang nyantol ke project ini juga harus ikut dihapus,
+            // kalau nggak, chat-nya "ketinggalan" dengan project_id yang udah nggak valid.
+            await admin.from('chat_sessions').delete().eq('project_id', projectId).eq('user_id', userId);
             await admin.from('user_projects').delete().eq('id', projectId).eq('user_id', userId);
 
             return res.status(200).json({ success: true });

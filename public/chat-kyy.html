@@ -1136,6 +1136,101 @@
   }
   .feedback-submit-btn:disabled{opacity:.6; cursor:not-allowed;}
 
+  /* ================= DIALOG KUSTOM (pengganti alert/confirm/prompt bawaan browser) ================= */
+  .kyy-dialog-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:2000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    opacity:0; visibility:hidden;
+    transition:opacity .2s ease, visibility .2s ease;
+  }
+  .kyy-dialog-overlay.show{opacity:1; visibility:visible;}
+  .kyy-dialog-card{
+    background:var(--bg-sidebar);
+    border:1px solid var(--border);
+    width:100%;
+    max-width:380px;
+    border-radius:20px;
+    padding:22px 20px 18px;
+    transform:scale(.94) translateY(8px);
+    opacity:0;
+    transition:transform .22s cubic-bezier(.16,1,.3,1), opacity .22s ease;
+  }
+  .kyy-dialog-overlay.show .kyy-dialog-card{transform:scale(1) translateY(0); opacity:1;}
+  .kyy-dialog-icon{
+    width:44px; height:44px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:14px;
+    background:rgba(255,255,255,.08);
+    color:var(--text-main);
+  }
+  .kyy-dialog-icon.danger{ background:rgba(239,68,68,.15); color:#ef4444; }
+  .kyy-dialog-title{
+    font-size:16px; font-weight:700;
+    color:var(--text-main);
+    margin-bottom:6px;
+  }
+  .kyy-dialog-message{
+    font-size:13.5px; line-height:1.5;
+    color:var(--text-soft);
+    margin-bottom:16px;
+    white-space:pre-line;
+  }
+  .kyy-dialog-field{ margin-bottom:12px; }
+  .kyy-dialog-field label{
+    display:block;
+    font-size:12.5px; font-weight:600;
+    color:var(--text-soft);
+    margin-bottom:6px;
+  }
+  .kyy-dialog-input, .kyy-dialog-textarea{
+    width:100%;
+    background:var(--bg-input);
+    border:1px solid var(--border);
+    border-radius:12px;
+    color:var(--text-main);
+    padding:11px 13px;
+    font-size:14px;
+    font-family:inherit;
+    box-sizing:border-box;
+  }
+  .kyy-dialog-input:focus, .kyy-dialog-textarea:focus{
+    outline:none; border-color:var(--accent);
+  }
+  .kyy-dialog-textarea{ resize:vertical; min-height:70px; }
+  .kyy-dialog-actions{
+    display:flex; gap:10px;
+    margin-top:6px;
+  }
+  .kyy-dialog-btn{
+    flex:1;
+    padding:12px;
+    border-radius:99px;
+    font-weight:700;
+    font-size:14px;
+    border:none;
+    cursor:pointer;
+    transition:opacity .15s ease, transform .1s ease;
+    font-family:inherit;
+  }
+  .kyy-dialog-btn:active{ transform:scale(.97); }
+  .kyy-dialog-btn.cancel{
+    background:rgba(255,255,255,.08);
+    color:var(--text-main);
+  }
+  .kyy-dialog-btn.confirm{
+    background:#fff; color:#111;
+  }
+  .kyy-dialog-btn.confirm.danger{
+    background:#ef4444; color:#fff;
+  }
+  .kyy-dialog-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
   .panel-header-custom {
     display:flex;
     align-items:center;
@@ -1915,6 +2010,16 @@
   </div>
 </div>
 
+<div class="kyy-dialog-overlay" id="kyyDialogOverlay">
+  <div class="kyy-dialog-card" onclick="event.stopPropagation()">
+    <div class="kyy-dialog-icon" id="kyyDialogIcon"></div>
+    <div class="kyy-dialog-title" id="kyyDialogTitle"></div>
+    <div class="kyy-dialog-message" id="kyyDialogMessage"></div>
+    <div id="kyyDialogFields"></div>
+    <div class="kyy-dialog-actions" id="kyyDialogActions"></div>
+  </div>
+</div>
+
 <div class="feedback-modal-overlay" id="feedbackModalOverlay" onclick="closeFeedbackModal(event)">
   <div class="feedback-modal-card" onclick="event.stopPropagation()">
     <div class="feedback-modal-handle"></div>
@@ -2159,7 +2264,11 @@ const KYY_ICON_PATHS = {
   'code-2': '<polyline points="18 16 22 12 18 8"></polyline><polyline points="6 8 2 12 6 16"></polyline><line x1="14.5" y1="4" x2="9.5" y2="20"></line>',
   check: '<polyline points="20 6 9 17 4 12"></polyline>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>',
-  folder: '<path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-2H5a2 2 0 0 0-2 2z"></path>'
+  folder: '<path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-8l-2-2H5a2 2 0 0 0-2 2z"></path>',
+  'help-circle': '<circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+  'alert-triangle': '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+  info: '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>',
+  'edit-3': '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>'
 };
 function kyyIcon(name, size){
   const s = size || 16;
@@ -3386,24 +3495,56 @@ function libSanitizeFilename(name){
   return (name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
+// Cek apakah user udah punya file dengan nama sama di Library.
+// Kalau ada, kita replace (hapus file lama di storage + update row-nya),
+// jadi nggak numpuk row duplikat dengan nama yang sama.
+async function libFindExistingByName(fileName){
+  if(!currentUser) return null;
+  const { data, error } = await supabaseClient
+    .from('file_library')
+    .select('id, storage_path')
+    .eq('user_id', currentUser.id)
+    .eq('file_name', fileName)
+    .maybeSingle();
+  if(error) return null;
+  return data || null;
+}
+
 // setara POST /upload-user — dipanggil otomatis tiap file berhasil dilampirkan user
 async function libSaveUserFile(file){
   if(!currentUser || !file) return;
   try{
+    const existing = await libFindExistingByName(file.name);
     const path = `${currentUser.id}/${Date.now()}-${libSanitizeFilename(file.name)}`;
     const { error: upErr } = await supabaseClient.storage.from(LIBRARY_BUCKET).upload(path, file, { upsert:false });
     if(upErr) throw upErr;
 
-    const { error: dbErr } = await supabaseClient.from('file_library').insert({
-      user_id: currentUser.id,
-      origin_session_id: currentSessionId || null,
-      file_name: file.name,
-      mime_type: file.type || 'application/octet-stream',
-      file_size: file.size,
-      source: 'user',
-      storage_path: path
-    });
-    if(dbErr) throw dbErr;
+    if(existing){
+      // Replace: update row lama ke path baru, lalu hapus file lama dari storage
+      const { error: updErr } = await supabaseClient.from('file_library').update({
+        origin_session_id: currentSessionId || null,
+        mime_type: file.type || 'application/octet-stream',
+        file_size: file.size,
+        source: 'user',
+        storage_path: path,
+        created_at: new Date().toISOString()
+      }).eq('id', existing.id);
+      if(updErr) throw updErr;
+      if(existing.storage_path){
+        supabaseClient.storage.from(LIBRARY_BUCKET).remove([existing.storage_path]).catch(()=>{});
+      }
+    } else {
+      const { error: dbErr } = await supabaseClient.from('file_library').insert({
+        user_id: currentUser.id,
+        origin_session_id: currentSessionId || null,
+        file_name: file.name,
+        mime_type: file.type || 'application/octet-stream',
+        file_size: file.size,
+        source: 'user',
+        storage_path: path
+      });
+      if(dbErr) throw dbErr;
+    }
   }catch(err){
     console.warn('Gagal simpan file user ke Library:', err);
   }
@@ -3413,21 +3554,37 @@ async function libSaveUserFile(file){
 async function libSaveAiFile(blob, filename){
   if(!currentUser || !blob) return;
   try{
+    const existing = await libFindExistingByName(filename);
     const path = `${currentUser.id}/${Date.now()}-${libSanitizeFilename(filename)}`;
     const { error: upErr } = await supabaseClient.storage.from(LIBRARY_BUCKET)
       .upload(path, blob, { upsert:false, contentType: blob.type || 'application/octet-stream' });
     if(upErr) throw upErr;
 
-    const { error: dbErr } = await supabaseClient.from('file_library').insert({
-      user_id: currentUser.id,
-      origin_session_id: currentSessionId || null,
-      file_name: filename,
-      mime_type: blob.type || 'application/octet-stream',
-      file_size: blob.size,
-      source: 'ai',
-      storage_path: path
-    });
-    if(dbErr) throw dbErr;
+    if(existing){
+      const { error: updErr } = await supabaseClient.from('file_library').update({
+        origin_session_id: currentSessionId || null,
+        mime_type: blob.type || 'application/octet-stream',
+        file_size: blob.size,
+        source: 'ai',
+        storage_path: path,
+        created_at: new Date().toISOString()
+      }).eq('id', existing.id);
+      if(updErr) throw updErr;
+      if(existing.storage_path){
+        supabaseClient.storage.from(LIBRARY_BUCKET).remove([existing.storage_path]).catch(()=>{});
+      }
+    } else {
+      const { error: dbErr } = await supabaseClient.from('file_library').insert({
+        user_id: currentUser.id,
+        origin_session_id: currentSessionId || null,
+        file_name: filename,
+        mime_type: blob.type || 'application/octet-stream',
+        file_size: blob.size,
+        source: 'ai',
+        storage_path: path
+      });
+      if(dbErr) throw dbErr;
+    }
   }catch(err){
     console.warn('Gagal simpan file AI ke Library:', err);
   }
@@ -3470,7 +3627,7 @@ async function libAttachToChat(fileId){
 async function libDeleteFile(fileId){
   const fileRow = libraryDataMap[fileId];
   if(!fileRow) return;
-  if(!confirm(`Hapus "${fileRow.file_name}" dari Library? File akan hilang permanen.`)) return;
+  if(!await kyyConfirm(`Hapus "${fileRow.file_name}" dari Library? File akan hilang permanen.`, { title:'Hapus File', danger:true, confirmLabel:'Hapus' })) return;
 
   try{
     await supabaseClient.storage.from(LIBRARY_BUCKET).remove([fileRow.storage_path]);
@@ -3547,7 +3704,7 @@ async function addAttachment(file){
   const limitMB = category === 'video' ? MAX_VIDEO_MB : MAX_ATTACHMENT_MB;
 
   if(file.size > limitMB * 1024 * 1024){
-    alert(`File "${file.name}" terlalu besar (maks ${limitMB}MB${category === 'video' ? ' untuk video' : ''}).`);
+    kyyToast(`File "${file.name}" terlalu besar (maks ${limitMB}MB${category === 'video' ? ' untuk video' : ''}).`, 'alert-triangle', true);
     return;
   }
 
@@ -3744,6 +3901,30 @@ async function ensureSession(firstText){
   }
 
   loadHistoryForCurrentUser();
+}
+
+// Dipanggil sekali aja, setelah balasan pertama AI selesai di sesi baru.
+// Judul awal (potongan teks) tetap dipakai sementara sampai ini selesai,
+// jadi chat tetap langsung punya nama walau request ini agak lama/gagal.
+async function generateSmartTitle(sessionId, userText, aiText){
+  if(!currentUser || !sessionId) return; // guest / lokal: tetap pakai judul potongan teks
+
+  try{
+    const accessToken = await kyyGetAccessToken();
+    if(!accessToken) return;
+
+    const res = await fetch('/api/generate-title', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken, sessionId, userText, aiText })
+    });
+    const data = await res.json();
+    if(data.title){
+      loadHistoryForCurrentUser(); // refresh sidebar biar judul baru langsung kelihatan
+    }
+  }catch(err){
+    console.warn('Gagal generate judul otomatis (nggak masalah, tetap pakai judul awal):', err);
+  }
 }
 
 async function persistMessage(role, content){
@@ -3963,7 +4144,7 @@ async function renderDeepSearchUsageTracker(){
 
 function bukaUpgradeVip(){
   // TODO: arahkan ke halaman/flow pembelian VIP kamu (mis. buka modal paket atau redirect ke link pembayaran)
-  alert('Fitur saat ini masih dalam pengembangan, jika kamu serius ingin menggunakan fitur ini silakan hubungi pengembang.');
+  kyyToast('Fitur masih dalam pengembangan. Hubungi pengembang kalau serius mau pakai ini.', 'info');
 }
 
 function closeSettingsPopup(e){
@@ -4188,6 +4369,12 @@ async function sendMessage(){
   messages.push({ role: 'assistant', content: replyText });
   await persistMessage('assistant', replyText);
 
+  // Judul chat yang lebih "ngerti konteks" — dipanggil sekali aja setelah
+  // balasan pertama, nggak nunggu (fire-and-forget) biar UI nggak keblok.
+  if(isFirstMsg){
+    generateSmartTitle(currentSessionId, finalTextUI, replyText);
+  }
+
   // BUKA KEMBALI KUNCI TOMBOL KIRIM & INPUT TEKS
   sending = false;
   if(sendBtn) sendBtn.disabled = false;
@@ -4294,6 +4481,109 @@ function renderMessages(){
 }
 
 /* ================= TOAST NOTIFIKASI (pengganti alert() bawaan browser) ================= */
+/* ================= DIALOG KUSTOM (pengganti confirm/alert/prompt bawaan browser) =================
+   Semua fungsi ini Promise-based, jadi dipakainya pakai await, mirip cara pakai
+   confirm()/prompt() aslinya, tapi tampilannya konsisten sama tema app. */
+let kyyDialogResolver = null;
+
+function kyyCloseDialog(result){
+  document.getElementById('kyyDialogOverlay').classList.remove('show');
+  if(kyyDialogResolver){
+    const resolve = kyyDialogResolver;
+    kyyDialogResolver = null;
+    resolve(result);
+  }
+}
+
+function kyyOpenDialog({ icon = 'help-circle', danger = false, title, message, fieldsHtml = '', actionsHtml }){
+  const overlay = document.getElementById('kyyDialogOverlay');
+  document.getElementById('kyyDialogIcon').className = 'kyy-dialog-icon' + (danger ? ' danger' : '');
+  document.getElementById('kyyDialogIcon').innerHTML = kyyIcon(icon, 20);
+  document.getElementById('kyyDialogTitle').textContent = title || '';
+  document.getElementById('kyyDialogMessage').textContent = message || '';
+  document.getElementById('kyyDialogMessage').style.display = message ? 'block' : 'none';
+  document.getElementById('kyyDialogFields').innerHTML = fieldsHtml;
+  document.getElementById('kyyDialogActions').innerHTML = actionsHtml;
+  requestAnimationFrame(() => overlay.classList.add('show'));
+}
+
+// Pengganti confirm() — resolve(true) kalau user pilih "Ya", resolve(false) kalau batal.
+function kyyConfirm(message, { title = 'Konfirmasi', danger = false, confirmLabel = 'Ya', cancelLabel = 'Batal' } = {}){
+  return new Promise(resolve => {
+    kyyDialogResolver = resolve;
+    kyyOpenDialog({
+      icon: danger ? 'alert-triangle' : 'help-circle',
+      danger,
+      title,
+      message,
+      actionsHtml: `
+        <button type="button" class="kyy-dialog-btn cancel" onclick="kyyCloseDialog(false)">${escapeHtml(cancelLabel)}</button>
+        <button type="button" class="kyy-dialog-btn confirm${danger ? ' danger' : ''}" onclick="kyyCloseDialog(true)">${escapeHtml(confirmLabel)}</button>
+      `
+    });
+  });
+}
+
+// Pengganti alert() — resolve() begitu user tekan "Oke". Nggak ada tombol batal.
+function kyyAlertModal(message, { title = 'Pemberitahuan', icon = 'info' } = {}){
+  return new Promise(resolve => {
+    kyyDialogResolver = resolve;
+    kyyOpenDialog({
+      icon,
+      title,
+      message,
+      actionsHtml: `<button type="button" class="kyy-dialog-btn confirm" onclick="kyyCloseDialog()">Oke</button>`
+    });
+  });
+}
+
+// Pengganti prompt() — bisa 1 field atau lebih (misal: nama + deskripsi project).
+// fields: [{ id, label, placeholder, multiline, required }]
+// Resolve dengan object { id: value, ... } kalau user submit, atau null kalau batal.
+function kyyPromptModal({ title = 'Isi Data', message = '', fields = [], confirmLabel = 'Simpan' }){
+  return new Promise(resolve => {
+    kyyDialogResolver = resolve;
+    const fieldsHtml = fields.map(f => `
+      <div class="kyy-dialog-field">
+        <label for="kyyField_${f.id}">${escapeHtml(f.label)}</label>
+        ${f.multiline
+          ? `<textarea class="kyy-dialog-textarea" id="kyyField_${f.id}" placeholder="${escapeHtml(f.placeholder||'')}"></textarea>`
+          : `<input type="text" class="kyy-dialog-input" id="kyyField_${f.id}" placeholder="${escapeHtml(f.placeholder||'')}" />`}
+      </div>
+    `).join('');
+
+    kyyOpenDialog({
+      icon: 'edit-3',
+      title,
+      message,
+      fieldsHtml,
+      actionsHtml: `
+        <button type="button" class="kyy-dialog-btn cancel" onclick="kyyCloseDialog(null)">Batal</button>
+        <button type="button" class="kyy-dialog-btn confirm" id="kyyDialogSubmitBtn">${escapeHtml(confirmLabel)}</button>
+      `
+    });
+
+    // Submit dipisah dari onclick inline biar bisa baca nilai field-nya dulu
+    document.getElementById('kyyDialogSubmitBtn').onclick = () => {
+      const values = {};
+      let hasEmpty = false;
+      fields.forEach(f => {
+        const el = document.getElementById(`kyyField_${f.id}`);
+        values[f.id] = el ? el.value.trim() : '';
+        if(f.required && !values[f.id]) hasEmpty = true;
+      });
+      if(hasEmpty) return; // biarin dialog tetap kebuka kalau field wajib kosong
+      kyyCloseDialog(values);
+    };
+
+    // Fokus ke field pertama biar user bisa langsung ngetik
+    setTimeout(() => {
+      const first = fields[0] && document.getElementById(`kyyField_${fields[0].id}`);
+      if(first) first.focus();
+    }, 260);
+  });
+}
+
 let kyyToastTimer = null;
 function kyyToast(text, iconName, isError){
   let el = document.getElementById('kyyToast');
@@ -4340,7 +4630,7 @@ function kyyStopSpeaking(){
 }
 function toggleSpeak(idx, btn){
   if(!('speechSynthesis' in window)){
-    alert('Browser ini tidak mendukung fitur suara (Web Speech API).');
+    kyyToast('Browser ini tidak mendukung fitur suara (Web Speech API).', 'alert-triangle', true);
     return;
   }
   if(kyySpeakingBtn === btn){
@@ -4657,7 +4947,7 @@ function toggleStorageProjectFiles(projectId){
 
 async function deleteStorageProject(projectId, event){
   if(event) event.stopPropagation();
-  if(!confirm('Hapus seluruh project ini beserta semua filenya? Nggak bisa dibatalin.')) return;
+  if(!await kyyConfirm('Hapus seluruh project ini beserta semua filenya? Nggak bisa dibatalin.', { title:'Hapus Project', danger:true, confirmLabel:'Hapus' })) return;
 
   const result = await kyyStorageCall({ action: 'delete_project', projectId });
   if(result.error){
@@ -4666,11 +4956,23 @@ async function deleteStorageProject(projectId, event){
   }
   kyyToast('Project berhasil dihapus.', 'trash-2');
   loadStorageData('storageProjectList', false);
+  loadHistoryForCurrentUser(); // biar chat yg ikut kehapus langsung hilang dari sidebar
+
+  // Kalau chat yang lagi dibuka ada di dalam project yang barusan dihapus, reset ke layar kosong
+  if(currentProjectId === projectId){
+    kyyStopSpeaking();
+    currentSessionId = null;
+    currentProjectId = null;
+    messages = [];
+    renderMessages();
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('chatInner').style.display = 'none';
+  }
 }
 
 async function deleteStorageFile(fileId, event){
   if(event) event.stopPropagation();
-  if(!confirm('Hapus file ini?')) return;
+  if(!await kyyConfirm('Hapus file ini?', { title:'Hapus File', danger:true, confirmLabel:'Hapus' })) return;
 
   const result = await kyyStorageCall({ action: 'delete_file', fileId });
   if(result.error){
@@ -4737,24 +5039,31 @@ async function loadProjectsList(){
 }
 
 async function createNewProject(){
-  const nama = prompt('Nama Project baru:');
-  if(!nama || !nama.trim()) return;
+  const values = await kyyPromptModal({
+    title: 'Project Baru',
+    confirmLabel: 'Buat Project',
+    fields: [
+      { id: 'nama', label: 'Nama Project', placeholder: 'mis. Rumah 3 Phase', required: true },
+      { id: 'deskripsi', label: 'Mau capai apa di project ini? (opsional)', placeholder: 'Boleh dikosongin', multiline: true }
+    ]
+  });
+  if(!values) return; // batal
+  const nama = values.nama;
+  const deskripsi = values.deskripsi || '';
 
-  const deskripsi = prompt('Mau capai apa di project ini? (boleh dikosongin)') || '';
-
-  const result = await kyyStorageCall({ action: 'create_project', projectName: nama.trim(), description: deskripsi.trim() });
+  const result = await kyyStorageCall({ action: 'create_project', projectName: nama, description: deskripsi });
   if(result.error){
     kyyToast(result.error, 'zap', true);
     return;
   }
 
-  kyyToast(`Project "${nama.trim()}" berhasil dibuat!`, 'sparkles');
+  kyyToast(`Project "${nama}" berhasil dibuat!`, 'sparkles');
   loadProjectsList();
 }
 
 async function deleteProjectFromList(event, projectId, projectName){
   event.stopPropagation();
-  if(!confirm(`Hapus Project "${projectName}"? Semua file Knowledge & chat di dalamnya ikut kehapus.`)) return;
+  if(!await kyyConfirm(`Hapus Project "${projectName}"? Semua file Knowledge & chat di dalamnya ikut kehapus.`, { title:'Hapus Project', danger:true, confirmLabel:'Hapus' })) return;
 
   const result = await kyyStorageCall({ action: 'delete_project', projectId });
   if(result.error){
@@ -4764,6 +5073,18 @@ async function deleteProjectFromList(event, projectId, projectName){
 
   kyyToast('Project dihapus.', 'trash-2', true);
   loadProjectsList();
+  loadHistoryForCurrentUser(); // biar chat yg ikut kehapus langsung hilang dari sidebar
+
+  // Kalau chat yang lagi dibuka ada di dalam project yang barusan dihapus, reset ke layar kosong
+  if(currentProjectId === projectId){
+    kyyStopSpeaking();
+    currentSessionId = null;
+    currentProjectId = null;
+    messages = [];
+    renderMessages();
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('chatInner').style.display = 'none';
+  }
 }
 
 let kyyProjectDetailCache = null; // { project, files } project yang lagi dibuka
@@ -4895,7 +5216,7 @@ async function handleKnowledgeUpload(event, projectId){
 }
 
 async function deleteKnowledgeFile(fileId, projectId){
-  if(!confirm('Hapus file ini dari Knowledge?')) return;
+  if(!await kyyConfirm('Hapus file ini dari Knowledge?', { title:'Hapus File', danger:true, confirmLabel:'Hapus' })) return;
   const result = await kyyStorageCall({ action: 'delete_file', fileId });
   if(result.error){
     kyyToast(result.error, 'zap', true);
@@ -5191,7 +5512,7 @@ async function saveCustomConfig() {
 
 async function deleteCustomConfig(provider) {
   const label = provider === 'openrouter' ? 'OpenRouter' : 'Gemini';
-  if (!confirm(`Yakin mau hapus Custom Config ${label}?`)) return;
+  if (!await kyyConfirm(`Yakin mau hapus Custom Config ${label}?`, { title:'Hapus Config', danger:true, confirmLabel:'Hapus' })) return;
 
   if (provider === 'openrouter') {
     document.getElementById('customOpenRouterKeyInput').value = '';
@@ -5288,7 +5609,7 @@ function openItemHistoryMenu(sess, anchorRect){
 async function deleteAllSessions(){
   const allIds = Array.from(document.querySelectorAll('.chat-item')).map(el => el.dataset.id).filter(Boolean);
   if (allIds.length === 0) return;
-  if (!confirm(`Hapus semua ${allIds.length} riwayat obrolan?`)) return;
+  if (!await kyyConfirm(`Hapus semua ${allIds.length} riwayat obrolan?`, { title:'Hapus Semua Riwayat', danger:true, confirmLabel:'Hapus Semua' })) return;
 
   for (let id of allIds) {
     await deleteSession(id);
@@ -5352,7 +5673,7 @@ function updateSelectUI() {
 
 async function deleteSelectedSessions() {
   if (selectedSessionIds.size === 0) return;
-  if (!confirm(`Hapus ${selectedSessionIds.size} sesi terpilih?`)) return;
+  if (!await kyyConfirm(`Hapus ${selectedSessionIds.size} sesi terpilih?`, { title:'Hapus Sesi Terpilih', danger:true, confirmLabel:'Hapus' })) return;
 
   for (let id of selectedSessionIds) {
     await deleteSession(id);

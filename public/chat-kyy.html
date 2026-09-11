@@ -993,6 +993,11 @@
   }
   .send-btn:hover{background:var(--accent-hover);}
   .send-btn:disabled{background:var(--border);cursor:not-allowed;}
+  /* Mode "stop" — tombol kirim berubah jadi tombol batal selagi AI lagi mikir/balas,
+     persis kayak Claude.ai: ikon panah berganti jadi kotak, warnanya beda biar
+     jelas ini aksi "hentikan", bukan "kirim". */
+  .send-btn.stop-mode{ background:#ef4444; cursor:pointer; }
+  .send-btn.stop-mode:hover{ background:#dc2626; }
   .disclaimer{
     text-align:center;
     font-size:11px;
@@ -1901,8 +1906,8 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </button>
         <textarea id="userInput" placeholder="Reply JRxREZKYY..." rows="1" onkeydown="handleKey(event)" oninput="autoGrow(this)"></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <button class="send-btn" id="sendBtn" onclick="handleSendBtnClick()">
+          <svg id="sendBtnIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         </button>
       </div>
       <div class="disclaimer">jrxrezkyy dapat membuat kesalahan. Periksa kembali jawaban penting.</div>
@@ -3153,6 +3158,11 @@ let currentSessionId = null;
 let currentProjectId = null; // null = chat biasa di luar Project manapun
 let messages = [];
 let sending = false;
+// Dipegang sama sendMessage() (buat fetch) dan cancelSendMessage() (buat batalin).
+// null kalau lagi nggak ada request AI yang jalan.
+let kyyActiveAbortController = null;
+// Dicek di catch block buat bedain "dibatalin manual sama user" vs "timeout".
+let kyyUserCancelledSend = false;
 let guestSessions = [];
 let pendingAttachments = [];   
 
@@ -3787,7 +3797,11 @@ function updateSendBtnState(){
   const btn = document.getElementById('sendBtn');
   if(!btn) return;
   const stillLoading = pendingAttachments.some(a => a.loading);
-  btn.disabled = (stillLoading || sending);
+  // PENTING: jangan ikutan disable tombol pas `sending` true — soalnya pas AI lagi
+  // mikir/balas, tombol ini berubah jadi tombol "Stop" (lihat kyySetSendBtnStopMode)
+  // dan harus TETAP bisa diklik biar user bisa batalin. Yang disable cuma pas
+  // lampiran file masih dimuat.
+  btn.disabled = stillLoading;
   btn.title = stillLoading ? 'Menunggu file selesai dimuat...' : '';
 }
 
@@ -4201,23 +4215,75 @@ async function getCrossSessionContext(limit = 40){
   }
 }
 
+/* ================= TOMBOL KIRIM ↔ STOP (batalin balasan yang lagi diproses) =================
+   Persis konsep Claude.ai: selagi AI lagi mikir/balas, tombol kirim berubah jadi
+   tombol "Stop". Diklik -> fetch ke backend dibatalin paksa (AbortController),
+   kolom chat langsung kebuka lagi tanpa nunggu apa-apa lagi. */
+
+// Ganti tampilan & fungsi tombol kirim sesuai status lagi ngirim atau nggak.
+function kyySetSendBtnStopMode(isStop){
+  const sendBtn = document.getElementById('sendBtn');
+  const icon = document.getElementById('sendBtnIcon');
+  if(!sendBtn || !icon) return;
+
+  if(isStop){
+    sendBtn.classList.add('stop-mode');
+    sendBtn.title = 'Hentikan';
+    // ikon kotak kecil (universal buat "stop"), ganti dari panah kirim
+    icon.outerHTML = '<svg id="sendBtnIcon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2.5"></rect></svg>';
+  } else {
+    sendBtn.classList.remove('stop-mode');
+    sendBtn.title = 'Kirim';
+    icon.outerHTML = '<svg id="sendBtnIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+  }
+}
+
+// Ini yang dipanggil dari onclick tombol kirim — nentuin mau kirim pesan baru
+// atau batalin yang lagi jalan, tergantung status `sending` saat ini.
+function handleSendBtnClick(){
+  if(sending){
+    cancelSendMessage();
+  } else {
+    sendMessage();
+  }
+}
+
+// Dipanggil pas user klik tombol Stop selagi AI lagi mikir/balas.
+function cancelSendMessage(){
+  if(!sending || !kyyActiveAbortController) return;
+  kyyUserCancelledSend = true;
+  kyyActiveAbortController.abort();
+  // Nggak perlu urus sisanya di sini — begitu fetch ke-abort, blok catch di
+  // sendMessage() yang bakal nangani (ngasih pesan "Dibatalkan." + buka kunci
+  // kolom lewat finally), jadi nggak ada logic yang keduplikat di sini.
+}
+
 async function sendMessage(){
   // BENTENG ANTI-SPAM
   if(sending) return;
 
   const input = document.getElementById('userInput');
-  const sendBtn = document.getElementById('sendBtn');
   const text = input.value.trim();
   
   if(!text && pendingAttachments.length === 0) return;
   if(pendingAttachments.some(a => a.loading)) return;
 
-  // LANGSUNG KUNCI TOMBOL KIRIM & INPUT
+  // LANGSUNG KUNCI INPUT & UBAH TOMBOL KIRIM JADI TOMBOL "STOP"
+  // (tombolnya TETAP bisa diklik — bedanya sekarang aksinya "batalin", bukan "kirim")
   sending = true;
-  if(sendBtn) sendBtn.disabled = true;
+  kyyUserCancelledSend = false;
   if(input) input.disabled = true;
+  kyySetSendBtnStopMode(true);
 
   // 1. KUMPULKAN RIWAYAT & BERSIHKAN RACUN HALUSINASI MODE
+  // Semua proses di bawah ini (sampai ke "finally" di akhir fungsi) dibungkus
+  // try/finally supaya APAPUN yang error/gagal di tengah jalan — koneksi
+  // Supabase putus, backend AI menggantung/diblokir filter konten, dll —
+  // kolom chat & tombol kirim TETAP kebuka lagi. Sebelumnya cuma bagian fetch
+  // yang dibungkus try/catch, jadi kalau error terjadi SEBELUM fetch (misal pas
+  // ambil histori atau bikin sesi baru), fungsi berhenti mendadak dan kolom
+  // chat kekunci permanen sampai reload halaman.
+  try{
   const crossContext = await getCrossSessionContext();
   const rawHistory = [...crossContext, ...messages];
   const riwayatKirim = rawHistory.map(item => {
@@ -4338,16 +4404,39 @@ async function sendMessage(){
       payloadKirim.videoFileList = videoReadyAtts.map(a => ({ uri: a.fileUri, mimeType: a.mime }));
     }
 
-    const res = await fetch(targetEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payloadKirim)
-    });
+    // Controller ini dipakai buat DUA hal: (1) timeout otomatis 60 detik kalau
+    // backend nggak balas, dan (2) tombol "Stop" yang diklik manual sama user.
+    // Disimpan ke variabel global (kyyActiveAbortController) biar cancelSendMessage()
+    // bisa manggil .abort() dari luar fungsi ini.
+    const abortCtrl = new AbortController();
+    kyyActiveAbortController = abortCtrl;
+    const timeoutId = setTimeout(() => abortCtrl.abort(), 60000);
 
-    const data = await res.json();
+    let res;
+    try{
+      res = await fetch(targetEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadKirim),
+        signal: abortCtrl.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+      kyyActiveAbortController = null;
+    }
+
+    let data;
+    try{
+      data = await res.json();
+    }catch(parseErr){
+      // Backend balikin respons yang bukan JSON valid (misal HTML error page,
+      // atau body kosong karena diblokir filter konten server) — anggap ini
+      // sebagai error yang jelas, bukan bikin fungsi berhenti diam-diam.
+      throw new Error(`Server memberi respons tidak valid (status ${res.status}).`);
+    }
     document.getElementById('typingRow')?.remove();
 
-    replyText = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons)');
+    replyText = data.error ? '**Error:** ' + data.error : (data.balasan || '(tidak ada respons — kemungkinan pesan kamu ke-filter oleh sistem keamanan AI. Coba ubah kalimatnya dan kirim ulang.)');
 
     // Kalau Deep Search ditolak (belum login / kredit habis), matikan toggle-nya
     // dan kasih tahu user secara jelas lewat notifikasi kecil di atas tombol.
@@ -4363,7 +4452,16 @@ async function sendMessage(){
     }
   } catch(err){
     document.getElementById('typingRow')?.remove();
-    replyText = '**Error koneksi:** ' + err.message;
+    kyyActiveAbortController = null;
+    if(err.name === 'AbortError' && kyyUserCancelledSend){
+      // User sendiri yang klik tombol Stop — bukan error, jadi nggak perlu
+      // ditampilin sebagai pesan "Error" yang bikin panik.
+      replyText = '⏹️ *Dibatalkan.*';
+    } else if(err.name === 'AbortError'){
+      replyText = '**Error:** AI tidak merespons dalam waktu 60 detik (kemungkinan pesan ke-filter atau server sedang bermasalah). Coba kirim ulang atau ubah kalimatnya.';
+    } else {
+      replyText = '**Error koneksi:** ' + err.message;
+    }
   }
 
   messages.push({ role: 'assistant', content: replyText });
@@ -4371,17 +4469,29 @@ async function sendMessage(){
 
   // Judul chat yang lebih "ngerti konteks" — dipanggil sekali aja setelah
   // balasan pertama, nggak nunggu (fire-and-forget) biar UI nggak keblok.
-  if(isFirstMsg){
+  // Dilewatin kalau dibatalin, karena nggak ada balasan AI yang bisa dijadiin konteks.
+  if(isFirstMsg && !kyyUserCancelledSend){
     generateSmartTitle(currentSessionId, finalTextUI, replyText);
   }
 
-  // BUKA KEMBALI KUNCI TOMBOL KIRIM & INPUT TEKS
-  sending = false;
-  if(sendBtn) sendBtn.disabled = false;
-  if(input) input.disabled = false;
-  
   renderMessages();
   scrollDown();
+
+  } catch(fatalErr){
+    // Jaring pengaman terakhir: error tak terduga di titik manapun (histori,
+    // bikin sesi, simpan pesan, dst) tetap ketangkep di sini, jadi kolom chat
+    // TETAP kebuka lagi lewat "finally" di bawah, bukan kekunci selamanya.
+    console.error('sendMessage gagal total:', fatalErr);
+    document.getElementById('typingRow')?.remove();
+    kyyToast('Terjadi kesalahan, coba kirim ulang pesannya.', 'alert-triangle', true);
+  } finally {
+    // BUKA KEMBALI KUNCI TOMBOL KIRIM & INPUT TEKS — ini SELALU dijalankan,
+    // apapun yang terjadi di atas (sukses, error, timeout, dibatalin manual).
+    sending = false;
+    kyyActiveAbortController = null;
+    if(input) input.disabled = false;
+    kyySetSendBtnStopMode(false);
+  }
 }
 
 function renderMessages(){

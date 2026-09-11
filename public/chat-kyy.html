@@ -3941,16 +3941,21 @@ async function generateSmartTitle(sessionId, userText, aiText){
   }
 }
 
-async function persistMessage(role, content){
+// msgRef (opsional): kalau dikasih object pesan dari array `messages`, timestamp
+// created_at hasil insert bakal ditempel ke situ (msgRef.createdAt). Ini dipakai
+// fitur "Edit pesan" buat tau persis dari titik mana histori harus dihapus pas
+// user edit & kirim ulang pesan lama.
+async function persistMessage(role, content, msgRef){
   if(currentUser && currentSessionId){
     try{
-      const { error } = await supabaseClient.from('chat_history').insert({
+      const { data, error } = await supabaseClient.from('chat_history').insert({
         session_id: currentSessionId,
         user_id: currentUser.id,
         role,
         content
-      });
+      }).select('created_at').single();
       if(error) throw error;
+      if(msgRef && data?.created_at) msgRef.createdAt = data.created_at;
     }catch(err){
       console.warn('Gagal simpan pesan ke Supabase:', err);
     }
@@ -3971,12 +3976,12 @@ async function loadSession(id){
     try{
       const [{ data: sess }, { data: msgs, error }] = await Promise.all([
         supabaseClient.from('chat_sessions').select('mode,project_id').eq('id', id).single(),
-        supabaseClient.from('chat_history').select('role,content').eq('session_id', id).order('created_at', { ascending: true })
+        supabaseClient.from('chat_history').select('role,content,created_at').eq('session_id', id).order('created_at', { ascending: true })
       ]);
       if(error) throw error;
       currentMode = sess?.mode || currentMode;
       currentProjectId = sess?.project_id || null;
-      messages = (msgs || []).map(m => ({ role: m.role, content: m.content }));
+      messages = (msgs || []).map(m => ({ role: m.role, content: m.content, createdAt: m.created_at }));
     }catch(err){
       console.warn('Gagal buka riwayat dari Supabase:', err);
       messages = [];
@@ -4329,7 +4334,8 @@ async function sendMessage(){
     category: a.category,
     previewUrl: (a.category === 'image' || a.category === 'video') ? a.previewUrl : null
   }));
-  messages.push({ role: 'user', content: finalTextUI, rawText: text, attachments: attachSnapshot });
+  const userMsgObj = { role: 'user', content: finalTextUI, rawText: text, attachments: attachSnapshot };
+  messages.push(userMsgObj);
   input.value = '';
   autoGrow(input);
   pendingAttachments = [];       
@@ -4338,7 +4344,7 @@ async function sendMessage(){
   scrollDown();
 
   if(isFirstMsg) await ensureSession(finalTextUI);
-  await persistMessage('user', finalTextUI);
+  await persistMessage('user', finalTextUI, userMsgObj);
 
   const inner = document.getElementById('chatInner');
   const typingRow = document.createElement('div');
@@ -4464,8 +4470,9 @@ async function sendMessage(){
     }
   }
 
-  messages.push({ role: 'assistant', content: replyText });
-  await persistMessage('assistant', replyText);
+  const assistantMsgObj = { role: 'assistant', content: replyText };
+  messages.push(assistantMsgObj);
+  await persistMessage('assistant', replyText, assistantMsgObj);
 
   // Judul chat yang lebih "ngerti konteks" — dipanggil sekali aja setelah
   // balasan pertama, nggak nunggu (fire-and-forget) biar UI nggak keblok.
@@ -4483,6 +4490,20 @@ async function sendMessage(){
     // TETAP kebuka lagi lewat "finally" di bawah, bukan kekunci selamanya.
     console.error('sendMessage gagal total:', fatalErr);
     document.getElementById('typingRow')?.remove();
+
+    // Sebelumnya di sini cuma nongolin toast yang ngilang dalam beberapa detik,
+    // jadi user nggak punya cara jelas buat tau apa yang salah atau gimana lanjutinnya.
+    // Sekarang ditinggalin juga sebagai bubble asisten yang kelihatan permanen di
+    // chat, plus user bisa tekan-lama pesannya sendiri buat Edit & kirim ulang.
+    const errMsgObj = {
+      role: 'assistant',
+      content: '**Error:** Terjadi kesalahan saat memproses pesanmu. Tekan lama pesanmu di atas untuk mengedit & mengirim ulang, atau ketik ulang pesannya.'
+    };
+    messages.push(errMsgObj);
+    persistMessage('assistant', errMsgObj.content, errMsgObj).catch(()=>{}); // best-effort, jangan blokir apapun kalau ini juga gagal
+    renderMessages();
+    scrollDown();
+
     kyyToast('Terjadi kesalahan, coba kirim ulang pesannya.', 'alert-triangle', true);
   } finally {
     // BUKA KEMBALI KUNCI TOMBOL KIRIM & INPUT TEKS — ini SELALU dijalankan,
@@ -4538,6 +4559,8 @@ function renderMessages(){
 
       if(displayText){
         bubble.innerHTML = escapeHtml(displayText);
+        bubble.style.cursor = 'pointer';
+        attachHoldToEdit(bubble, mIdx);
         col.appendChild(bubble);
       }
     } else {
@@ -4723,6 +4746,141 @@ function copyMessageText(idx, btn){
     btn.innerHTML = kyyIcon('check',15);
     setTimeout(() => { btn.innerHTML = original; }, 1200);
   }).catch(()=>{});
+}
+
+/* ================= TEKAN-LAMA (HOLD) PESAN SENDIRI → EDIT / SALIN =================
+   Sama kayak di Claude.ai: pesan yang KAMU kirim (bukan balasan AI) bisa ditekan-lama
+   buat munculin menu kecil berisi "Edit" dan "Salin". Ini juga jadi cara resmi buat
+   "kirim ulang" pesan yang gagal/error — tinggal Edit, teksnya otomatis masuk ke
+   kolom ketik, tinggal tekan kirim lagi (boleh diubah dulu, boleh langsung kirim). */
+const HOLD_DURATION_MS = 450;
+const HOLD_MOVE_TOLERANCE = 10; // px — gerak sedikit pas nge-hold (jari nggak stabil) masih dianggap valid
+
+function attachHoldToEdit(el, idx){
+  let timer = null;
+  let startX = 0, startY = 0;
+  let longPressFired = false;
+
+  const start = (x, y) => {
+    longPressFired = false;
+    startX = x; startY = y;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      longPressFired = true;
+      if(navigator.vibrate) navigator.vibrate(15); // getar halus, kayak WhatsApp/Telegram pas hold berhasil
+      openUserMessageHoldMenu(idx, x, y);
+    }, HOLD_DURATION_MS);
+  };
+  const cancel = () => clearTimeout(timer);
+  const move = (x, y) => {
+    if(Math.abs(x - startX) > HOLD_MOVE_TOLERANCE || Math.abs(y - startY) > HOLD_MOVE_TOLERANCE) cancel();
+  };
+
+  // Mobile (utama)
+  el.addEventListener('touchstart', (e) => {
+    const t = e.touches[0];
+    start(t.clientX, t.clientY);
+  }, { passive: true });
+  el.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    move(t.clientX, t.clientY);
+  }, { passive: true });
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchcancel', cancel);
+
+  // Desktop (buat testing lewat browser biasa)
+  el.addEventListener('mousedown', (e) => start(e.clientX, e.clientY));
+  el.addEventListener('mousemove', (e) => move(e.clientX, e.clientY));
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+
+  // Cegah menu "Salin/Select" bawaan browser nongol bareng menu kustom kita
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+function openUserMessageHoldMenu(idx, x, y){
+  // showHistoryPopup butuh "anchorRect" (biasanya dari getBoundingClientRect tombol) —
+  // di sini kita bikin rect palsu di titik jari/kursor nge-hold, biar menu muncul
+  // persis di situ.
+  const anchorRect = { left: x, right: x, top: y, bottom: y };
+  showHistoryPopup([
+    { label: 'Edit', icon: kyyIcon('edit-3', 15), onClick: () => editUserMessage(idx) },
+    { label: 'Salin', icon: kyyIcon('copy', 15), onClick: () => copyUserMessageText(idx) }
+  ], anchorRect);
+}
+
+function copyUserMessageText(idx){
+  const m = messages[idx];
+  if(!m) return;
+  const text = (m.rawText !== undefined) ? m.rawText : m.content;
+  navigator.clipboard?.writeText(text)
+    .then(() => kyyToast('Pesan disalin.', 'copy'))
+    .catch(() => kyyToast('Gagal menyalin.', 'alert-triangle', true));
+}
+
+async function editUserMessage(idx){
+  if(sending){
+    kyyToast('Tunggu balasan yang sedang berjalan selesai dulu.', 'alert-triangle', true);
+    return;
+  }
+  const m = messages[idx];
+  if(!m || m.role !== 'user') return;
+
+  const oldText = (m.rawText !== undefined) ? m.rawText : m.content;
+
+  // Hapus pesan ini + semua pesan SETELAHNYA dari layar (persis kayak Claude/ChatGPT:
+  // ngedit pesan lama otomatis "membuang" percakapan yang udah kejadian sesudah itu,
+  // karena kamu bakal generate ulang dari titik ini).
+  const removedCount = messages.length - idx;
+  if(removedCount > 1){
+    const ok = await kyyConfirm(
+      `Ini bakal menghapus pesan ini beserta ${removedCount - 1} pesan setelahnya di chat ini (buat digenerate ulang). Lanjut edit?`,
+      { title: 'Edit Pesan', confirmLabel: 'Lanjut Edit' }
+    );
+    if(!ok) return;
+  }
+
+  // Hapus juga di database dari titik created_at pesan ini, biar histori yang
+  // kesimpen konsisten sama yang kelihatan di layar (bukan cuma keliatan kehapus
+  // padahal nyantol lagi kalau chat dibuka ulang).
+  if(currentUser && currentSessionId && m.createdAt){
+    try{
+      await supabaseClient.from('chat_history')
+        .delete()
+        .eq('session_id', currentSessionId)
+        .gte('created_at', m.createdAt);
+    }catch(err){
+      console.warn('Gagal hapus histori lama pas edit pesan:', err);
+      // Nggak fatal — lanjut aja, chat_history sisa lama paling nyantol di
+      // reload berikutnya, nggak bikin fitur edit gagal total.
+    }
+  } else if(!currentUser){
+    const sess = guestSessions.find(s => s.id === currentSessionId);
+    if(sess){
+      sess.messages = sess.messages.slice(0, idx);
+      saveGuestSessions();
+    }
+  }
+
+  messages = messages.slice(0, idx);
+  renderMessages();
+
+  const input = document.getElementById('userInput');
+  if(input){
+    input.value = oldText;
+    input.disabled = false;
+    autoGrow(input);
+    input.focus();
+    // taruh kursor di akhir teks biar enak lanjut ngetik/ubah
+    input.setSelectionRange(oldText.length, oldText.length);
+  }
+
+  if(messages.length === 0){
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('chatInner').style.display = 'none';
+  }
+
+  kyyToast('Silakan edit lalu tekan kirim.', 'edit-3');
 }
 
 /* Fitur suara pakai Web Speech API bawaan browser (speechSynthesis) —

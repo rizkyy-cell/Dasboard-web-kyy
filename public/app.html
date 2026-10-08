@@ -64,6 +64,7 @@ body[data-t=book] #ts{display:none}body[data-t=info] #bk{display:none}
 #nav{display:flex;border-top:1px solid var(--bd);background:var(--pn);padding-bottom:env(safe-area-inset-bottom)}
 #nav button{flex:1;background:none;border:0;padding:12px 4px;color:var(--mu);font-size:.8rem;font-weight:600;border-top:3px solid transparent}
 #nav button.on{color:var(--tx);border-top-color:var(--ac)}
+.gh{padding:7px 12px;font-size:.7rem;color:var(--mu);text-transform:uppercase;background:var(--bg);position:sticky;top:0}
 #q{margin:10px;padding:10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;font:inherit}
 #wlist{overflow:auto;flex:1}
 .wi{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;background:none;border:0;border-bottom:1px solid var(--bd);text-align:left}
@@ -131,7 +132,12 @@ h4{padding:9px 12px;font-size:.7rem;color:var(--mu);text-transform:uppercase;bor
 <div id="cfg"><div class="card"><div class="hd">Pengaturan<button id="cfgX">&times;</button></div><div id="cfgBody"></div><div class="ft"><button id="cfgR">Reset</button><button id="cfgC">Selesai</button></div></div></div>
 <script>
 (function(){
-var SYMS=[{s:'BTCUSDT',n:'Bitcoin',d:2,q:'USDT'},{s:'ETHUSDT',n:'Ethereum',d:2,q:'USDT'},{s:'SOLUSDT',n:'Solana',d:2,q:'USDT'},{s:'BTCIDR',n:'Bitcoin (Rupiah)',d:0,q:'IDR'},{s:'EURUSDT',n:'Euro / USDT',d:4,q:'USDT'}];
+function P(a,g,q){return a.map(function(x){return{s:x[0]+q,n:x[1],d:2,q:q,g:g}})}
+var SYMS=[].concat(
+ P([['BTC','Bitcoin'],['ETH','Ethereum'],['BNB','BNB'],['SOL','Solana'],['XRP','XRP'],['ADA','Cardano'],['DOGE','Dogecoin'],['TRX','TRON'],['AVAX','Avalanche'],['LINK','Chainlink'],['DOT','Polkadot'],['LTC','Litecoin'],['TON','Toncoin'],['SHIB','Shiba Inu'],['PEPE','Pepe'],['NEAR','NEAR'],['ATOM','Cosmos'],['UNI','Uniswap'],['SUI','Sui'],['APT','Aptos'],['ARB','Arbitrum'],['OP','Optimism']],'Populer (USDT)','USDT'),
+ P([['BTC','Bitcoin'],['ETH','Ethereum'],['BNB','BNB'],['SOL','Solana'],['XRP','XRP'],['ADA','Cardano'],['DOGE','Dogecoin'],['USDT','Tether (USDT/IDR)'],['USDC','USD Coin'],['AVAX','Avalanche'],['TON','Toncoin'],['SUI','Sui'],['ARB','Arbitrum'],['WLD','Worldcoin'],['HBAR','Hedera'],['TAO','Bittensor'],['FLOKI','Floki'],['WIF','dogwifhat']],'Rupiah (IDR)','IDR'),
+ [{s:'EURUSDT',n:'Euro / USDT',d:4,q:'USDT',g:'Forex'}]
+);
 var TF={'1m':{b:'1m'},'5m':{b:'5m'},'1h':{b:'1h'},'1d':{b:'1d'}};
 var REST=['https://data-api.binance.vision','https://api.binance.com','https://api1.binance.com','https://api-gcp.binance.com'];
 var WSH=['wss://data-stream.binance.vision','wss://stream.binance.com:9443','wss://stream.binance.com:443'];
@@ -142,6 +148,9 @@ var cfg=Object.assign({},DEF);
 try{Object.assign(cfg,JSON.parse(localStorage.getItem('kyy_trade_cfg')||'{}'))}catch(e){}
 function saveCfg(){try{localStorage.setItem('kyy_trade_cfg',JSON.stringify(cfg))}catch(e){}}
 var cur=SYMS[0],tfk='1m',candles=[],gen=0,ws=null,rt=null,chart,cs,ls,ma=null,rs=null,lastPx=null,book=null;
+try{JSON.parse(localStorage.getItem('kyy_trade_custom')||'[]').forEach(function(o){SYMS.push(o)})}catch(e){}
+try{var sp=localStorage.getItem('kyy_trade_pair');SYMS.forEach(function(o){if(o.s===sp)cur=o})}catch(e){}
+function dec(x){x=String(x);var i=x.indexOf('.');if(i<0)return 0;x=x.replace(/0+$/,'');return Math.max(0,x.length-i-1)}
 
 function fmt(x){var t=x.toFixed(cur.d);if(cur.d===0)t=t.replace(/\B(?=(\d{3})+(?!\d))/g,'.');return t}
 function fq(q){return q>=1000?q.toFixed(0):q>=1?q.toFixed(3):q.toFixed(5)}
@@ -174,7 +183,7 @@ function buildCfg(){
 $('setB').onclick=function(){buildCfg();$('cfg').classList.add('on')};
 $('cfgX').onclick=$('cfgC').onclick=function(){$('cfg').classList.remove('on')};
 $('cfgR').onclick=function(){cfg=Object.assign({},DEF);saveCfg();applyCfg();buildCfg()};
-$('aiB').onclick=function(){window.open(cfg.chat+'?pair='+cur.s+'&tf='+tfk+'&auto=1','_blank')};
+$('aiB').onclick=function(){window.open(cfg.chat+'?pair='+cur.s+'&tf='+tfk+'&auto=1'+(/^https?:/.test(location.href)?'&back='+encodeURIComponent(location.href):''),'_blank')};
 
 function setTab(t){
  document.body.dataset.t=t;
@@ -183,14 +192,31 @@ function setTab(t){
 document.querySelectorAll('#nav button').forEach(function(b){b.onclick=function(){setTab(b.dataset.t)}});
 
 function buildList(){
- var w=$('wlist'),q=$('q').value.trim().toLowerCase();w.innerHTML='';
+ var w=$('wlist'),q=$('q').value.trim().toLowerCase(),lg='',n=0;
+ w.innerHTML='';
  SYMS.forEach(function(o,i){
-  if(q&&(o.s+o.n).toLowerCase().indexOf(q)<0)return;
+  if(q&&(o.s+' '+o.n+' '+o.g).toLowerCase().indexOf(q)<0)return;
+  n++;
+  if(o.g!==lg){lg=o.g;var h=document.createElement('div');h.className='gh';h.textContent=lg;w.appendChild(h)}
   var b=document.createElement('button');b.className='wi'+(o===cur?' on':'');
-  b.innerHTML='<span class="ic" style="background:hsl('+(i*67%360)+' 55% 42%)">'+o.s[0]+'</span><span><b>'+o.s+'</b><small>'+o.n+'</small></span>';
-  b.onclick=function(){cur=o;buildList();setTab('chart');load()};
+  b.innerHTML='<span class="ic" style="background:hsl('+(i*47%360)+' 55% 42%)">'+o.s[0]+'</span><span><b>'+o.s+'</b><small>'+o.n+'</small></span>';
+  b.onclick=function(){cur=o;try{localStorage.setItem('kyy_trade_pair',o.s)}catch(e){}buildList();setTab('chart');load()};
   w.appendChild(b);
  });
+ var Q=$('q').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+ if(!n&&Q.length>=5){var b=document.createElement('button');b.className='wi';b.innerHTML='<span class="ic" style="background:var(--ac)">+</span><span><b>Cari '+Q+'</b><small>Tambahkan dari Binance</small></span>';b.onclick=function(){addPair(Q)};w.appendChild(b)}
+}
+async function addPair(Q){
+ status('Mencari '+Q+'...');
+ var j=await rest('/api/v3/exchangeInfo?symbol='+Q);
+ if(!j||j==='BAD'||!j.symbols||!j.symbols[0]){status('Pair '+Q+' tidak ditemukan di Binance');return}
+ var x=j.symbols[0],o=null;
+ SYMS.forEach(function(t){if(t.s===x.symbol)o=t});
+ if(!o){
+  o={s:x.symbol,n:x.baseAsset+' / '+x.quoteAsset,d:2,q:x.quoteAsset,g:'Kustom'};SYMS.push(o);
+  try{var c=JSON.parse(localStorage.getItem('kyy_trade_custom')||'[]');c.push(o);localStorage.setItem('kyy_trade_custom',JSON.stringify(c))}catch(e){}
+ }
+ $('q').value='';cur=o;try{localStorage.setItem('kyy_trade_pair',o.s)}catch(e){}buildList();setTab('chart');load();
 }
 $('q').oninput=buildList;
 
@@ -268,9 +294,12 @@ function stop(){
  if(ws){ws.onclose=null;ws.onmessage=null;try{ws.close()}catch(e){}ws=null}
  if(rt){clearTimeout(rt);rt=null}
 }
-async function getJSON(u){
- var c=new AbortController(),t=setTimeout(function(){c.abort()},7000);
- try{var r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error('http '+r.status);return await r.json()}finally{clearTimeout(t)}
+async function rest(path){
+ for(var i=0;i<REST.length;i++){
+  var c=new AbortController(),t=setTimeout(function(){c.abort()},7000);
+  try{var r=await fetch(REST[i]+path,{signal:c.signal});clearTimeout(t);if(r.ok)return await r.json();if(r.status===400)return 'BAD'}catch(e){clearTimeout(t)}
+ }
+ return null;
 }
 function fail(my){status('Binance tidak terjangkau. Mencoba lagi...');rt=setTimeout(function(){if(my===gen)load()},5000)}
 function openWS(my,wi){
@@ -303,12 +332,15 @@ async function load(){
  cs.setData([]);ls.setData([]);if(ma)ma.setData([]);if(rs)rs.setData([]);
  ['px','chg','hi','lo','vl','mid'].forEach(function(i){$(i).textContent='-'});
  $('px').className='';$('chg').textContent='';$('asks').innerHTML='';$('bids').innerHTML='';$('sym').textContent=cur.s;
+ status('Memuat data Binance...');
+ var j=await rest('/api/v3/klines?symbol='+cur.s+'&interval='+TF[tfk].b+'&limit=500');
+ if(my!==gen)return;
+ if(j==='BAD'){status('Pair '+cur.s+' tidak tersedia di Binance');return}
+ if(!(j&&j.length)){fail(my);return}
+ var dd=0;j.forEach(function(k){dd=Math.max(dd,dec(k[2]),dec(k[3]),dec(k[4]))});
+ cur.d=Math.min(8,dd);
  var pf={type:'custom',formatter:function(x){return fmt(x)},minMove:1/Math.pow(10,cur.d)};
  cs.applyOptions({priceFormat:pf});ls.applyOptions({priceFormat:pf});
- status('Memuat data Binance...');
- var path='/api/v3/klines?symbol='+cur.s+'&interval='+TF[tfk].b+'&limit=500',i,j=null;
- for(i=0;i<REST.length&&!j;i++){try{j=await getJSON(REST[i]+path)}catch(e){j=null}if(my!==gen)return}
- if(!(j&&j.length)){fail(my);return}
  candles=j.map(function(k){return{time:k[0]/1000,open:+k[1],high:+k[2],low:+k[3],close:+k[4]}});
  render(true);status('Menghubungkan...');openWS(my,0);
 }

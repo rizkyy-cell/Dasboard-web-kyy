@@ -126,10 +126,10 @@ body[data-p=home] #pHome,body[data-p=markets] #pMarkets,body[data-p=trade] #pTra
 #nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px;color:var(--mu);font-size:.68rem;font-weight:600}
 #nav button.on{color:var(--tx)}
 #bar{position:absolute;top:-1px;left:0;width:20%;height:3px;background:var(--ac);border-radius:0 0 3px 3px;transition:transform .35s cubic-bezier(.3,.9,.3,1.1)}
-#cfg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;z-index:9;align-items:center;justify-content:center;padding:14px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;backdrop-filter:blur(4px)}
-#cfg.on{opacity:1;visibility:visible}
+#cfg,#alp{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;z-index:9;align-items:center;justify-content:center;padding:14px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;backdrop-filter:blur(4px)}
+#cfg.on,#alp.on{opacity:1;visibility:visible}
 .card2{background:var(--pn);border:1px solid var(--bd);border-radius:14px;width:100%;max-width:420px;max-height:90dvh;display:flex;flex-direction:column;transform:translateY(28px) scale(.95);transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
-#cfg.on .card2{transform:none}
+#cfg.on .card2,#alp.on .card2{transform:none}
 .card2 .hh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid var(--bd)}
 #cfgBody{padding:8px 16px;overflow:auto}
 #cfgBody label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
@@ -146,6 +146,14 @@ body[data-p=home] #pHome,body[data-p=markets] #pMarkets,body[data-p=trade] #pTra
 .pop{animation:pop .4s ease}@keyframes pop{from{transform:scale(1.2);opacity:.3}to{transform:none;opacity:1}}
 html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!important;transition:none!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.tp{align-items:center}.chg{text-align:right;font-weight:700;font-size:.9rem;white-space:nowrap}
+#st{white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.mv .c span{font-weight:700;font-size:.78rem;white-space:nowrap}
+#tStar.on svg{fill:#f5b301;stroke:#f5b301}#tBell.on svg{stroke:var(--ac);fill:rgba(47,107,255,.25)}
+#heat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 14px}
+.ht{border-radius:10px;padding:10px 8px;text-align:left;color:#fff;min-height:62px;transition:background .6s}.ht b{display:block}.ht small{font-weight:700}
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-160%);background:var(--pn);border:1px solid var(--ac);border-radius:12px;padding:12px 16px;z-index:20;transition:transform .35s cubic-bezier(.2,.9,.3,1.2);font-weight:700;max-width:92%;text-align:center}#toast.on{transform:translate(-50%,0)}
+#alBody input{outline:0}
 @media (min-width:900px){#pages{max-width:760px;width:100%;margin:0 auto}}
 </style>
 </head>
@@ -163,6 +171,7 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
 <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 <symbol id="i-sort" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></symbol>
 <symbol id="i-sl" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
 </defs></svg>
 <div id="ov"><div><h3>Library chart belum dimuat</h3><p style="margin-top:8px">Pilih file <b>lightweight-charts.standalone.production.js</b>, atau tempel isinya ke tag script paling atas.</p><input type="file" id="lf" accept=".js" style="margin-top:14px"></div></div>
 <div id="pages">
@@ -170,6 +179,7 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
   <div class="hd"><div class="brand">KYY <span>Pro</span></div><span class="sp"></span><button class="ib js-set" aria-label="Pengaturan"><svg class="i"><use href="#i-gear"/></svg></button></div>
   <div class="sc">
    <h3 class="sh">Pasar teratas</h3><div class="cards" id="cards"></div>
+   <h3 class="sh">Peta pasar</h3><div id="heat"></div>
    <div class="shr"><h3 class="sh">Trending</h3><button class="lk" data-go="markets">Lihat semua</button></div>
    <div id="hList"></div>
    <div class="aic"><div style="flex:1"><b>Tanya Analis AI</b><p>Minta analisis grafik real-time dari data Binance.</p></div><button class="btn js-ai">Buka AI</button></div>
@@ -183,9 +193,10 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
   <div class="sc" id="mList"></div>
  </section>
  <section class="pg" id="pTrade" data-st="chart">
-  <div class="hd th"><button class="ib" data-go="markets" aria-label="Daftar pasar"><svg class="i"><use href="#i-menu"/></svg></button><span id="tIc"></span><b class="tt" id="tSym">-</b><span class="tag" id="tTag"></span><button class="ib" id="tStar" aria-label="Favorit"><svg class="i"><use href="#i-star"/></svg></button><span class="sp"></span><span id="st"></span><button class="ib js-set" aria-label="Pengaturan"><svg class="i"><use href="#i-gear"/></svg></button></div>
-  <div class="tp"><div><div><span id="tPx" class="ld">-</span></div><div style="font-weight:700;font-size:.9rem"><span id="tAbs"></span> <span id="tPc"></span></div></div>
-   <div class="st4"><div><small>Tertinggi 24j</small><span id="tH">-</span></div><div><small>Vol 24j</small><span id="tQV">-</span></div><div><small>Terendah 24j</small><span id="tL">-</span></div><div><small>Vol 24j (koin)</small><span id="tBV">-</span></div></div></div>
+  <div class="hd th"><button class="ib" data-go="markets" aria-label="Daftar pasar"><svg class="i"><use href="#i-menu"/></svg></button><span id="tIc"></span><b class="tt" id="tSym">-</b><span class="tag" id="tTag"></span><button class="ib" id="tStar" aria-label="Favorit"><svg class="i"><use href="#i-star"/></svg></button><button class="ib" id="tBell" aria-label="Alert harga"><svg class="i"><use href="#i-bell"/></svg></button><span class="sp"></span><span id="st"></span><button class="ib js-set" aria-label="Pengaturan"><svg class="i"><use href="#i-gear"/></svg></button></div>
+  <div class="tp"><div style="min-width:0"><span id="tPx" class="ld">-</span></div><div class="chg"><div id="tPc"></div><div id="tAbs"></div></div></div>
+  <div class="mv" id="stR"><div class="c"><small>Tertinggi 24j</small><span id="tH">-</span></div><div class="c"><small>Terendah 24j</small><span id="tL">-</span></div><div class="c"><small>Vol 24j</small><span id="tQV">-</span></div><div class="c"><small>Vol 24j (koin)</small><span id="tBV">-</span></div></div>
+  <div id="hint" class="note" style="display:none;padding:0 14px 4px"></div>
   <div id="fund" style="display:none">Funding / Hitung mundur: <b id="fR">-</b> / <b id="fT">-</b></div>
   <div class="mv" id="mvr"><div class="c"><small>1 dtk</small><b id="mv1">-</b><em></em></div><div class="c"><small>5 dtk</small><b id="mv5">-</b><em></em></div><div class="c"><small>15 dtk</small><b id="mv15">-</b><em></em></div><div class="c"><small>1 mnt</small><b id="mv60">-</b><em></em></div><div class="c"><small>5 mnt</small><b id="mv300">-</b><em></em></div><div class="c s"><svg id="mvs" viewBox="0 0 100 30" preserveAspectRatio="none"></svg><em id="mvAct"></em></div></div>
   <div class="stabs"><button class="tab on" data-stt="chart">Chart</button><button class="tab" data-stt="depth">Depth</button><button class="tab" data-stt="trades">Trades</button><button class="tab" data-stt="info">Info</button></div>
@@ -193,7 +204,7 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
    <div class="tc" id="tcChart"><div class="tfr" id="tfr"><button data-tf="1m">1m</button><button data-tf="5m">5m</button><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">1D</button><button data-tf="1w">1W</button><span class="vs"></span><button id="bC" class="on">Candle</button><button id="bL">Line</button><span class="sp"></span><button id="indB" aria-label="Indikator"><svg class="i"><use href="#i-sl"/></svg></button></div>
     <div id="indp"><label>Volume<input type="checkbox" id="kV" checked></label><label>MA 50<input type="checkbox" id="kMA"></label><label>RSI 14<input type="checkbox" id="kRSI"></label></div>
     <div id="chart" class="ld"></div></div>
-   <div class="tc" id="tcDepth"><div id="asks"></div><div id="mid">-</div><div id="bids"></div><div id="imb"><i></i></div><div class="imt"><span id="imB">-</span><span>Tekanan beli / jual</span><span id="imS">-</span></div></div>
+   <div class="tc" id="tcDepth"><svg id="dch" viewBox="0 0 300 90" preserveAspectRatio="none" style="width:100%;height:100px;flex:none;display:block;margin-top:6px"></svg><div id="asks"></div><div id="mid">-</div><div id="bids"></div><div id="imb"><i></i></div><div class="imt"><span id="imB">-</span><span>Tekanan beli / jual</span><span id="imS">-</span></div></div>
    <div class="tc" id="tcTrades"><div class="tr h"><span>Waktu</span><span>Harga</span><span>Jumlah</span></div><div id="trl"></div></div>
    <div class="tc" id="tcInfo"><div class="pf" id="pf"></div>
     <h3 class="sh">Ringkasan teknikal</h3><div id="ts"><div><span>RSI (14)</span><b id="tR">-</b></div><div><span>MA (50)</span><b id="tM">-</b></div><div><span>Tren</span><b id="tT">-</b></div><div><span>Sinyal</span><span id="sig">-</span></div></div>
@@ -202,6 +213,7 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
  </section>
  <section class="pg" id="pFut">
   <div class="hd"><div class="brand">Futures</div><span class="sp"></span><button class="ib js-set" aria-label="Pengaturan"><svg class="i"><use href="#i-gear"/></svg></button></div>
+  <div class="note" id="fSrc" style="padding:0 14px 6px"></div>
   <div class="lh"><button>Kontrak / Funding</button><button>Harga</button><button>24J</button></div>
   <div class="sc" id="fList"></div>
   <div class="note">Kontrak perpetual USDT-M Binance. Hanya data pasar, tidak ada transaksi.</div>
@@ -209,6 +221,8 @@ html.noanim *,html.noanim *::before,html.noanim *::after{animation:none!importan
 </div>
 <nav id="nav"><span id="bar"></span>
  <button data-p="home"><svg class="i"><use href="#i-home"/></svg>Home</button><button data-p="markets" class="on"><svg class="i"><use href="#i-bars"/></svg>Pasar</button><button data-p="trade"><svg class="i"><use href="#i-swap"/></svg>Trade</button><button data-p="fut"><svg class="i"><use href="#i-fut"/></svg>Futures</button><button class="js-ai"><svg class="i"><use href="#i-ai"/></svg>AI</button></nav>
+<div id="toast"></div>
+<div id="alp"><div class="card2"><div class="hh">Alert harga<button class="ib" id="alX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div id="alBody" style="padding:12px 16px;overflow:auto"></div><div class="ft"><button id="alC">Selesai</button></div></div></div>
 <div id="cfg"><div class="card2"><div class="hh">Pengaturan<button class="ib" id="cfgX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div id="cfgBody"></div><div class="ft"><button id="cfgR">Reset</button><button id="cfgC">Selesai</button></div></div></div>
 <script>
 (function(){
@@ -281,8 +295,10 @@ function setNum(el,t,v){
  el.innerHTML=h;
 }
 function setTxt(el,t){if(el.textContent!==t){el.textContent=t;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')}}
+function fit(el,b){var n=(el.dataset.t||el.textContent).length;el.style.fontSize=(n<=9?b:n<=12?b*.88:n<=15?b*.76:b*.66)+'rem'}
+function rgba(h,a){var n=parseInt(h.slice(1),16);return 'rgba('+(n>>16)+','+(n>>8&255)+','+(n&255)+','+a+')'}
 function ic(o){var c=BR[o.b];if(!c){var h=0;for(var i=0;i<o.b.length;i++)h=(h*31+o.b.charCodeAt(i))%360;c='hsl('+h+' 50% 40%)'}return '<span class="ic" style="background:'+c+'">'+o.b[0]+'</span>'}
-function status(t){var e=$('st');e.textContent=t;e.classList.toggle('live',t==='Binance LIVE')}
+function status(t){var e=$('st');e.textContent=t==='Binance LIVE'?'LIVE':t;e.classList.toggle('live',t==='Binance LIVE')}
 /* ---- settings ---- */
 function applyCfg(){
  var r=document.documentElement.style;
@@ -352,13 +368,13 @@ function paint(b,o){
  var pc=pcOf(m),bd=b.querySelector('.bd');
  setNum(b.querySelector('.px'),pf(o,m.p),m.p);
  setNum(bd,(pc>=0?'+':'')+nf(pc,2)+'%',pc);bd.className='bd '+(pc>=0?'up':'dn');
- b.querySelector('.rv').textContent=o.f?(m.r!=null?'Funding '+nf(m.r*100,4)+'%':''):'Vol. '+cmp(m.q);
+ b.querySelector('.rv').textContent=o.f?(m.r!=null&&!isNaN(m.r)?'Funding '+nf(m.r*100,4)+'%'+(m.oi?' - OI '+cmp(m.oi):''):''):'Vol. '+cmp(m.q);
 }
 function fill(box,arr){
  var sig=arr.map(function(o){return o.k}).join(',');
  if(box._sig===sig)return;box._sig=sig;box.innerHTML='';
  arr.forEach(function(o,i){var e=rowEl(o);if(cfg.anim&&i<14){e.style.animation='sIn .35s ease both';e.style.animationDelay=i*30+'ms'}box.appendChild(e)});
- if(!arr.length)box.innerHTML='<div class="note" style="text-align:center;padding:30px">'+(box.id==='mList'?'Tidak ada aset. Ketik kode pair (misalnya SHIBIDR) lalu tekan tombol tambah.':'Memuat data...')+'</div>';
+ if(!arr.length)box.innerHTML='<div class="note" style="text-align:center;padding:30px">'+(box.id==='mList'?(mt==='watch'?'Belum ada favorit. Buka tab Crypto lalu tekan bintang di samping nama koin.':'Tidak ada aset. Ketik kode pair (misalnya SHIBIDR) lalu tekan tombol tambah.'):'Memuat data...')+'</div>';
  reindex();
 }
 function reindex(){reg={};qa('.mr').forEach(function(e){(reg[e.dataset.k]=reg[e.dataset.k]||[]).push(e)})}
@@ -370,8 +386,15 @@ function refresh(){
   fill($('mList'),a);
   if(!a.length&&q.length>=5&&!$('addb')){var b=document.createElement('button');b.id='addb';b.className='btn';b.style.cssText='display:block;margin:0 auto';b.textContent='Tambah '+q+' dari Binance';b.onclick=function(){addPair(q)};$('mList').appendChild(b)}
  }
- if(p==='home'){fill($('hList'),topN(5));cards()}
- if(p==='fut')fill($('fList'),FUTS.filter(function(o){return mk[o.k]&&mk[o.k].p!==undefined}).sort(function(a,b){return mk[b.k].q-mk[a.k].q}));
+ if(p==='home'){fill($('hList'),topN(5));cards();heat()}
+ if(p==='fut'){
+  var fa=FUTS.filter(function(o){return mk[o.k]&&mk[o.k].p!==undefined}).sort(function(a,b){return mk[b.k].q-mk[a.k].q}),fb=$('fList');
+  if(!fa.length&&ferr){
+   if(fb._sig!=='err'){fb._sig='err';fb.innerHTML='<div class="note" style="text-align:center;padding:30px">'+ferr+'<br><br><button class="btn" id="frt">Coba lagi</button></div>';
+    $('frt').onclick=function(){ferr='';fsrc=null;if(fpoll){clearInterval(fpoll);fpoll=null}fb._sig='';fb.innerHTML='';connList('fut');refresh()}}
+  }else fill(fb,fa);
+  $('fSrc').textContent=fsrc?'Sumber data: '+(fsrc==='bybit'?'Bybit':'Binance'):'Menghubungkan...';
+ }
 }
 function spark(a,col,w,h){
  if(!a||a.length<2)return '';
@@ -394,7 +417,7 @@ function cards(){
  }
  qa('.card',box).forEach(function(b){
   var o=SYMS.filter(function(x){return x.k===b.dataset.k})[0],m=mk[o.k],pc=pcOf(m);
-  setNum(b.querySelector('.cp'),pf(o,m.p),m.p);
+  setNum(b.querySelector('.cp'),pf(o,m.p),m.p);fit(b.querySelector('.cp'),1.15);
   var c=b.querySelector('.cc');setNum(c,(pc>=0?'+':'')+nf(pc,2)+'%',pc);c.style.color=pc>=0?'var(--up)':'var(--dn)';
   var s=sparks[o.k];if(s)b.querySelector('.sp2').innerHTML=spark(s,pc>=0?cfg.up:cfg.dn,120,44);
  });
@@ -425,21 +448,38 @@ async function initList(){
  r.forEach(function(t){setM(t.symbol,{p:+t.lastPrice,o:+t.openPrice,h:+t.highPrice,l:+t.lowPrice,q:+t.quoteVolume,v:+t.volume})});
  refresh();
 }
+var fsrc=null,fpoll=null,ferr='';
 function connList(kind){
+ var fut=kind==='fut';
+ if(fut&&fsrc==='bybit'){startBybit();return}
  if(lw[kind])return;
- var fut=kind==='fut',list=fut?FUTS:SYMS,H=fut?FW:SW,hi=0;
+ var list=fut?FUTS:SYMS,H=fut?FW:SW,hi=0;
  function go(){
   var st=[];list.forEach(function(o){var s=o.s.toLowerCase();st.push(s+'@miniTicker');if(fut)st.push(s+'@markPrice@1s')});
   var w=new WebSocket(H[hi%H.length]+'/stream?streams='+st.join('/'));lw[kind]=w;var got=false;
+  var to=fut?setTimeout(function(){if(!got){w.onclose=null;try{w.close()}catch(e){}lw.fut=null;fsrc='bybit';startBybit()}},6000):0;
   w.onmessage=function(e){
-   var m=JSON.parse(e.data),d=m.data,s=m.stream||'';if(!d)return;got=true;
+   var m=JSON.parse(e.data),d=m.data,s=m.stream||'';if(!d)return;
+   if(!got){got=true;if(fut){fsrc='binance';ferr=''}}
    var k=(fut?'F:':'')+d.s;
    if(s.indexOf('@miniTicker')>0)setM(k,{p:+d.c,o:+d.o,h:+d.h,l:+d.l,q:+d.q,v:+d.v});
    else if(s.indexOf('@markPrice')>0)setM(k,{r:+d.r});
   };
-  w.onclose=function(){lw[kind]=null;if(!got)hi++;setTimeout(function(){connList(kind)},3000)};
+  w.onclose=function(){clearTimeout(to);lw[kind]=null;if(fut&&!got){fsrc='bybit';startBybit();return}if(!got)hi++;setTimeout(function(){connList(kind)},3000)};
  }
  go();
+}
+function startBybit(){if(fpoll)return;pollBybit();fpoll=setInterval(function(){if(document.body.dataset.p==='fut')pollBybit()},5000)}
+async function pollBybit(){
+ try{
+  var c=new AbortController(),t=setTimeout(function(){c.abort()},8000);
+  var r=await fetch('https://api.bybit.com/v5/market/tickers?category=linear',{signal:c.signal});clearTimeout(t);
+  var j=await r.json();if(!j.result||!j.result.list)throw new Error('x');
+  var want={};FUTS.forEach(function(o){want[o.s]=o});
+  j.result.list.forEach(function(x){var o=want[x.symbol];if(!o)return;
+   setM(o.k,{p:+x.lastPrice,o:+x.prevPrice24h,h:+x.highPrice24h,l:+x.lowPrice24h,q:+x.turnover24h,v:+x.volume24h,r:+x.fundingRate,T:+x.nextFundingTime,oi:+x.openInterestValue})});
+  ferr='';refresh();
+ }catch(e){ferr='Futures tidak terjangkau dari jaringan Anda (Binance dan Bybit sama-sama gagal). Coba ganti DNS atau pakai VPN.';refresh()}
 }
 async function addPair(Q){
  $('mq').placeholder='Mencari '+Q+'...';
@@ -456,12 +496,13 @@ async function addPair(Q){
  $('mq').value='';$('mq').placeholder='Cari aset...';$('mList')._sig='';refresh();
 }
 setInterval(function(){
- var any=0;for(var k in dirty){any=1;(reg[k]||[]).forEach(function(b){var o=SYMS.concat(FUTS).filter(function(x){return x.k===k})[0];if(o)paint(b,o)})}
- dirty={};if(any&&document.body.dataset.p==='home')cards();
+ var any=0;for(var k in dirty){any=1;if(mk[k]&&mk[k].p!==undefined)checkAlerts(k,mk[k].p);(reg[k]||[]).forEach(function(b){var o=SYMS.concat(FUTS).filter(function(x){return x.k===k})[0];if(o)paint(b,o)})}
+ dirty={};if(any&&document.body.dataset.p==='home'){cards();heat()}
 },1000);
 setInterval(refresh,5000);
 /* ---- trade page ---- */
 function openTrade(o){
+ if(o.f&&fsrc==='bybit'){o=SYMS.filter(function(x){return x.s===o.s})[0]||{s:o.s,k:o.s,b:o.b,n:o.n,q:'USDT',d:2}}
  cur=o;sv('kyy_pair',o.k);candles=[];setPage('trade');load();
 }
 function ensureChart(){
@@ -525,12 +566,13 @@ function push(c){
 function tick(p){
  var el=$('tPx');el.classList.remove('ld');
  if(lastPx!==null&&p!==lastPx){var up=p>lastPx;el.className=up?'up':'dn';setTimeout(function(){el.className=up?'upt':'dnt'},350)}
- lastPx=p;setNum(el,nfd(p),p);
+ lastPx=p;setNum(el,nfd(p),p);fit(el,2);checkAlerts(cur.k,p);
  if(book)setNum($('mid'),nfd(p),p);
 }
 function fillHead(){
  $('tIc').innerHTML=ic(cur);$('tSym').textContent=cur.b+'/'+cur.q;$('tTag').textContent=cur.f?'PERP':'';$('tTag').style.display=cur.f?'':'none';
- $('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('fund').style.display=cur.f?'':'none';
+ $('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));$('fund').style.display=cur.f?'':'none';
+ var hn=$('hint');hn.style.display=cur.q==='IDR'?'':'none';hn.textContent='Pair rupiah di Binance sepi transaksi, jadi harga bisa diam beberapa detik. Untuk gerakan yang lebih hidup, pilih pair USDT.';
  var p=PROF[cur.b]||[cur.n,'Aset kripto','-','-','-','-','Belum ada profil untuk aset ini.'];
  $('pf').innerHTML='<div class="top">'+ic(cur).replace('style="background:','style="width:48px;height:48px;font-size:1.3rem;background:')+'<div><h3>'+p[0]+'</h3><span style="color:var(--mu);font-size:.8rem">'+p[1]+' - '+cur.s+'</span></div></div>'
   +'<dl><dt>Tahun mulai</dt><dd>'+p[2]+'</dd><dt>Pendiri / pengembang</dt><dd>'+p[3]+'</dd><dt>Konsensus / teknologi</dt><dd>'+p[4]+'</dd><dt>Pasokan maksimum</dt><dd>'+p[5]+'</dd></dl><p>'+p[6]+'</p>';
@@ -605,7 +647,7 @@ function drawBook(){
  if(!book||!book.a||!book.b)return;ensureBook();
  var a=book.a.slice(0,10),b=book.b.slice(0,10),mx=0,sa=0,sb=0;
  a.forEach(function(x){sa+=+x[1];if(+x[1]>mx)mx=+x[1]});b.forEach(function(x){sb+=+x[1];if(+x[1]>mx)mx=+x[1]});
- fillBook($('asks'),a.slice().reverse(),mx);fillBook($('bids'),b,mx);
+ fillBook($('asks'),a.slice().reverse(),mx);fillBook($('bids'),b,mx);drawDepth(a,b);
  var t=sa+sb,pb=t?sb/t*100:50;$('imb').firstChild.style.width=pb+'%';$('imB').textContent=nf(pb,1)+'%';$('imS').textContent=nf(100-pb,1)+'%';
  if(lastPx!==null)setNum($('mid'),nfd(lastPx),lastPx);
 }
@@ -645,6 +687,51 @@ setInterval(function(){
    $('fR').textContent=nf(fund.r*100,4)+'%';$('fT').textContent=('0'+h).slice(-2)+':'+('0'+mi).slice(-2)+':'+('0'+se).slice(-2)}
  }
 },1000);
+/* ---- depth chart, heatmap, alerts ---- */
+function drawDepth(a,b){
+ var ca=0,cb=0,pa=a.map(function(x){return{p:+x[0],c:(ca+=+x[1])}}),pb=b.map(function(x){return{p:+x[0],c:(cb+=+x[1])}}),mx=Math.max(ca,cb)||1;
+ if(!pa.length||!pb.length)return;
+ var lo=pb[pb.length-1].p,hi=pa[pa.length-1].p,span=hi-lo||1;
+ function X(p){return ((p-lo)/span*300).toFixed(1)}function Y(c){return (88-c/mx*80).toFixed(1)}
+ function poly(z,col){return '<polygon points="'+X(z[0].p)+',88 '+z.map(function(q){return X(q.p)+','+Y(q.c)}).join(' ')+' '+X(z[z.length-1].p)+',88" fill="'+col+'" fill-opacity=".25" stroke="'+col+'" stroke-width="1.2" vector-effect="non-scaling-stroke"/>'}
+ $('dch').innerHTML=poly(pb,cfg.up)+poly(pa,cfg.dn);
+}
+function heat(){
+ var t=topN(12),box=$('heat');if(!t.length)return;
+ var sig=t.map(function(o){return o.k}).join();
+ if(box._sig!==sig){box._sig=sig;box.innerHTML='';t.forEach(function(o){var b=document.createElement('button');b.className='ht';b.dataset.k=o.k;b.innerHTML='<b>'+o.b+'</b><small></small>';b.onclick=function(){openTrade(o)};box.appendChild(b)})}
+ qa('.ht',box).forEach(function(b){var m=mk[b.dataset.k],pc=pcOf(m),a=Math.min(1,.3+Math.abs(pc)/6*.7);b.style.background=rgba(pc>=0?cfg.up:cfg.dn,a);b.querySelector('small').textContent=(pc>=0?'+':'')+nf(pc,2)+'%'});
+}
+var alerts=ld('kyy_alerts',[]);
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},6000)}
+function fireAlert(a,p){
+ var msg=a.s+(a.dir>0?' naik ke ':' turun ke ')+nf(a.price,dp(a.price,a.q))+' (sekarang '+nf(p,dp(p,a.q))+')';
+ toast(msg);try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
+ try{if(window.Notification&&Notification.permission==='granted')new Notification('Alert harga KYY',{body:msg})}catch(e){}
+}
+function checkAlerts(k,p){
+ if(!alerts.length)return;var hit=false;
+ alerts=alerts.filter(function(a){if(a.k!==k)return true;if((a.dir>0&&p>=a.price)||(a.dir<0&&p<=a.price)){fireAlert(a,p);hit=true;return false}return true});
+ if(hit){sv('kyy_alerts',alerts);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}))}
+}
+function alRender(){
+ var m=mk[cur.k],p=m&&m.p!==undefined?m.p:lastPx,xs='<svg class="i" style="width:16px;height:16px"><use href="#i-x"/></svg>';
+ var h='<div style="color:var(--mu);margin-bottom:10px">'+cur.b+'/'+cur.q+' sekarang <b style="color:var(--tx)">'+(p!=null?nf(p,dp(p,cur.q)):'-')+'</b></div>'
+  +'<div style="display:flex;gap:8px"><input id="alP" inputmode="decimal" placeholder="Harga target" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px;color:var(--tx)"><button class="btn" id="alA">Tambah</button></div>'
+  +'<div class="note" style="padding:8px 0">Notifikasi hanya muncul selama halaman ini terbuka. Kalau tab atau aplikasi ditutup, alert tidak berbunyi.</div>';
+ h+=alerts.length?alerts.map(function(a,i){return '<div class="tr" style="grid-template-columns:1fr auto auto;gap:10px;padding:8px 0;align-items:center"><span>'+a.s+'</span><span>'+(a.dir>0?'&ge; ':'&le; ')+nf(a.price,dp(a.price,a.q))+'</span><button class="ib" data-del="'+i+'">'+xs+'</button></div>'}).join(''):'<div class="note" style="padding:10px 0">Belum ada alert.</div>';
+ $('alBody').innerHTML=h;
+ $('alA').onclick=function(){
+  var v=$('alP').value.trim();if(v.indexOf(',')>=0)v=v.replace(/\./g,'').replace(',','.');v=parseFloat(v);
+  if(!(v>0)||p==null)return;
+  alerts.push({k:cur.k,s:cur.s,q:cur.q,price:v,dir:v>p?1:-1});sv('kyy_alerts',alerts);
+  try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}
+  $('tBell').classList.add('on');alRender();
+ };
+ qa('[data-del]',$('alBody')).forEach(function(b){b.onclick=function(){alerts.splice(+b.dataset.del,1);sv('kyy_alerts',alerts);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));alRender()}});
+}
+$('tBell').onclick=function(){alRender();$('alp').classList.add('on')};
+$('alX').onclick=$('alC').onclick=function(){$('alp').classList.remove('on')};
 /* ---- chart controls ---- */
 function setTF(k){tfk=k;sv('kyy_tf',k);qa('[data-tf]').forEach(function(b){b.classList.toggle('on',b.dataset.tf===k)})}
 qa('[data-tf]').forEach(function(b){b.onclick=function(){setTF(b.dataset.tf);load()}});

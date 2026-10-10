@@ -132,10 +132,10 @@ body[data-p=home] #pHome,body[data-p=markets] #pMarkets,body[data-p=trade] #pTra
 #nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px;color:var(--mu);font-size:.68rem;font-weight:600}
 #nav button.on{color:var(--tx)}
 #bar{position:absolute;top:-1px;left:0;width:20%;height:3px;background:var(--ac);border-radius:0 0 3px 3px;transition:transform .35s cubic-bezier(.3,.9,.3,1.1)}
-#cfg,#alp,#inf,#pfm{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;z-index:9;align-items:center;justify-content:center;padding:14px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;backdrop-filter:blur(4px)}
-#cfg.on,#alp.on,#inf.on,#pfm.on{opacity:1;visibility:visible}
+#cfg,#alp,#inf,#pfm,#aiSetP{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;z-index:9;align-items:center;justify-content:center;padding:14px;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;backdrop-filter:blur(4px)}
+#cfg.on,#alp.on,#inf.on,#pfm.on,#aiSetP.on{opacity:1;visibility:visible}
 .card2{background:var(--pn);border:1px solid var(--bd);border-radius:14px;width:100%;max-width:420px;max-height:90dvh;display:flex;flex-direction:column;transform:translateY(28px) scale(.95);transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
-#cfg.on .card2,#alp.on .card2,#inf.on .card2,#pfm.on .card2{transform:none}
+#cfg.on .card2,#alp.on .card2,#inf.on .card2,#pfm.on .card2,#aiSetP.on .card2{transform:none}
 .card2 .hh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;font-weight:800;border-bottom:1px solid var(--bd)}
 #cfgBody{padding:8px 16px;overflow:auto}
 #cfgBody label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)}
@@ -173,6 +173,40 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 #off{display:none;background:#b45309;color:#fff;text-align:center;font-size:.75rem;padding:4px}#off.on{display:block}
 #pfList .tr{grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;padding:8px 0;align-items:center;border-bottom:1px solid var(--bd)}
 #pfBody select,#pfBody input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px;min-width:0}
+[hidden]{display:none!important}
+#ai{position:fixed;z-index:12;display:flex;flex-direction:column;background:var(--bg);color:var(--tx);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s,transform .3s cubic-bezier(.2,.9,.3,1.1),visibility .22s}
+#ai.on{opacity:1;visibility:visible;pointer-events:auto;transform:none!important}
+#ai[data-m=full]{left:0;right:0;top:0;bottom:var(--kb,0px);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);transform:translateY(18px)}
+#ai[data-m=widget]{right:14px;bottom:calc(74px + env(safe-area-inset-bottom));width:min(420px,calc(100vw - 28px));height:min(640px,calc(100dvh - 150px));border:1px solid var(--bd);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.55);transform:translateY(24px) scale(.97);overflow:hidden}
+#ai[data-m=widget].kbo{bottom:calc(8px + var(--kb,0px))}
+.ah{display:flex;align-items:center;gap:4px;padding:10px 10px 10px 14px;border-bottom:1px solid var(--bd);background:var(--pn);flex:none}
+.aiw{display:flex;align-items:center;gap:10px;min-width:0}.aib{width:34px;height:34px;border-radius:10px;background:var(--ac);color:#fff;display:grid;place-items:center;flex:none}
+.aiw b{display:block;line-height:1.2}.aiw small{display:block;color:var(--mu);font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#aiBody{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+#aiChat{flex:1;min-height:0;position:relative;display:flex;flex-direction:column}
+#aiLog{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.am{display:flex;flex-direction:column;max-width:92%;animation:sIn .25s ease both}.am.u{align-self:flex-end;align-items:flex-end}.am.a{align-self:flex-start}
+.ab{padding:9px 12px;border-radius:14px;font-size:.92rem;line-height:1.5;word-break:break-word}
+.am.u .ab{background:var(--ac);color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
+.am.a .ab{background:var(--pn);border:1px solid var(--bd);border-bottom-left-radius:4px}
+.am.e .ab{border-color:var(--dn);color:var(--dn)}
+.ab p{margin:0 0 6px}.ab p:last-child{margin:0}.ab ul,.ab ol{margin:4px 0 6px 18px}.ab pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:8px;overflow-x:auto;font-size:.8rem;margin:6px 0}.ab code{background:var(--bg);padding:1px 4px;border-radius:4px;font-size:.85em}
+.aa{display:flex;gap:2px;margin-top:2px}.aa button{padding:5px 7px;color:var(--mu);border-radius:6px;display:flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600}.aa .i{width:15px;height:15px}
+.dots{display:inline-flex;gap:4px;padding:5px 0}.dots i{width:6px;height:6px;border-radius:50%;background:var(--mu);animation:pulse 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+#aiEmpty{position:absolute;inset:0 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;pointer-events:none}#aiEmpty>*{pointer-events:auto}
+#aiEmpty .aib{width:54px;height:54px;border-radius:16px;margin-bottom:12px}#aiEmpty .aib .i{width:28px;height:28px}
+#aiEmpty h3{font-size:1.15rem}#aiEmpty p{color:var(--mu);font-size:.85rem;margin:6px 0 16px;max-width:300px}
+.qc{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.qc button{border:1px solid var(--bd);border-radius:999px;padding:8px 14px;font-size:.8rem;font-weight:600;background:var(--pn)}
+#aiForm{display:flex;gap:8px;align-items:flex-end;padding:10px 12px 6px;border-top:1px solid var(--bd);flex:none}
+#aiIn{flex:1;min-width:0;resize:none;background:var(--pn);border:1px solid var(--bd);border-radius:14px;padding:10px 12px;color:var(--tx);font:inherit;max-height:120px;outline:0}#aiIn:focus{border-color:var(--ac)}
+#aiSend{width:42px;height:42px;border-radius:50%;background:var(--ac);color:#fff;display:grid;place-items:center;flex:none}#aiSend:disabled{opacity:.4}
+.ainote{font-size:.68rem;color:var(--mu);text-align:center;padding:0 12px 8px;flex:none}
+#aiAuth .ac,#aiLoad{padding:22px 20px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}#aiLoad{align-items:center;text-align:center;color:var(--mu)}
+#aiAuth input{background:var(--pn);border:1px solid var(--bd);border-radius:10px;padding:11px;color:var(--tx);outline:0;font:inherit}#aiAuth input:focus{border-color:var(--ac)}
+#aiAuth h3{font-size:1.05rem}#aiAuth p{color:var(--mu);font-size:.85rem}#auM{min-height:1.2em}
+#aiSetP{z-index:14}
+.seg2{display:flex;background:var(--bg);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin:8px 0 14px}.seg2 button{flex:1;padding:10px;font-weight:700;color:var(--mu)}.seg2 button.on{background:var(--ac);color:#fff}
+#nav .js-ai.on{color:var(--tx)}
 @media (min-width:900px){#pages{max-width:760px;width:100%;margin:0 auto}}
 </style>
 </head>
@@ -191,6 +225,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 <symbol id="i-sort" viewBox="0 0 24 24"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></symbol>
 <symbol id="i-sl" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
 <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM5 15V4h11"/></symbol>
+<symbol id="i-redo" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
 </defs></svg>
 <div id="ov"><div><h3>Library chart belum dimuat</h3><p style="margin-top:8px">Pilih file <b>lightweight-charts.standalone.production.js</b>, atau tempel isinya ke tag script paling atas.</p><input type="file" id="lf" accept=".js" style="margin-top:14px"></div></div>
 <div id="pages">
@@ -249,6 +288,25 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 <div id="nb"><b>Selamat datang.</b> Informasi di sini bukan nasihat keuangan, dan aset kripto berisiko tinggi. Pengaturan Anda disimpan di browser ini.<div><button id="nbI">Baca selengkapnya</button><button id="nbOk">Mengerti</button></div></div>
 <div id="inf"><div class="card2"><div class="hh">Informasi<button class="ib" id="infX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div style="padding:4px 16px 16px;overflow:auto" id="infB"></div></div></div>
 <div id="pfm"><div class="card2"><div class="hh">Portofolio<button class="ib" id="pfX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div id="pfBody" style="padding:12px 16px;overflow:auto"></div><div class="ft"><button id="pfC">Selesai</button></div></div></div>
+<section id="ai" data-m="widget" role="dialog" aria-label="Analis AI" aria-hidden="true">
+ <header class="ah"><div class="aiw"><span class="aib"><svg class="i"><use href="#i-ai"/></svg></span><div style="min-width:0"><b>Analis AI</b><small id="aiCtx">-</small></div></div><span class="sp"></span>
+  <button class="ib" id="aiNew" aria-label="Percakapan baru"><svg class="i"><use href="#i-plus"/></svg></button><button class="ib" id="aiSet" aria-label="Pengaturan AI"><svg class="i"><use href="#i-gear"/></svg></button><button class="ib" id="aiClose" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></header>
+ <div id="aiBody">
+  <div id="aiLoad">Memuat...</div>
+  <div id="aiAuth" hidden><div class="ac"><h3>Masuk untuk memakai Analis AI</h3><p>Akun diperlukan agar layanan AI tidak disalahgunakan.</p>
+   <div class="seg2" style="margin:4px 0"><button id="auL" class="on">Masuk</button><button id="auR">Daftar</button></div>
+   <input id="auE" type="email" placeholder="Email" autocomplete="email"><input id="auP" type="password" placeholder="Kata sandi (minimal 6 karakter)" autocomplete="current-password">
+   <div id="auM" class="note" style="padding:0"></div><button class="btn" id="auGo">Masuk</button><button class="lk" id="auF" style="text-align:center">Lupa kata sandi?</button></div></div>
+  <div id="aiChat" hidden><div id="aiLog" role="log" aria-live="polite"></div>
+   <div id="aiEmpty"><span class="aib"><svg class="i"><use href="#i-ai"/></svg></span><h3>Analis Trading AI</h3><p id="aiSub">Tanyakan analisis untuk pair yang sedang Anda lihat.</p>
+    <div class="qc" id="aiQ"><button>Analisis kondisi sekarang</button><button>Apa arti RSI saat ini?</button><button>Level support dan resistance</button><button>Pola candle terakhir</button><button>Risiko yang perlu diwaspadai</button></div></div></div>
+ </div>
+ <form id="aiForm" hidden><textarea id="aiIn" rows="1" maxlength="1500" placeholder="Tanya soal grafik ini..." aria-label="Pesan"></textarea><button type="submit" id="aiSend" aria-label="Kirim" disabled><svg class="i"><use href="#i-send"/></svg></button></form>
+ <div class="ainote" id="aiNote" hidden>AI dapat keliru. Bukan nasihat keuangan.</div>
+</section>
+<div id="aiSetP"><div class="card2"><div class="hh">Pengaturan AI<button class="ib" id="aiSetX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div style="padding:12px 16px 16px">
+ <div style="font-weight:700">Mode tampilan</div><div class="seg2" id="aiMode"><button data-am="full">Layar penuh</button><button data-am="widget">Widget mengambang</button></div>
+ <div style="font-weight:700">Akun</div><div class="note" id="aiAcc" style="padding:4px 0 10px">Belum masuk</div><button class="btn" id="aiOut" style="width:100%" hidden>Keluar</button></div></div></div>
 <div id="toast"></div>
 <div id="alp"><div class="card2"><div class="hh">Alert harga<button class="ib" id="alX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div id="alBody" style="padding:12px 16px;overflow:auto"></div><div class="ft"><button id="alC">Selesai</button></div></div></div>
 <div id="cfg"><div class="card2"><div class="hh">Pengaturan<button class="ib" id="cfgX" aria-label="Tutup"><svg class="i"><use href="#i-x"/></svg></button></div><div id="cfgBody"></div><div class="ft"><button id="cfgR">Reset</button><button id="cfgC">Selesai</button></div></div></div>
@@ -297,9 +355,10 @@ var FUTS=['BTC','ETH','BNB','SOL','XRP','ADA','DOGE','TRX','AVAX','LINK','DOT','
 var SR=['https://data-api.binance.vision','https://api.binance.com','https://api1.binance.com','https://api-gcp.binance.com'];
 var FR=['https://fapi.binance.com','https://fapi1.binance.com','https://fapi2.binance.com','https://fapi3.binance.com'];
 var SW=['wss://data-stream.binance.vision','wss://stream.binance.com:9443','wss://stream.binance.com:443'],FW=['wss://fstream.binance.com'];
-var DEF={bg:'#000000',pn:'#0e0f12',tx:'#e8eaed',gr:'#15171c',up:'#16a86c',dn:'#e5484d',ma:'#f0b90b',rsi:'#b388ff',ac:'#2f6bff',bd:'#23262d',mu:'#8b8f98',fs:14,grid:true,anim:true,logo:'',chat:'https://jrxrezkyy-dashboard.vercel.app/chat-trading.html'};
+var DEF={bg:'#000000',pn:'#0e0f12',tx:'#e8eaed',gr:'#15171c',up:'#16a86c',dn:'#e5484d',ma:'#f0b90b',rsi:'#b388ff',ac:'#2f6bff',bd:'#23262d',mu:'#8b8f98',fs:14,grid:true,anim:true,logo:'',aiMode:'widget'};
 var PRESETS={gelap:{bg:'#000000',pn:'#0e0f12',tx:'#e8eaed',gr:'#15171c',up:'#16a86c',dn:'#e5484d',ma:'#f0b90b',rsi:'#b388ff',ac:'#2f6bff',bd:'#23262d',mu:'#8b8f98'},terang:{bg:'#ffffff',pn:'#f4f5f7',tx:'#111418',gr:'#e9ebef',up:'#0f9d58',dn:'#d93025',ma:'#d97706',rsi:'#7c3aed',ac:'#2f6bff',bd:'#e1e4ea',mu:'#6b7280'},malam:{bg:'#0b1220',pn:'#111a2e',tx:'#dbe4f5',gr:'#16213a',up:'#22c55e',dn:'#ef4444',ma:'#f5b301',rsi:'#b388ff',ac:'#3b82f6',bd:'#1e2a47',mu:'#8a97b3'}};
-var SITE={name:'KYY Pro',email:''};
+var SITE={name:'KYY Pro',email:'',api:'https://jrxrezkyy-dashboard.vercel.app'};
+var SB_URL='https://djojqarslfsvubuflwdn.supabase.co',SB_KEY='sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9';
 var FIELDS=[['bg','Warna latar'],['pn','Warna panel'],['tx','Warna teks'],['gr','Warna garis grid'],['up','Naik / hijau'],['dn','Turun / merah'],['ma','Garis MA50'],['rsi','Garis RSI'],['ac','Warna aksen']];
 function ld(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
 function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -356,23 +415,23 @@ function buildCfg(){
  var h='<div class="pre"><button data-pre="gelap">Gelap</button><button data-pre="terang">Terang</button><button data-pre="malam">Biru malam</button></div>';
  FIELDS.forEach(function(f){h+='<label>'+f[1]+'<input type="color" data-k="'+f[0]+'" value="'+cfg[f[0]]+'"></label>'});
  h+='<label>Ukuran teks<select id="cFs"><option value="12">Kecil</option><option value="14">Normal</option><option value="16">Besar</option></select></label>';
- h+='<label>Tampilkan grid<input type="checkbox" id="cGr"></label><label>Animasi<input type="checkbox" id="cAn"></label><label>Sumber logo (opsional)<input type="text" id="cLg" placeholder="https://.../{s}.svg"></label><label>Alamat halaman chat AI<input type="text" id="cCh"></label><label>Informasi<button class="btn" id="cInfo">Tentang dan ketentuan</button></label>';
+ h+='<label>Tampilkan grid<input type="checkbox" id="cGr"></label><label>Animasi<input type="checkbox" id="cAn"></label><label>Sumber logo (opsional)<input type="text" id="cLg" placeholder="https://.../{s}.svg"></label><label>Informasi<button class="btn" id="cInfo">Tentang dan ketentuan</button></label>';
  $('cfgBody').innerHTML=h;
  qa('[data-pre]').forEach(function(b){b.onclick=function(){cfg=Object.assign(cfg,PRESETS[b.dataset.pre]);sv('kyy_cfg3',cfg);applyCfg();buildCfg()}});
  $('cInfo').onclick=function(){$('cfg').classList.remove('on');openInfo()};
- $('cFs').value=String(cfg.fs);$('cGr').checked=cfg.grid;$('cAn').checked=cfg.anim;$('cCh').value=cfg.chat;$('cLg').value=cfg.logo||'';
+ $('cFs').value=String(cfg.fs);$('cGr').checked=cfg.grid;$('cAn').checked=cfg.anim;$('cLg').value=cfg.logo||'';
  qa('#cfgBody input[type=color]').forEach(function(i){i.oninput=function(){cfg[i.dataset.k]=i.value;applyCfg();sv('kyy_cfg3',cfg)}});
  $('cFs').onchange=function(){cfg.fs=+this.value;applyCfg();sv('kyy_cfg3',cfg)};
  $('cGr').onchange=function(){cfg.grid=this.checked;applyCfg();sv('kyy_cfg3',cfg)};
  $('cAn').onchange=function(){cfg.anim=this.checked;applyCfg();sv('kyy_cfg3',cfg)};
  $('cLg').oninput=function(){cfg.logo=this.value.trim();sv('kyy_cfg3',cfg);LS={};lsSave()};
- $('cCh').oninput=function(){cfg.chat=this.value.trim()||DEF.chat;sv('kyy_cfg3',cfg)};
+ 
 }
 qa('.js-set').forEach(function(b){b.onclick=function(){buildCfg();$('cfg').classList.add('on')}});
 $('cfgX').onclick=$('cfgC').onclick=function(){$('cfg').classList.remove('on')};
 $('cfgR').onclick=function(){cfg=Object.assign({},DEF);sv('kyy_cfg3',cfg);applyCfg();buildCfg()};
-function openChat(){window.open(cfg.chat+'?pair='+cur.s+'&tf='+(['1m','5m','1h','1d'].indexOf(tfk)>=0?tfk:'1h')+'&auto=1'+(/^https?:/.test(location.href)?'&back='+encodeURIComponent(location.href):''),'_blank')}
-qa('.js-ai').forEach(function(b){b.onclick=openChat});
+function openChat(){aiToggle()}
+qa('.js-ai').forEach(function(b){b.onclick=aiToggle});
 /* ---- pages ---- */
 var PAGES=['home','markets','trade','fut'];
 function setPage(p){
@@ -631,7 +690,7 @@ function tick(p){
 }
 function fillHead(){
  $('tIc').innerHTML=ic(cur);$('tSym').textContent=cur.b+'/'+cur.q;$('tTag').textContent=cur.f?'PERP':'';$('tTag').style.display=cur.f?'':'none';
- $('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));$('fund').style.display=cur.f?'':'none';
+ aiCtx();$('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));$('fund').style.display=cur.f?'':'none';
  var hn=$('hint');hn.style.display=cur.q==='IDR'?'':'none';hn.textContent='Pair rupiah di Binance sepi transaksi, jadi harga bisa diam beberapa detik. Untuk gerakan yang lebih hidup, pilih pair USDT.';
  var p=PROF[cur.b]||[cur.n,'Aset kripto','-','-','-','-','Belum ada profil untuk aset ini.'];
  $('pf').innerHTML='<div class="top">'+ic(cur).replace('style="background:','style="width:48px;height:48px;font-size:1.3rem;background:')+'<div><h3>'+p[0]+'</h3><span style="color:var(--mu);font-size:.8rem">'+p[1]+' - '+cur.s+'</span></div></div>'
@@ -816,7 +875,7 @@ $('shB').onclick=function(){
 var INFO='<h3 id="inf-tentang">Tentang</h3><p>'+SITE.name+' adalah dashboard pasar kripto yang menampilkan harga, grafik, order book, dan indikator teknikal secara langsung. Layanan ini hanya menyajikan informasi. Kami tidak menyediakan jual beli aset, penyimpanan dana, atau jasa penasihat investasi.</p>'
 +'<h3 id="inf-sumber">Sumber data dan atribusi</h3><p>Data pasar spot dari Binance (endpoint data publik) dan data futures dari Binance atau Bybit sebagai cadangan. Indeks Fear and Greed dari <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" rel="noopener">Alternative.me</a>. Data pasar global dari <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a>. Grafik oleh <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView Lightweight Charts</a>. Logo koin dari paket cryptocurrency-icons (CC0) dan Crypto Logo CDN (MIT). Merek dan logo adalah milik pemiliknya masing-masing. Data dapat tertunda atau tidak akurat.</p>'
 +'<h3 id="inf-risiko">Pernyataan risiko</h3><p>Seluruh informasi di sini bukan nasihat keuangan, bukan ajakan membeli atau menjual aset. Aset kripto sangat fluktuatif dan dapat membuat Anda kehilangan sebagian atau seluruh modal. Indikator teknikal dan analisis AI bisa keliru. Keputusan dan risikonya sepenuhnya menjadi tanggung jawab Anda.</p>'
-+'<h3 id="inf-privasi">Privasi</h3><p>Halaman ini tidak meminta akun dan tidak memakai pelacak iklan. Pengaturan, watchlist, alert, dan portofolio disimpan di penyimpanan lokal browser Anda dan tidak dikirim ke server kami. Data pasar diminta langsung dari browser Anda ke penyedia data (Binance, Bybit, CoinGecko, Alternative.me, dan penyedia logo), sehingga mereka dapat melihat alamat IP Anda. Halaman chat AI memakai akun terpisah dan mengirim pesan serta data grafik ke layanan AI.</p>'
++'<h3 id="inf-privasi">Privasi</h3><p>Halaman ini tidak meminta akun dan tidak memakai pelacak iklan. Pengaturan, watchlist, alert, dan portofolio disimpan di penyimpanan lokal browser Anda dan tidak dikirim ke server kami. Data pasar diminta langsung dari browser Anda ke penyedia data (Binance, Bybit, CoinGecko, Alternative.me, dan penyedia logo), sehingga mereka dapat melihat alamat IP Anda. Fitur Analis AI memerlukan akun dan mengirim pesan serta data grafik yang sedang Anda lihat ke layanan AI (Google Gemini). Riwayat percakapan disimpan di browser Anda.</p>'
 +'<h3 id="inf-syarat">Syarat penggunaan</h3><p>Layanan disediakan apa adanya tanpa jaminan apa pun. Kami tidak bertanggung jawab atas kerugian yang timbul dari penggunaan informasi di sini. Dilarang memakai layanan untuk tujuan yang melanggar hukum. Ketentuan dapat berubah sewaktu-waktu.</p>'
 +'<h3>Kontak</h3><p>'+(SITE.email?'<a href="mailto:'+SITE.email+'">'+SITE.email+'</a>':'Belum diatur.')+'</p>';
 $('infB').innerHTML=INFO;
@@ -863,6 +922,170 @@ function pfOpen(){
 $('pfOpen').onclick=pfOpen;$('pfX').onclick=$('pfC').onclick=function(){$('pfm').classList.remove('on')};
 setInterval(function(){if($('pfm').classList.contains('on')&&$('pfList'))pfList()},1000);
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});
+/* ---- Analis AI (in-app, tanpa pindah halaman) ---- */
+var AI={open:false,sb:null,user:null,msgs:[],busy:false,ctrl:null};
+function il(t){return t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')}
+function md(t){
+ t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ var out='';
+ t.split('```').forEach(function(p,n){
+  if(n%2){out+='<pre>'+p.replace(/^\w*\n/,'')+'</pre>';return}
+  var list=null,html='';
+  function end(){if(list){html+='</'+list+'>';list=null}}
+  p.split('\n').forEach(function(l){
+   var m=l.match(/^\s*[-*]\s+(.*)/);
+   if(m){if(list!=='ul'){end();html+='<ul>';list='ul'}html+='<li>'+il(m[1])+'</li>';return}
+   m=l.match(/^\s*\d+[.)]\s+(.*)/);
+   if(m){if(list!=='ol'){end();html+='<ol>';list='ol'}html+='<li>'+il(m[1])+'</li>';return}
+   m=l.match(/^#{1,4}\s+(.*)/);
+   if(m){end();html+='<p><b>'+il(m[1])+'</b></p>';return}
+   end();if(l.trim())html+='<p>'+il(l)+'</p>';
+  });
+  end();out+=html;
+ });
+ return out;
+}
+function aiCtx(){
+ if(!$('aiCtx'))return;
+ $('aiCtx').textContent=cur.b+'/'+cur.q+' - '+tfk.toUpperCase()+(lastPx!==null?' - live':'');
+ $('aiSub').textContent='Tanyakan analisis untuk '+cur.b+'/'+cur.q+' yang sedang Anda lihat.';
+}
+function aiLoadSB(){return new Promise(function(res,rej){if(window.supabase)return res();var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=res;s.onerror=function(){rej(new Error('Modul login gagal dimuat. Periksa koneksi internet Anda.'))};document.head.appendChild(s)})}
+async function aiInit(){
+ if(AI.sb)return;
+ await aiLoadSB();
+ AI.sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'kyy-pro-auth'}});
+ var r=await AI.sb.auth.getSession();aiUser(r.data.session&&r.data.session.user);
+ AI.sb.auth.onAuthStateChange(function(_e,se){var u=se&&se.user;if((u&&u.id)!==(AI.user&&AI.user.id))aiUser(u)});
+}
+function aiUser(u){AI.user=u||null;AI.msgs=u?ld('kyy_chat_'+u.id,[]):[];aiView();aiRender()}
+function aiView(){
+ var li=!!AI.user;
+ $('aiLoad').hidden=true;$('aiAuth').hidden=li;$('aiChat').hidden=!li;$('aiForm').hidden=!li;$('aiNote').hidden=!li;
+ $('aiAcc').textContent=li?AI.user.email:'Belum masuk';$('aiOut').hidden=!li;
+}
+function aiOpen(){
+ AI.open=true;$('ai').classList.add('on');$('ai').setAttribute('aria-hidden','false');
+ var nb=$('nav').querySelector('.js-ai');if(nb)nb.classList.add('on');
+ aiCtx();
+ if(!AI.sb){
+  $('aiLoad').hidden=false;$('aiLoad').textContent='Memuat...';
+  aiInit().catch(function(e){var l=$('aiLoad');l.hidden=false;l.innerHTML='';var d=document.createElement('div');d.textContent=e.message||'Gagal memuat.';var b=document.createElement('button');b.className='btn';b.textContent='Coba lagi';b.onclick=aiOpen;l.appendChild(d);l.appendChild(b)}).then(function(){setTimeout(function(){if(AI.user&&AI.open)$('aiIn').focus()},250)});
+ }else if(AI.user)setTimeout(function(){$('aiIn').focus()},250);
+}
+function aiClose(){AI.open=false;$('ai').classList.remove('on');$('ai').setAttribute('aria-hidden','true');var nb=$('nav').querySelector('.js-ai');if(nb)nb.classList.remove('on');$('aiSetP').classList.remove('on')}
+function aiToggle(){AI.open?aiClose():aiOpen()}
+function aiSave(){if(AI.user)sv('kyy_chat_'+AI.user.id,AI.msgs.filter(function(m){return !m.e&&m.t}).slice(-60))}
+function aiMsgEl(m,i){
+ var d=document.createElement('div'),b=document.createElement('div'),last=i===AI.msgs.length-1;
+ d.className='am '+(m.r==='u'?'u':'a')+(m.e?' e':'');b.className='ab';
+ if(m.r==='u')b.textContent=m.t;
+ else if(m.e)b.textContent=m.e;
+ else if(!m.t&&AI.busy&&last)b.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+ else b.innerHTML=md(m.t);
+ d.appendChild(b);
+ if(m.r==='a'&&(m.t||m.e)&&!(AI.busy&&last)){
+  var a=document.createElement('div');a.className='aa';
+  if(m.e)a.innerHTML='<button data-ai="retry">'+'<svg class="i"><use href="#i-redo"/></svg>Coba lagi</button>';
+  else a.innerHTML='<button data-ai="copy" data-i="'+i+'" aria-label="Salin"><svg class="i"><use href="#i-copy"/></svg></button>'+(last?'<button data-ai="regen" aria-label="Ulangi jawaban"><svg class="i"><use href="#i-redo"/></svg></button>':'');
+  d.appendChild(a);
+ }
+ return d;
+}
+function aiRender(){
+ var log=$('aiLog');log.innerHTML='';
+ $('aiEmpty').hidden=AI.msgs.length>0;
+ AI.msgs.forEach(function(m,i){log.appendChild(aiMsgEl(m,i))});
+ log.scrollTop=log.scrollHeight;
+}
+function aiSendBtn(){
+ var b=$('aiSend');
+ b.innerHTML='<svg class="i"><use href="#i-'+(AI.busy?'stop':'send')+'"/></svg>';
+ b.setAttribute('aria-label',AI.busy?'Berhenti':'Kirim');
+ b.disabled=!AI.busy&&!$('aiIn').value.trim();
+}
+function aiGrow(){var t=$('aiIn');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,120)+'px'}
+async function aiSnapshot(){
+ var m=mk[cur.k]||{},arr=candles;
+ if(!arr.length){
+  var j=await rest((cur.f?'/fapi/v1/klines':'/api/v3/klines')+'?symbol='+cur.s+'&interval='+tfk+'&limit=120',cur.f?FR:SR);
+  if(j&&j!=='BAD')arr=j.map(function(k){return{time:k[0]/1000,open:+k[1],high:+k[2],low:+k[3],close:+k[4],v:+k[5]}});
+ }
+ var bak=candles;candles=arr;var r=rsiData(),mv=maData();candles=bak;
+ return{pair:cur.s,pasar:cur.f?'futures perpetual':'spot',timeframe:tfk,waktuData:new Date().toISOString(),
+  lastPrice:arr.length?arr[arr.length-1].close:(m.p||null),change24hPct:m.o?pcOf(m):null,high24h:m.h||null,low24h:m.l||null,volume24hQuote:m.q||null,
+  rsi14:r.length?+r[r.length-1].value.toFixed(1):null,ma50:mv.length?mv[mv.length-1].value:null,fundingRate:m.r!=null&&!isNaN(m.r)?m.r:null,
+  candlesOHLCV_oldToNew:arr.slice(-40).map(function(c){return[c.open,c.high,c.low,c.close,c.v]}),
+  bestAsks:book?book.a.slice(0,5):null,bestBids:book?book.b.slice(0,5):null};
+}
+async function aiSend(text,regen){
+ if(AI.busy||!AI.user)return;
+ text=(text||'').trim();if(!text)return;
+ AI.busy=true;AI.ctrl=new AbortController();
+ if(!regen)AI.msgs.push({r:'u',t:text,ts:Date.now()});
+ var am={r:'a',t:'',ts:Date.now()};AI.msgs.push(am);aiRender();aiSendBtn();aiCtx();
+ try{
+  var ss=await AI.sb.auth.getSession(),tok=ss.data.session&&ss.data.session.access_token;
+  if(!tok){var e0=new Error('Sesi berakhir. Silakan masuk lagi.');e0.st=401;throw e0}
+  var snap=await aiSnapshot();
+  var hist=AI.msgs.slice(0,-2).filter(function(m){return m.t&&!m.e}).slice(-10).map(function(m){return{role:m.r==='u'?'user':'assistant',content:m.t}});
+  var r=await fetch(SITE.api+'/api/chat_trading',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({pesan:text,riwayat:hist,snapshot:snap}),signal:AI.ctrl.signal});
+  if(!r.ok){var j={};try{j=await r.json()}catch(x){}var er=new Error(j.error||('Kesalahan server ('+r.status+')'));er.st=r.status;throw er}
+  var bub=$('aiLog').lastChild.querySelector('.ab'),raf=0;
+  function paint(){raf=0;var lg=$('aiLog'),near=lg.scrollHeight-lg.scrollTop-lg.clientHeight<90;bub.innerHTML=md(am.t);if(near)lg.scrollTop=lg.scrollHeight}
+  if(r.body&&r.body.getReader){
+   var rd=r.body.getReader(),dc=new TextDecoder();
+   for(;;){var x=await rd.read();if(x.done)break;am.t+=dc.decode(x.value,{stream:true});if(!raf)raf=requestAnimationFrame(paint)}
+  }else am.t=await r.text();
+  if(!am.t.trim())throw new Error('AI tidak memberi jawaban. Coba lagi.');
+ }catch(e){
+  if(e.name==='AbortError'){if(!am.t)AI.msgs.pop()}
+  else{
+   am.e=e.st===401?e.message:(e instanceof TypeError?'Tidak bisa terhubung ke server AI. Periksa koneksi Anda.':e.message);
+   if(e.st===401&&AI.sb)AI.sb.auth.signOut();
+  }
+ }
+ AI.busy=false;AI.ctrl=null;aiSave();aiRender();aiSendBtn();
+}
+function aiLastUser(){for(var i=AI.msgs.length-1;i>=0;i--)if(AI.msgs[i].r==='u')return AI.msgs[i].t;return''}
+$('aiLog').onclick=function(e){
+ var b=e.target.closest('[data-ai]');if(!b)return;
+ var k=b.dataset.ai;
+ if(k==='copy'){var t=AI.msgs[+b.dataset.i].t;if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast('Disalin')},function(){})}
+ else if(k==='retry'||k==='regen'){if(AI.busy)return;var q=aiLastUser();AI.msgs.pop();aiSend(q,true)}
+};
+$('aiQ').onclick=function(e){var b=e.target.closest('button');if(b)aiSend(b.textContent)};
+$('aiForm').onsubmit=function(e){e.preventDefault();if(AI.busy){if(AI.ctrl)AI.ctrl.abort();return}var t=$('aiIn').value;if(!t.trim())return;$('aiIn').value='';aiGrow();aiSendBtn();aiSend(t)};
+$('aiIn').oninput=function(){aiGrow();aiSendBtn()};
+$('aiIn').onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey&&!matchMedia('(pointer:coarse)').matches){e.preventDefault();$('aiForm').requestSubmit()}};
+$('aiNew').onclick=function(){if(AI.busy&&AI.ctrl)AI.ctrl.abort();AI.msgs=[];aiSave();if(AI.user)sv('kyy_chat_'+AI.user.id,[]);aiRender();toast('Percakapan baru dimulai')};
+$('aiClose').onclick=aiClose;
+$('aiSet').onclick=function(){qa('#aiMode button').forEach(function(b){b.classList.toggle('on',b.dataset.am===cfg.aiMode)});$('aiSetP').classList.add('on')};
+$('aiSetX').onclick=function(){$('aiSetP').classList.remove('on')};
+$('aiMode').onclick=function(e){var b=e.target.closest('button');if(!b)return;cfg.aiMode=b.dataset.am;sv('kyy_cfg3',cfg);$('ai').dataset.m=cfg.aiMode;qa('#aiMode button').forEach(function(x){x.classList.toggle('on',x===b)})};
+$('aiOut').onclick=function(){if(AI.sb)AI.sb.auth.signOut();$('aiSetP').classList.remove('on')};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&AI.open){if($('aiSetP').classList.contains('on'))$('aiSetP').classList.remove('on');else aiClose()}});
+if(window.visualViewport){var vv=window.visualViewport;var kb=function(){var h=Math.max(0,window.innerHeight-vv.height-vv.offsetTop),a=$('ai');a.style.setProperty('--kb',h+'px');a.classList.toggle('kbo',h>100);a.style.maxHeight=h>100?(vv.height-16)+'px':''};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
+$('ai').dataset.m=cfg.aiMode||'widget';
+var auMode='login';
+function auMsg(t){$('auM').textContent=t||''}
+function auSet(m){auMode=m;$('auL').classList.toggle('on',m==='login');$('auR').classList.toggle('on',m==='reg');$('auGo').textContent=m==='login'?'Masuk':'Daftar';$('auP').autocomplete=m==='login'?'current-password':'new-password';auMsg('')}
+$('auL').onclick=function(){auSet('login')};$('auR').onclick=function(){auSet('reg')};
+function auErr(m){m=String(m||'');if(/Invalid login/i.test(m))return 'Email atau kata sandi salah.';if(/not confirmed/i.test(m))return 'Email belum dikonfirmasi. Cek kotak masuk Anda.';if(/already registered/i.test(m))return 'Email sudah terdaftar. Silakan masuk.';if(/Password should/i.test(m))return 'Kata sandi minimal 6 karakter.';if(/rate limit/i.test(m))return 'Terlalu banyak percobaan. Coba lagi nanti.';return m||'Terjadi kesalahan. Coba lagi.'}
+$('auGo').onclick=async function(){
+ var em=$('auE').value.trim(),pw=$('auP').value;auMsg('');
+ if(!em||pw.length<6){auMsg('Isi email dan kata sandi (minimal 6 karakter).');return}
+ var b=$('auGo');b.disabled=true;
+ try{
+  if(auMode==='login'){var r=await AI.sb.auth.signInWithPassword({email:em,password:pw});if(r.error)throw r.error}
+  else{var r2=await AI.sb.auth.signUp({email:em,password:pw});if(r2.error)throw r2.error;if(!r2.data.session)auMsg('Pendaftaran berhasil. Cek email Anda untuk konfirmasi, lalu masuk.')}
+ }catch(e){auMsg(auErr(e.message))}
+ b.disabled=false;
+};
+$('auF').onclick=async function(){
+ var em=$('auE').value.trim();if(!em){auMsg('Isi email Anda dulu.');return}
+ try{var r=await AI.sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error;auMsg('Tautan reset kata sandi dikirim ke email Anda.')}catch(e){auMsg(auErr(e.message))}
+};
 /* ---- chart controls ---- */
 function setTF(k){tfk=k;sv('kyy_tf',k);hashSet();qa('[data-tf]').forEach(function(b){b.classList.toggle('on',b.dataset.tf===k)})}
 qa('[data-tf]').forEach(function(b){b.onclick=function(){setTF(b.dataset.tf);load()}});

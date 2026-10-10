@@ -296,7 +296,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   <div id="aiAuth" hidden><div class="ac"><h3>Masuk untuk memakai Analis AI</h3><p>Akun diperlukan agar layanan AI tidak disalahgunakan.</p>
    <div class="seg2" style="margin:4px 0"><button id="auL" class="on">Masuk</button><button id="auR">Daftar</button></div>
    <input id="auE" type="email" placeholder="Email" autocomplete="email"><input id="auP" type="password" placeholder="Kata sandi (minimal 6 karakter)" autocomplete="current-password">
-   <div id="auM" class="note" style="padding:0"></div><button class="btn" id="auGo">Masuk</button><button class="lk" id="auF" style="text-align:center">Lupa kata sandi?</button></div></div>
+   <div id="auT" style="display:flex;justify-content:center;min-height:65px"></div><div id="auM" class="note" style="padding:0"></div><button class="btn" id="auGo">Masuk</button><button class="lk" id="auF" style="text-align:center">Lupa kata sandi?</button></div></div>
   <div id="aiChat" hidden><div id="aiLog" role="log" aria-live="polite"></div>
    <div id="aiEmpty"><span class="aib"><svg class="i"><use href="#i-ai"/></svg></span><h3>Analis Trading AI</h3><p id="aiSub">Tanyakan analisis untuk pair yang sedang Anda lihat.</p>
     <div class="qc" id="aiQ"><button>Analisis kondisi sekarang</button><button>Apa arti RSI saat ini?</button><button>Level support dan resistance</button><button>Pola candle terakhir</button><button>Risiko yang perlu diwaspadai</button></div></div></div>
@@ -963,6 +963,7 @@ function aiView(){
  var li=!!AI.user;
  $('aiLoad').hidden=true;$('aiAuth').hidden=li;$('aiChat').hidden=!li;$('aiForm').hidden=!li;$('aiNote').hidden=!li;
  $('aiAcc').textContent=li?AI.user.email:'Belum masuk';$('aiOut').hidden=!li;
+ if(!li)tsEnsure();
 }
 function aiOpen(){
  AI.open=true;$('ai').classList.add('on');$('ai').setAttribute('aria-hidden','false');
@@ -1067,24 +1068,41 @@ $('aiOut').onclick=function(){if(AI.sb)AI.sb.auth.signOut();$('aiSetP').classLis
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&AI.open){if($('aiSetP').classList.contains('on'))$('aiSetP').classList.remove('on');else aiClose()}});
 if(window.visualViewport){var vv=window.visualViewport;var kb=function(){var h=Math.max(0,window.innerHeight-vv.height-vv.offsetTop),a=$('ai');a.style.setProperty('--kb',h+'px');a.classList.toggle('kbo',h>100);a.style.maxHeight=h>100?(vv.height-16)+'px':''};vv.addEventListener('resize',kb);vv.addEventListener('scroll',kb)}
 $('ai').dataset.m=cfg.aiMode||'widget';
+var TS_KEY='0x4AAAAAAEJvSM6VwBV-8QLu',tsTok='',tsId=null,tsLoad=null;
+function tsEnsure(){
+ if(tsId!==null||tsLoad)return;
+ tsLoad=new Promise(function(res,rej){
+  if(window.turnstile)return res();
+  var s=document.createElement('script');s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';s.async=true;s.onload=res;s.onerror=function(){rej(new Error('x'))};document.head.appendChild(s);
+ }).then(function(){
+  tsId=window.turnstile.render('#auT',{sitekey:TS_KEY,theme:'dark',
+   callback:function(t){tsTok=t},
+   'expired-callback':function(){tsTok=''},
+   'error-callback':function(c){tsTok='';auMsg('Verifikasi keamanan gagal (kode '+c+'). Pastikan domain situs ini sudah diizinkan di Cloudflare Turnstile.')}});
+ }).catch(function(){tsLoad=null;auMsg('Verifikasi keamanan gagal dimuat. Periksa koneksi internet lalu buka ulang panel ini.')});
+}
+function tsReset(){tsTok='';try{if(tsId!==null&&window.turnstile)window.turnstile.reset(tsId)}catch(e){}}
 var auMode='login';
 function auMsg(t){$('auM').textContent=t||''}
 function auSet(m){auMode=m;$('auL').classList.toggle('on',m==='login');$('auR').classList.toggle('on',m==='reg');$('auGo').textContent=m==='login'?'Masuk':'Daftar';$('auP').autocomplete=m==='login'?'current-password':'new-password';auMsg('')}
 $('auL').onclick=function(){auSet('login')};$('auR').onclick=function(){auSet('reg')};
-function auErr(m){m=String(m||'');if(/Invalid login/i.test(m))return 'Email atau kata sandi salah.';if(/not confirmed/i.test(m))return 'Email belum dikonfirmasi. Cek kotak masuk Anda.';if(/already registered/i.test(m))return 'Email sudah terdaftar. Silakan masuk.';if(/Password should/i.test(m))return 'Kata sandi minimal 6 karakter.';if(/rate limit/i.test(m))return 'Terlalu banyak percobaan. Coba lagi nanti.';return m||'Terjadi kesalahan. Coba lagi.'}
+function auErr(m){m=String(m||'');if(/captcha/i.test(m))return 'Verifikasi keamanan gagal. Selesaikan kotak verifikasi lalu coba lagi.';if(/Invalid login/i.test(m))return 'Email atau kata sandi salah.';if(/not confirmed/i.test(m))return 'Email belum dikonfirmasi. Cek kotak masuk Anda.';if(/already registered/i.test(m))return 'Email sudah terdaftar. Silakan masuk.';if(/Password should/i.test(m))return 'Kata sandi minimal 6 karakter.';if(/rate limit/i.test(m))return 'Terlalu banyak percobaan. Coba lagi nanti.';return m||'Terjadi kesalahan. Coba lagi.'}
 $('auGo').onclick=async function(){
  var em=$('auE').value.trim(),pw=$('auP').value;auMsg('');
  if(!em||pw.length<6){auMsg('Isi email dan kata sandi (minimal 6 karakter).');return}
+ if(!tsTok){auMsg('Selesaikan verifikasi keamanan dulu.');return}
  var b=$('auGo');b.disabled=true;
  try{
-  if(auMode==='login'){var r=await AI.sb.auth.signInWithPassword({email:em,password:pw});if(r.error)throw r.error}
-  else{var r2=await AI.sb.auth.signUp({email:em,password:pw});if(r2.error)throw r2.error;if(!r2.data.session)auMsg('Pendaftaran berhasil. Cek email Anda untuk konfirmasi, lalu masuk.')}
+  if(auMode==='login'){var r=await AI.sb.auth.signInWithPassword({email:em,password:pw,options:{captchaToken:tsTok}});if(r.error)throw r.error}
+  else{var r2=await AI.sb.auth.signUp({email:em,password:pw,options:{captchaToken:tsTok}});if(r2.error)throw r2.error;if(!r2.data.session)auMsg('Pendaftaran berhasil. Cek email Anda untuk konfirmasi, lalu masuk.')}
  }catch(e){auMsg(auErr(e.message))}
- b.disabled=false;
+ b.disabled=false;tsReset();
 };
 $('auF').onclick=async function(){
  var em=$('auE').value.trim();if(!em){auMsg('Isi email Anda dulu.');return}
- try{var r=await AI.sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});if(r.error)throw r.error;auMsg('Tautan reset kata sandi dikirim ke email Anda.')}catch(e){auMsg(auErr(e.message))}
+ if(!tsTok){auMsg('Selesaikan verifikasi keamanan dulu.');return}
+ try{var r=await AI.sb.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname,captchaToken:tsTok});if(r.error)throw r.error;auMsg('Tautan reset kata sandi dikirim ke email Anda.')}catch(e){auMsg(auErr(e.message))}
+ tsReset();
 };
 /* ---- chart controls ---- */
 function setTF(k){tfk=k;sv('kyy_tf',k);hashSet();qa('[data-tf]').forEach(function(b){b.classList.toggle('on',b.dataset.tf===k)})}

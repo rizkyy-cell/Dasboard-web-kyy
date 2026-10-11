@@ -840,16 +840,18 @@ async function loadGlobal(){
  var h='',ok=false;
  try{
   var r=await fetch('https://api.alternative.me/fng/?limit=1'),j=await r.json(),d=j.data[0],v=+d.value;
+  GL.fng=v;GL.fngLabel=d.value_classification;
   h+='<div class="w"><small>Fear and Greed Index</small><b>'+v+' - '+d.value_classification+'</b><div class="fgb"><i style="left:'+v+'%"></i></div></div>';ok=true;
  }catch(e){}
  try{
-  var r2=await fetch('https://api.coingecko.com/api/v3/global'),g=(await r2.json()).data,c=g.market_cap_change_percentage_24h_usd;
+  var r2=await fetch('https://api.coingecko.com/api/v3/global'),g=(await r2.json()).data,c=g.market_cap_change_percentage_24h_usd;GL.btcDom=+g.market_cap_percentage.btc.toFixed(1);GL.cap=g.total_market_cap.usd;GL.capChg=+c.toFixed(2);
   h='<div><small>Kapitalisasi total</small><b>$'+cmp(g.total_market_cap.usd)+'</b></div><div><small>Dominasi BTC</small><b>'+nf(g.market_cap_percentage.btc,1)+'%</b></div><div class="w"><small>Perubahan kapitalisasi 24j</small><b style="color:'+(c>=0?'var(--up)':'var(--dn)')+'">'+(c>=0?'+':'')+nf(c,2)+'%</b></div>'+h;ok=true;
  }catch(e){}
  if(ok){$('gl').innerHTML=h;$('glh').style.display=''}
 }
 loadGlobal();setInterval(loadGlobal,300000);
 var port=ld('kyy_pf',[]);
+var GL={};
 function pnum(x){x=String(x).trim();if(x.indexOf(',')>=0)x=x.replace(/\./g,'').replace(',','.');return parseFloat(x)}
 function pfList(){
  var tot={},xs='<svg class="i" style="width:16px;height:16px"><use href="#i-x"/></svg>';
@@ -871,18 +873,49 @@ $('pfOpen').onclick=pfOpen;$('pfX').onclick=$('pfC').onclick=function(){$('pfm')
 setInterval(function(){if($('pfm').classList.contains('on')&&$('pfList'))pfList()},1000);
 if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});
 /* ---- Analis AI: kode UI ada di ai.js (dimuat saat AI pertama dibuka) ---- */
+function smaL(c,n){if(c.length<n)return null;var s=0,i;for(i=c.length-n;i<c.length;i++)s+=c[i];return s/n}
+function emaL(c,n){if(c.length<n)return null;var k=2/(n+1),e=c[0],i;for(i=1;i<c.length;i++)e=c[i]*k+e*(1-k);return e}
+function rsiL(c,n){if(c.length<=n)return null;var g=0,l=0,i,d;for(i=1;i<=n;i++){d=c[i]-c[i-1];if(d>0)g+=d;else l-=d}g/=n;l/=n;for(i=n+1;i<c.length;i++){d=c[i]-c[i-1];g=(g*(n-1)+(d>0?d:0))/n;l=(l*(n-1)+(d<0?-d:0))/n}return l===0?100:100-100/(1+g/l)}
+function atrL(a,n){if(a.length<=n)return null;var tr=[],i,e=0;for(i=1;i<a.length;i++)tr.push(Math.max(a[i].h-a[i].l,Math.abs(a[i].h-a[i-1].c),Math.abs(a[i].l-a[i-1].c)));for(i=0;i<n;i++)e+=tr[i];e/=n;for(i=n;i<tr.length;i++)e=(e*(n-1)+tr[i])/n;return e}
+function R(x){return x==null||isNaN(x)?null:+x.toPrecision(8)}
+function indOf(a){
+ var c=a.map(function(x){return x.c}),n=c.length,L=c[n-1],o={jumlahCandle:n,close:R(L)};
+ o.ma20=R(smaL(c,20));o.ma50=R(smaL(c,50));o.ma200=R(smaL(c,200));o.ema20=R(emaL(c,20));o.ema50=R(emaL(c,50));o.rsi14=n>14?+rsiL(c,14).toFixed(1):null;
+ if(n>=20){var m=smaL(c,20),v=0,i;for(i=n-20;i<n;i++)v+=Math.pow(c[i]-m,2);var sd=Math.sqrt(v/20),u=m+2*sd,lo=m-2*sd;o.bollinger={upper:R(u),mid:R(m),lower:R(lo),percentB:u>lo?+((L-lo)/(u-lo)).toFixed(2):null,lebarPct:m?+((u-lo)/m*100).toFixed(2):null}}
+ if(n>=35){var e1=emaArr(c,12),e2=emaArr(c,26),mc=e1.map(function(x,i){return x-e2[i]}),sg=emaArr(mc,9);o.macd={macd:R(mc[n-1]),signal:R(sg[n-1]),hist:R(mc[n-1]-sg[n-1])}}
+ var at=atrL(a,14);o.atr14=R(at);o.atrPct=at?+(at/L*100).toFixed(2):null;
+ if(n>=21){var vs=0,i2;for(i2=n-21;i2<n-1;i2++)vs+=a[i2].v;vs/=20;o.volumeVsRata20=vs?+(a[n-1].v/vs).toFixed(2):null}
+ var e20=emaL(c,20),m50=smaL(c,50);
+ o.tren=e20&&m50?(L>e20&&e20>m50?'naik (harga > EMA20 > MA50)':L<e20&&e20<m50?'turun (harga < EMA20 < MA50)':'sideways atau campuran'):null;
+ return o;
+}
+function obOf(d){
+ if(!d||!d.bids||!d.asks||!d.bids.length||!d.asks.length)return null;
+ function sum(x,n){var s=0,i;for(i=0;i<Math.min(n,x.length);i++)s+=+x[i][1];return s}
+ function imb(n){var b=sum(d.bids,n),a=sum(d.asks,n);return b+a?+((b-a)/(b+a)).toFixed(3):null}
+ var bb=+d.bids[0][0],ba=+d.asks[0][0];
+ return{bestBid:bb,bestAsk:ba,spreadPct:+((ba-bb)/ba*100).toFixed(4),imbalanceTop5:imb(5),imbalanceTop10:imb(10),imbalanceTop20:imb(20),catatan:'imbalance antara -1 (dominasi jual) dan +1 (dominasi beli)',bids10:d.bids.slice(0,10).map(function(x){return[+x[0],+x[1]]}),asks10:d.asks.slice(0,10).map(function(x){return[+x[0],+x[1]]})};
+}
+var snapC={};
 async function aiSnapshot(){
- var m=mk[cur.k]||{},arr=candles;
- if(!arr.length){
-  var j=await rest((cur.f?'/fapi/v1/klines':'/api/v3/klines')+'?symbol='+cur.s+'&interval='+tfk+'&limit=120',cur.f?FR:SR);
-  if(j&&j!=='BAD')arr=j.map(function(k){return{time:k[0]/1000,open:+k[1],high:+k[2],low:+k[3],close:+k[4],v:+k[5]}});
- }
- var bak=candles;candles=arr;var r=rsiData(),mv=maData();candles=bak;
- return{pair:cur.s,pasar:cur.f?'futures perpetual':'spot',timeframe:tfk,waktuData:new Date().toISOString(),
-  lastPrice:arr.length?arr[arr.length-1].close:(m.p||null),change24hPct:m.o?pcOf(m):null,high24h:m.h||null,low24h:m.l||null,volume24hQuote:m.q||null,
-  rsi14:r.length?+r[r.length-1].value.toFixed(1):null,ma50:mv.length?mv[mv.length-1].value:null,fundingRate:m.r!=null&&!isNaN(m.r)?m.r:null,
-  candlesOHLCV_oldToNew:arr.slice(-40).map(function(c){return[c.open,c.high,c.low,c.close,c.v]}),
-  bestAsks:book?book.a.slice(0,5):null,bestBids:book?book.b.slice(0,5):null};
+ var m=mk[cur.k]||{},hosts=cur.f?FR:SR,kp=cur.f?'/fapi/v1/klines':'/api/v3/klines',dpth=cur.f?'/fapi/v1/depth':'/api/v3/depth';
+ var tfs=[tfk].concat(['5m','1h','1d','1w'].filter(function(t){return t!==tfk})),ck=cur.k,now=Date.now();
+ var need=tfs.filter(function(t){var c=snapC[ck+t];return !(c&&now-c.t<60000)});
+ var jobs=[rest(dpth+'?symbol='+cur.s+'&limit=20',hosts)].concat(need.map(function(t){return rest(kp+'?symbol='+cur.s+'&interval='+t+'&limit=210',hosts)}));
+ var res=await Promise.all(jobs);
+ need.forEach(function(t,i){var j=res[i+1];if(j&&j!=='BAD'&&j.length)snapC[ck+t]={t:now,a:j.map(function(k){return{o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}})}});
+ var main=snapC[ck+tfk]&&snapC[ck+tfk].a;
+ if(!main&&candles.length)main=candles.map(function(x){return{o:x.open,h:x.high,l:x.low,c:x.close,v:x.v}});
+ var mtf={};tfs.forEach(function(t){var c=snapC[ck+t];if(c&&t!==tfk)mtf[t]=indOf(c.a)});
+ var dj=res[0],ob=obOf(dj&&dj!=='BAD'?dj:(book?{bids:book.b,asks:book.a}:null)),sent=null;
+ if(GL.fng!=null||GL.btcDom!=null)sent={fearGreedIndex:GL.fng,fearGreedLabel:GL.fngLabel,dominasiBTCPct:GL.btcDom,kapitalisasiTotalUSD:GL.cap,perubahanKapitalisasi24jPct:GL.capChg,sumber:'Alternative.me dan CoinGecko'};
+ return{pair:cur.s,pasar:cur.f?'futures perpetual':'spot',timeframeAktif:tfk,waktuData:new Date().toISOString(),
+  lastPrice:main?main[main.length-1].c:(m.p||null),change24hPct:m.o?pcOf(m):null,high24h:m.h||null,low24h:m.l||null,volume24hQuote:m.q||null,fundingRate:m.r!=null&&!isNaN(m.r)?m.r:null,
+  indikatorTimeframeAktif:main?indOf(main):null,multiTimeframe:mtf,
+  candlesOHLCV_oldToNew:main?main.slice(-30).map(function(c){return[c.o,c.h,c.l,c.c,c.v]}):null,
+  orderBook:ob,sentimenPasarGlobal:sent,
+  fieldKosong:[!main&&'candle',!ob&&'orderBook',!sent&&'sentimen',cur.f&&m.r==null&&'fundingRate'].filter(Boolean),
+  tidakTersedia:'berita, media sosial, dan data on-chain'};
 }
 window.KYY={get cfg(){return cfg},save:function(){sv('kyy_cfg3',cfg)},ld:ld,sv:sv,toast:toast,api:SITE.api,sbUrl:SB_URL,sbKey:SB_KEY,
  ctx:function(){return{cur:cur,tfk:tfk,live:lastPx!==null}},snapshot:aiSnapshot};

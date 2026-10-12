@@ -174,6 +174,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 #pfList .tr{grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;padding:8px 0;align-items:center;border-bottom:1px solid var(--bd)}
 #pfBody select,#pfBody input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px;min-width:0}
 [hidden]{display:none!important}
+#dBar{display:none}#dmT.on{color:var(--ac)}
 @media (min-width:900px){#pages{max-width:760px;width:100%;margin:0 auto}}
 </style>
 </head>
@@ -210,6 +211,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
    <div class="shr"><h3 class="sh">Trending</h3><button class="lk" data-go="markets">Lihat semua</button></div>
    <div id="hList"></div>
    <div class="aic"><div style="flex:1"><b>Tanya Analis AI</b><p>Minta analisis grafik real-time dari data Binance.</p></div><button class="btn js-ai">Buka AI</button></div>
+   <button class="pfc" id="dmOpen" style="width:calc(100% - 28px);text-align:left"><span style="flex:1"><b>Mode Demo</b><br><small id="dmSum" style="color:var(--mu)">Latihan trading dengan saldo virtual, didampingi AI</small></span></button>
    <button class="pfc" id="pfOpen" style="width:calc(100% - 28px);text-align:left"><span style="flex:1"><b>Portofolio saya</b><br><small style="color:var(--mu)">Pantau nilai dan untung rugi koin yang Anda pegang</small></span></button>
    <div class="foot"><button data-info="tentang">Tentang</button><button data-info="sumber">Sumber data</button><button data-info="risiko">Risiko</button><button data-info="privasi">Privasi</button><button data-info="syarat">Syarat</button><span id="yr"></span></div>
   </div>
@@ -231,9 +233,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   <div class="mv" id="mvr"><div class="c"><small>1 dtk</small><b id="mv1">-</b><em></em></div><div class="c"><small>5 dtk</small><b id="mv5">-</b><em></em></div><div class="c"><small>15 dtk</small><b id="mv15">-</b><em></em></div><div class="c"><small>1 mnt</small><b id="mv60">-</b><em></em></div><div class="c"><small>5 mnt</small><b id="mv300">-</b><em></em></div><div class="c s"><svg id="mvs" viewBox="0 0 100 30" preserveAspectRatio="none"></svg><em id="mvAct"></em></div></div>
   <div class="stabs"><button class="tab on" data-stt="chart">Chart</button><button class="tab" data-stt="depth">Depth</button><button class="tab" data-stt="trades">Trades</button><button class="tab" data-stt="info">Info</button></div>
   <div class="tcs">
-   <div class="tc" id="tcChart"><div class="tfr" id="tfr"><button data-tf="1m">1m</button><button data-tf="5m">5m</button><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">1D</button><button data-tf="1w">1W</button><span class="vs"></span><button id="bC" class="on">Candle</button><button id="bL">Line</button><span class="sp"></span><button id="indB" aria-label="Indikator"><svg class="i"><use href="#i-sl"/></svg></button></div>
+   <div class="tc" id="tcChart"><div class="tfr" id="tfr"><button data-tf="1m">1m</button><button data-tf="5m">5m</button><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">1D</button><button data-tf="1w">1W</button><span class="vs"></span><button id="bC" class="on">Candle</button><button id="bL">Line</button><button id="dmT" aria-label="Mode demo">Demo</button><span class="sp"></span><button id="indB" aria-label="Indikator"><svg class="i"><use href="#i-sl"/></svg></button></div>
     <div id="indp"><label>Volume<input type="checkbox" id="kV" checked></label><label>MA 50<input type="checkbox" id="kMA"></label><label>EMA 20<input type="checkbox" id="kEMA"></label><label>Bollinger (20,2)<input type="checkbox" id="kBB"></label><label>RSI 14<input type="checkbox" id="kRSI"></label><label>MACD (12,26,9)<input type="checkbox" id="kMACD"></label></div>
-    <div id="chart" class="ld"></div></div>
+    <div id="chart" class="ld"></div>
+    <div id="dBar"><div><b id="dBarT">Mode Demo</b><span id="dBarS"></span></div><button class="b" id="dBuy">Beli</button><button class="s" id="dSell">Jual</button></div></div>
    <div class="tc" id="tcDepth"><svg id="dch" viewBox="0 0 300 90" preserveAspectRatio="none" style="width:100%;height:100px;flex:none;display:block;margin-top:6px"></svg><div id="asks"></div><div id="mid">-</div><div id="bids"></div><div id="imb"><i></i></div><div class="imt"><span id="imB">-</span><span>Tekanan beli / jual</span><span id="imS">-</span></div></div>
    <div class="tc" id="tcTrades"><div class="tr h"><span>Waktu</span><span>Harga</span><span>Jumlah</span></div><div id="trl"></div></div>
    <div class="tc" id="tcInfo"><div class="pf" id="pf"></div>
@@ -438,7 +441,7 @@ function refresh(){
   fill($('mList'),a);
   if(!a.length&&q.length>=5&&!$('addb')){var b=document.createElement('button');b.id='addb';b.className='btn';b.style.cssText='display:block;margin:0 auto';b.textContent='Tambah '+q+' dari Binance';b.onclick=function(){addPair(q)};$('mList').appendChild(b)}
  }
- if(p==='home'){fill($('hList'),topN(5));cards();heat()}
+ if(p==='home'){fill($('hList'),topN(5));cards();heat();homeDm()}
  if(p==='fut'){
   var fa=FUTS.filter(function(o){return mk[o.k]&&mk[o.k].p!==undefined}).sort(function(a,b){return mk[b.k].q-mk[a.k].q}),fb=$('fList');
   if(!fa.length&&ferr){
@@ -639,7 +642,7 @@ function tick(p){
 }
 function fillHead(){
  $('tIc').innerHTML=ic(cur);$('tSym').textContent=cur.b+'/'+cur.q;$('tTag').textContent=cur.f?'PERP':'';$('tTag').style.display=cur.f?'':'none';
- aiCtx();$('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));$('fund').style.display=cur.f?'':'none';
+ aiCtx();document.dispatchEvent(new Event('kyy:pair'));$('tStar').classList.toggle('on',favs.indexOf(cur.k)>=0);$('tBell').classList.toggle('on',alerts.some(function(a){return a.k===cur.k}));$('fund').style.display=cur.f?'':'none';
  var hn=$('hint');hn.style.display=cur.q==='IDR'?'':'none';hn.textContent='Pair rupiah di Binance sepi transaksi, jadi harga bisa diam beberapa detik. Untuk gerakan yang lebih hidup, pilih pair USDT.';
  var p=PROF[cur.b]||[cur.n,'Aset kripto','-','-','-','-','Belum ada profil untuk aset ini.'];
  $('pf').innerHTML='<div class="top">'+ic(cur).replace('style="background:','style="width:48px;height:48px;font-size:1.3rem;background:')+'<div><h3>'+p[0]+'</h3><span style="color:var(--mu);font-size:.8rem">'+p[1]+' - '+cur.s+'</span></div></div>'
@@ -916,10 +919,15 @@ async function aiSnapshot(){
   candlesOHLCV_oldToNew:main?main.slice(-30).map(function(c){return[c.o,c.h,c.l,c.c,c.v]}):null,
   orderBook:ob,sentimenPasarGlobal:sent,
   fieldKosong:[!main&&'candle',!ob&&'orderBook',!sent&&'sentimen',cur.f&&m.r==null&&'fundingRate'].filter(Boolean),
-  tidakTersedia:'berita, media sosial, dan data on-chain'};
+  tidakTersedia:'berita, media sosial, dan data on-chain',demoAkun:(window.KYY&&window.KYY.demoCtx&&window.KYY.demoCtx())||null};
 }
 window.KYY={get cfg(){return cfg},save:function(){sv('kyy_cfg3',cfg)},ld:ld,sv:sv,toast:toast,api:SITE.api,sbUrl:SB_URL,sbKey:SB_KEY,
- ctx:function(){return{cur:cur,tfk:tfk,live:lastPx!==null}},snapshot:aiSnapshot};
+ ctx:function(){return{cur:cur,tfk:tfk,live:lastPx!==null}},snapshot:aiSnapshot,
+ nf:nf,dp:dp,ic:ic,rest:rest,SR:SR,openTrade:function(o){openTrade(o)},mkGet:function(k){return mk[k]},syms:function(){return SYMS},cur:function(){return cur},loadAI:aiLoad,anim:function(){return cfg.anim},
+ atr:function(){return candles.length<15?null:atrL(candles.map(function(x){return{h:x.high,l:x.low,c:x.close}}),14)},
+ lines:function(arr){if(!cs)return;pls.forEach(function(l){try{cs.removePriceLine(l)}catch(e){}});pls=[];(arr||[]).forEach(function(o){try{pls.push(cs.createPriceLine({price:o.price,color:o.color,lineWidth:1,lineStyle:o.style||0,axisLabelVisible:true,title:o.title}))}catch(e){}})},
+ demoCtx:function(){return window.KYY_DEMO?window.KYY_DEMO.ctx():null}};
+var pls=[];
 var aiP=null;
 function aiLoad(){
  if(window.KYY_AI)return Promise.resolve();
@@ -929,6 +937,21 @@ function aiLoad(){
 }
 function aiToggle(){aiLoad().then(function(){window.KYY_AI.toggle()}).catch(function(e){toast(e.message)})}
 function aiCtx(){if(window.KYY_AI)window.KYY_AI.ctx()}
+var dmP=null;
+function demoLoad(){
+ if(window.KYY_DEMO)return Promise.resolve();
+ if(dmP)return dmP;
+ dmP=new Promise(function(res,rej){var t=document.createElement('script');t.src='demo.js?v=1';t.onload=res;t.onerror=function(){dmP=null;rej(new Error('Modul demo (demo.js) tidak ditemukan. Unggah demo.js ke folder yang sama dengan app.html.'))};document.head.appendChild(t)});
+ return dmP;
+}
+function demoDo(f){demoLoad().then(function(){f(window.KYY_DEMO)}).catch(function(e){toast(e.message)})}
+function homeDm(){var d=ld('kyy_demo_sum',null);$('dmSum').textContent=d?('Ekuitas '+nf(d.eq,2)+' USDT ('+(d.ret>=0?'+':'')+nf(d.ret,2)+'%)'):'Latihan trading dengan saldo virtual, didampingi AI'}
+function dmBar(on){document.body.classList.toggle('dm',on);$('dmT').classList.toggle('on',on);sv('kyy_dm',on?1:0)}
+$('dmOpen').onclick=function(){demoDo(function(d){d.open()})};
+$('dmT').onclick=function(){if(document.body.classList.contains('dm'))dmBar(false);else demoDo(function(d){dmBar(true);d.sync()})};
+$('dBuy').onclick=function(){demoDo(function(d){d.order('buy')})};
+$('dSell').onclick=function(){demoDo(function(d){d.order('sell')})};
+if(ld('kyy_dm',0))demoDo(function(d){dmBar(true);d.sync()});
 /* ---- chart controls ---- */
 function setTF(k){tfk=k;sv('kyy_tf',k);hashSet();qa('[data-tf]').forEach(function(b){b.classList.toggle('on',b.dataset.tf===k)})}
 qa('[data-tf]').forEach(function(b){b.onclick=function(){setTF(b.dataset.tf);load()}});

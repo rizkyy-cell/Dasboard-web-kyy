@@ -244,5 +244,20 @@ $('auF').onclick=async function(){
  tsReset();
 };
 
-window.KYY_AI={toggle:aiToggle,open:aiOpen,close:aiClose,ctx:aiCtx};
+async function aiOnce(text,onChunk,signal){
+ if(!AI.sb)await aiInit();
+ if(!AI.user){var e1=new Error('Masuk dulu untuk memakai AI.');e1.login=true;throw e1}
+ var ss=await AI.sb.auth.getSession(),tok=ss.data.session&&ss.data.session.access_token;
+ if(!tok){var e2=new Error('Sesi berakhir. Silakan masuk lagi.');e2.login=true;throw e2}
+ var snap=await K.snapshot();
+ var r=await fetch(K.api+'/api/chat_trading',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({pesan:text,riwayat:[],snapshot:snap}),signal:signal});
+ if(!r.ok){var j={};try{j=await r.json()}catch(x){}throw new Error(j.error||('Kesalahan server ('+r.status+')'))}
+ var ct=(r.headers&&r.headers.get('content-type'))||'',out='';
+ if(ct.indexOf('application/json')>=0){var jj=await r.json();out=jj.balasan||jj.reply||'';if(onChunk)onChunk(out)}
+ else if(r.body&&r.body.getReader){var rd=r.body.getReader(),dc=new TextDecoder();for(;;){var x=await rd.read();if(x.done)break;out+=dc.decode(x.value,{stream:true});if(onChunk)onChunk(out)}}
+ else{out=await r.text();if(onChunk)onChunk(out)}
+ if(!out.trim())throw new Error('AI tidak memberi jawaban. Coba lagi.');
+ return out;
+}
+window.KYY_AI={toggle:aiToggle,open:aiOpen,close:aiClose,ctx:aiCtx,once:aiOnce,md:md};
 })();

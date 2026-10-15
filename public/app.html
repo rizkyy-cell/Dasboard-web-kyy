@@ -174,7 +174,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
 #pfList .tr{grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;padding:8px 0;align-items:center;border-bottom:1px solid var(--bd)}
 #pfBody select,#pfBody input{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:9px;min-width:0}
 [hidden]{display:none!important}
-#dBar{display:none}#dmT.on{color:var(--ac)}
+#dBar{display:none}#dmT{border:1px solid var(--bd);margin-right:2px}#dmT.on{background:var(--ac);border-color:var(--ac);color:#fff}
 @media (min-width:900px){#pages{max-width:760px;width:100%;margin:0 auto}}
 </style>
 </head>
@@ -233,7 +233,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{ou
   <div class="mv" id="mvr"><div class="c"><small>1 dtk</small><b id="mv1">-</b><em></em></div><div class="c"><small>5 dtk</small><b id="mv5">-</b><em></em></div><div class="c"><small>15 dtk</small><b id="mv15">-</b><em></em></div><div class="c"><small>1 mnt</small><b id="mv60">-</b><em></em></div><div class="c"><small>5 mnt</small><b id="mv300">-</b><em></em></div><div class="c s"><svg id="mvs" viewBox="0 0 100 30" preserveAspectRatio="none"></svg><em id="mvAct"></em></div></div>
   <div class="stabs"><button class="tab on" data-stt="chart">Chart</button><button class="tab" data-stt="depth">Depth</button><button class="tab" data-stt="trades">Trades</button><button class="tab" data-stt="info">Info</button></div>
   <div class="tcs">
-   <div class="tc" id="tcChart"><div class="tfr" id="tfr"><button data-tf="1m">1m</button><button data-tf="5m">5m</button><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">1D</button><button data-tf="1w">1W</button><span class="vs"></span><button id="bC" class="on">Candle</button><button id="bL">Line</button><button id="dmT" aria-label="Mode demo">Demo</button><span class="sp"></span><button id="indB" aria-label="Indikator"><svg class="i"><use href="#i-sl"/></svg></button></div>
+   <div class="tc" id="tcChart"><div class="tfr" id="tfr"><button id="dmT" aria-label="Mode demo">Demo</button><span class="vs"></span><button data-tf="1m">1m</button><button data-tf="5m">5m</button><button data-tf="15m">15m</button><button data-tf="1h">1H</button><button data-tf="4h">4H</button><button data-tf="1d">1D</button><button data-tf="1w">1W</button><span class="vs"></span><button id="bC" class="on">Candle</button><button id="bL">Line</button><span class="sp"></span><button id="indB" aria-label="Indikator"><svg class="i"><use href="#i-sl"/></svg></button></div>
     <div id="indp"><label>Volume<input type="checkbox" id="kV" checked></label><label>MA 50<input type="checkbox" id="kMA"></label><label>EMA 20<input type="checkbox" id="kEMA"></label><label>Bollinger (20,2)<input type="checkbox" id="kBB"></label><label>RSI 14<input type="checkbox" id="kRSI"></label><label>MACD (12,26,9)<input type="checkbox" id="kMACD"></label></div>
     <div id="chart" class="ld"></div>
     <div id="dBar"><div><b id="dBarT">Mode Demo</b><span id="dBarS"></span></div><button class="b" id="dBuy">Beli</button><button class="s" id="dSell">Jual</button></div></div>
@@ -926,6 +926,7 @@ window.KYY={get cfg(){return cfg},save:function(){sv('kyy_cfg3',cfg)},ld:ld,sv:s
  nf:nf,dp:dp,ic:ic,rest:rest,SR:SR,openTrade:function(o){openTrade(o)},mkGet:function(k){return mk[k]},syms:function(){return SYMS},cur:function(){return cur},loadAI:aiLoad,anim:function(){return cfg.anim},
  atr:function(){return candles.length<15?null:atrL(candles.map(function(x){return{h:x.high,l:x.low,c:x.close}}),14)},
  lines:function(arr){if(!cs)return;pls.forEach(function(l){try{cs.removePriceLine(l)}catch(e){}});pls=[];(arr||[]).forEach(function(o){try{pls.push(cs.createPriceLine({price:o.price,color:o.color,lineWidth:1,lineStyle:o.style||0,axisLabelVisible:true,title:o.title}))}catch(e){}})},
+ dmBar:function(on){dmBar(on)},
  demoCtx:function(){return window.KYY_DEMO?window.KYY_DEMO.ctx():null}};
 var pls=[];
 var aiP=null;

@@ -185,14 +185,14 @@ var css='#demo{position:fixed;inset:0;z-index:11;background:var(--bg);color:var(
 +'.pm{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:.74rem;color:var(--mu)}.pm b{display:block;color:var(--tx);font-variant-numeric:tabular-nums}.pa{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}'
 +'.dbtn{padding:8px 12px;border-radius:10px;border:1px solid var(--bd);font-weight:700;font-size:.78rem;background:var(--bg)}.dbtn.p{background:var(--ac);border-color:var(--ac);color:#fff}.dbtn.r{color:var(--dn)}.dbtn:active{transform:scale(.95)}'
 +'.dli{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bd);animation:sIn .3s ease both}.dli>div{min-width:0;flex:1}.dli b{display:block}.dli small{color:var(--mu);font-size:.72rem}.dli .rt{text-align:right;flex:none}.tag2{display:inline-block;font-size:.62rem;font-weight:800;padding:2px 6px;border-radius:5px;background:var(--bg);border:1px solid var(--bd);color:var(--mu);margin-left:6px}'
-+'.dm{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dm .dc b{font-size:1.1rem}.dnote{color:var(--mu);font-size:.74rem;line-height:1.5;margin-top:12px}'
++'.guide{margin:0 0 8px 20px;color:var(--mu);font-size:.84rem;line-height:1.55}.guide li{margin-bottom:6px}.guide b{color:var(--tx)}.dmg{display:grid;grid-template-columns:1fr 1fr;gap:10px}.dmg .dc b{font-size:1.1rem}.dnote{color:var(--mu);font-size:.74rem;line-height:1.5;margin-top:12px}'
 +'.dempty{text-align:center;padding:30px 10px;color:var(--mu)}.dempty b{display:block;color:var(--tx);font-size:1.05rem;margin-bottom:6px}.dempty svg{width:64px;height:64px;margin-bottom:10px;stroke:var(--ac);fill:none;stroke-width:1.5}'
 +'.dchips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.dchips button{padding:9px 14px;border:1px solid var(--bd);border-radius:999px;font-weight:700;background:var(--bg)}.dchips button.on{background:rgba(47,107,255,.2);border-color:var(--ac);color:#8fb0ff}'
 +'.dov{position:fixed;inset:0;z-index:14;display:flex;align-items:flex-end;justify-content:center;visibility:hidden;pointer-events:none;transition:visibility .3s}.dov.on{visibility:visible;pointer-events:auto}.dbk{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .28s;backdrop-filter:blur(3px)}.dov.on .dbk{opacity:1}'
 +'.dsh{position:relative;width:100%;max-width:520px;max-height:93dvh;background:var(--pn);border:1px solid var(--bd);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .38s cubic-bezier(.2,.9,.25,1);display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}.dov.on .dsh{transform:none}'
 +'.grab{width:40px;height:4px;border-radius:2px;background:var(--bd);margin:8px auto 2px;flex:none}.dsb{overflow-y:auto;padding:6px 16px 16px;overscroll-behavior:contain}.oh{display:flex;align-items:center;gap:10px;padding:6px 0 10px}.oh small{display:block;color:var(--mu)}'
 +'.sd{display:flex;border-radius:12px;background:var(--bg);border:1px solid var(--bd);padding:3px;gap:3px;margin:6px 0}.sd button{flex:1;padding:10px;border-radius:9px;font-weight:800;color:var(--mu);transition:background .25s,color .25s}.sd.big button.on[data-s=buy]{background:var(--up);color:#fff}.sd.big button.on[data-s=sell]{background:var(--dn);color:#fff}.sd.sm button{padding:7px;font-size:.82rem}.sd.sm button.on{background:var(--pn);color:var(--tx)}'
-+'.fl{display:block;font-size:.74rem;color:var(--mu);margin:12px 0 4px}.fi{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);font:inherit;font-size:1.05rem;outline:0;transition:border-color .2s}.fi:focus{border-color:var(--ac)}.fi.err{border-color:var(--dn)}'
++'.dfl{display:block;font-size:.74rem;color:var(--mu);margin:12px 0 4px}.fi{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;color:var(--tx);font:inherit;font-size:1.05rem;outline:0;transition:border-color .2s}.fi:focus{border-color:var(--ac)}.fi.err{border-color:var(--dn)}'
 +'.pch{display:flex;gap:6px;margin-top:8px}.pch button{flex:1;padding:8px 0;border:1px solid var(--bd);border-radius:10px;font-weight:700;font-size:.8rem;background:var(--bg)}.pch button.on{border-color:var(--ac);color:#8fb0ff;background:rgba(47,107,255,.15)}'
 +'.avl{display:flex;justify-content:space-between;font-size:.76rem;color:var(--mu);margin-top:6px}.avl b{color:var(--tx)}'
 +'.dsm{margin-top:14px;border:1px solid var(--bd);border-radius:14px;padding:4px 12px;background:var(--bg)}.dsm div{display:flex;justify-content:space-between;padding:7px 0;font-size:.82rem;border-bottom:1px solid var(--bd)}.dsm div:last-child{border:0}.dsm span{color:var(--mu)}.dsm b{font-variant-numeric:tabular-nums}'
@@ -214,15 +214,15 @@ document.body.insertAdjacentHTML('beforeend',
 +'<div class="dov" id="dOrd" aria-hidden="true"><div class="dbk" data-cl="dOrd"></div><div class="dsh" role="dialog" aria-label="Order demo"><div class="grab"></div><div class="dsb">'
 +'<div class="oh"><span id="oIc"></span><div><b id="oSym">-</b><small id="oLast">-</small></div><span class="sp"></span><button class="ib" data-cl="dOrd" aria-label="Tutup">'+X+'</button></div>'
 +'<div class="sd big" id="oSide"><button data-s="buy" class="on">Beli</button><button data-s="sell">Jual</button></div><div class="sd sm" id="oType"><button data-t="market" class="on">Market</button><button data-t="limit">Limit</button></div>'
-+'<div id="oPW" hidden><label class="fl" for="oPrice">Harga limit (USDT)</label><input class="fi" id="oPrice" inputmode="decimal" autocomplete="off"></div>'
-+'<label class="fl" for="oAmt" id="oAL">Jumlah (USDT)</label><input class="fi" id="oAmt" inputmode="decimal" autocomplete="off" placeholder="0"><div class="pch" id="oPct"><button data-p="25">25%</button><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="100">100%</button></div><div class="avl"><span id="oAvT">Kas tersedia</span><b id="oAv">-</b></div>'
-+'<div id="oRiskW"><label class="fl" for="oSL">Stop Loss (opsional)</label><input class="fi" id="oSL" inputmode="decimal" autocomplete="off" placeholder="Harga stop loss"><div class="pch" id="oSLc"><button data-v="1">-1%</button><button data-v="2">-2%</button><button data-v="3">-3%</button><button data-v="atr">1,5 ATR</button></div>'
-+'<label class="fl" for="oTP">Take Profit (opsional)</label><input class="fi" id="oTP" inputmode="decimal" autocomplete="off" placeholder="Harga take profit"><div class="pch" id="oTPc"><button data-v="2">+2%</button><button data-v="4">+4%</button><button data-v="6">+6%</button><button data-v="r2">2R</button></div>'
-+'<label class="fl" for="oNote">Catatan / alasan masuk (opsional)</label><input class="fi" id="oNote" maxlength="140" placeholder="Mis. pantulan di support, RSI oversold" style="font-size:.9rem"></div>'
++'<div id="oPW" hidden><label class="dfl" for="oPrice">Harga limit (USDT)</label><input class="fi" id="oPrice" inputmode="decimal" autocomplete="off"></div>'
++'<label class="dfl" for="oAmt" id="oAL">Jumlah (USDT)</label><input class="fi" id="oAmt" inputmode="decimal" autocomplete="off" placeholder="0"><div class="pch" id="oPct"><button data-p="25">25%</button><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="100">100%</button></div><div class="avl"><span id="oAvT">Kas tersedia</span><b id="oAv">-</b></div>'
++'<div id="oRiskW"><label class="dfl" for="oSL">Stop Loss (opsional)</label><input class="fi" id="oSL" inputmode="decimal" autocomplete="off" placeholder="Harga stop loss"><div class="pch" id="oSLc"><button data-v="1">-1%</button><button data-v="2">-2%</button><button data-v="3">-3%</button><button data-v="atr">1,5 ATR</button></div>'
++'<label class="dfl" for="oTP">Take Profit (opsional)</label><input class="fi" id="oTP" inputmode="decimal" autocomplete="off" placeholder="Harga take profit"><div class="pch" id="oTPc"><button data-v="2">+2%</button><button data-v="4">+4%</button><button data-v="6">+6%</button><button data-v="r2">2R</button></div>'
++'<label class="dfl" for="oNote">Catatan / alasan masuk (opsional)</label><input class="fi" id="oNote" maxlength="140" placeholder="Mis. pantulan di support, RSI oversold" style="font-size:.9rem"></div>'
 +'<div class="dsm" id="oSum"></div><div class="dwn" id="oWn"></div><div class="coach" id="oCo" hidden></div>'
 +'<div class="dac"><button class="gh" id="oAI" type="button">Tanya AI</button><button class="go" id="oGo" type="button">Beli</button></div></div></div></div>'
 +'<div class="dov" id="dSlt" aria-hidden="true"><div class="dbk" data-cl="dSlt"></div><div class="dsh"><div class="grab"></div><div class="dsb"><div class="oh"><div><b id="sSym">Atur SL / TP</b><small id="sInfo"></small></div><span class="sp"></span><button class="ib" data-cl="dSlt" aria-label="Tutup">'+X+'</button></div>'
-+'<label class="fl" for="sSL">Stop Loss</label><input class="fi" id="sSL" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><label class="fl" for="sTP">Take Profit</label><input class="fi" id="sTP" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><div class="dwn" id="sWn"></div><div class="dac"><button class="go" id="sGo" type="button" style="background:var(--ac)">Simpan</button></div></div></div></div>'
++'<label class="dfl" for="sSL">Stop Loss</label><input class="fi" id="sSL" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><label class="dfl" for="sTP">Take Profit</label><input class="fi" id="sTP" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><div class="dwn" id="sWn"></div><div class="dac"><button class="go" id="sGo" type="button" style="background:var(--ac)">Simpan</button></div></div></div></div>'
 +'<div class="dov" id="dRes" aria-hidden="true"><div class="dbk" data-cl="dRes"></div><div class="dsh"><div class="grab"></div><div class="dsb" id="rB"></div></div></div>'
 +'<div class="dov" id="dCo" aria-hidden="true"><div class="dbk" data-cl="dCo"></div><div class="dsh"><div class="grab"></div><div class="dsb"><div class="oh"><b id="cT">Ulasan AI</b><span class="sp"></span><button class="ib" data-cl="dCo" aria-label="Tutup">'+X+'</button></div><div class="coach" id="cB" style="margin-top:0"></div><div class="dnote">AI menilai berdasarkan data yang tampil dan bukan nasihat keuangan.</div></div></div></div>'
 +'<div class="dov" id="dSP" aria-hidden="true"><div class="dbk" data-cl="dSP"></div><div class="dsh"><div class="grab"></div><div class="dsb" id="spB"></div></div></div>');
@@ -248,6 +248,7 @@ function entry(p){var q=0,c=0;A.hist.forEach(function(h){if(h.pid===p.id&&h.side
 function hue(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return 'hsl('+h+' 55% 50%)'}
 function cssv(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
 /* ---------- dashboard ---------- */
+var GUIDE='<ol class="guide"><li><b>Pilih koin.</b> Buka grafik koin USDT, misalnya BTC/USDT.</li><li><b>Tekan Beli</b> pada bar Demo di bawah grafik.</li><li><b>Atur order:</b> jumlah (25% sampai 100% kas), Stop Loss, Take Profit, dan catatan alasan.</li><li><b>Tanya AI</b> untuk menilai rencana sebelum konfirmasi.</li><li><b>Pantau</b> di tab Posisi, lalu tutup dengan tombol Jual.</li></ol>';
 var ONB='<div class="dtab"><div class="dempty"><svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><b>Mulai latihan trading</b>Berlatih dengan saldo virtual dan harga pasar sungguhan, tanpa risiko uang asli. AI ikut mendampingi dengan data akun Anda.</div><div class="dchips" id="obC"><button data-v="1000">1.000 USDT</button><button data-v="10000" class="on">10.000 USDT</button><button data-v="100000">100.000 USDT</button></div><button class="dbtn p" id="obGo" style="width:100%;padding:14px;font-size:1rem">Mulai akun demo</button><p class="dnote">Simulasi memakai harga live Binance, biaya 0,1% per transaksi, dan kedalaman order book untuk order market. Hanya pair USDT spot. Stop Loss dan Take Profit dipantau selama aplikasi terbuka.</p></div>';
 function setTab(t){
  tab=t;var bs=qa('#dTabs button'),on=null;
@@ -257,7 +258,7 @@ function setTab(t){
 }
 function render(){
  var b=$('dBody');
- if(!A){b.innerHTML=ONB;var v=10000;qa('#obC button').forEach(function(x){x.onclick=function(){v=+x.dataset.v;qa('#obC button').forEach(function(y){y.classList.toggle('on',y===x)})}});$('obGo').onclick=function(){A=E.create(v);save();haptic();hero(true);setTab('sum');barUpd()};return}
+ if(!A){b.innerHTML=ONB;var v=10000;qa('#obC button').forEach(function(x){x.onclick=function(){v=+x.dataset.v;qa('#obC button').forEach(function(y){y.classList.toggle('on',y===x)})}});$('obGo').onclick=function(){A=E.create(v);save();haptic();K.dmBar(true);hero(true);setTab('sum');barUpd()};return}
  b.innerHTML='<div class="dtab">'+({sum:rSum,pos:rPos,ord:rOrd,his:rHis,sta:rSta}[tab])()+'</div>';
  live();
 }
@@ -265,14 +266,14 @@ function card(l,id,e){return '<div class="dc"><small>'+l+'</small><b id="'+id+'"
 function rSum(){
  var h='<div class="dgrid">'+card('Kas tersedia','sCash')+card('Nilai posisi','sPos')+card('Belum terealisasi','sUnr')+card('Terealisasi','sRea')+'</div>';
  h+='<div class="dsec"><h4>Alokasi</h4><div class="alloc" id="dAl"></div><div class="legend" id="dLg"></div></div>';
- if(!A.hist.length)h+='<div class="dempty" style="padding-top:22px"><b>Belum ada transaksi</b>Buka grafik koin USDT, aktifkan <b style="display:inline;color:var(--ac)">Demo</b> lalu tekan Beli.<div style="margin-top:12px"><button class="dbtn p" data-a="go">Buka grafik BTC/USDT</button></div></div>';
+ if(!A.hist.length)h+='<div class="dsec"><h4>Cara pakai</h4>'+GUIDE+'<button class="dbtn p" data-a="start" style="width:100%;padding:14px">Mulai: Beli BTC/USDT</button></div>';
  else h+='<div class="dsec"><h4>Aktivitas terakhir</h4>'+A.hist.slice(-4).reverse().map(fillRow).join('')+'</div>';
  return h;
 }
 function fillRow(h){var o=symObj(h.s)||{b:h.s,q:'USDT'};return '<div class="dli">'+K.ic(o)+'<div><b>'+(h.side==='buy'?'Beli':'Jual')+' '+o.b+'<span class="tag2">'+RS[h.type]+'</span></b><small>'+nf(h.qty,6)+' @ '+fp(h.price)+' - '+dts(h.ts)+'</small></div><div class="rt">'+(h.pnl!=null?'<b style="color:'+cl(h.pnl)+'">'+sg(h.pnl)+'</b><small>'+sg(h.pnlPct)+'%</small>':'<small>Biaya '+nf(h.fee,3)+'</small>')+'</div></div>'}
 function rPos(){
  var rows=Object.keys(A.pos);
- if(!rows.length)return '<div class="dempty"><b>Belum ada posisi terbuka</b>Posisi yang Anda buka akan muncul di sini lengkap dengan untung rugi live.<div style="margin-top:12px"><button class="dbtn p" data-a="go">Buka grafik BTC/USDT</button></div></div>';
+ if(!rows.length)return '<div class="dempty"><b>Belum ada posisi terbuka</b>Posisi yang Anda buka akan muncul di sini lengkap dengan untung rugi live.<div style="margin-top:12px"><button class="dbtn p" data-a="start">Beli BTC/USDT</button></div></div>';
  return rows.map(function(s){
   var p=A.pos[s],o=symObj(s)||{b:s,q:'USDT'},en=entry(p);
   var bar=p.sl>0&&p.tp>0?'<div class="pbar"><i></i></div><div class="pbl"><span>SL '+fp(p.sl)+'</span><span>TP '+fp(p.tp)+'</span></div>'
@@ -300,7 +301,7 @@ function rSta(){
  var e=eqNow(),s=E.stats(A,e),pf=s.profitFactor!=null?nf(s.profitFactor,2):(s.pfInf?'tak terhingga':'-');
  var d=A.eq.map(function(x){return x.v}).concat([e]);
  var h='<svg viewBox="0 0 300 90" preserveAspectRatio="none" style="width:100%;height:90px;margin-bottom:10px">'+spark(d,300,90,e>=A.start?cssv('--up'):cssv('--dn'),'S')+'</svg>';
- h+='<div class="dm">'+stat('Return total',sg(s.ret)+'%','dari saldo awal '+nf(A.start,0),cl(s.ret))+stat('Max drawdown',nf(s.maxDD,2)+'%','penurunan terdalam dari puncak')
+ h+='<div class="dmg">'+stat('Return total',sg(s.ret)+'%','dari saldo awal '+nf(A.start,0),cl(s.ret))+stat('Max drawdown',nf(s.maxDD,2)+'%','penurunan terdalam dari puncak')
  +stat('Jumlah trade',s.trades,s.wins+' untung / '+s.losses+' rugi')+stat('Win rate',s.winRate==null?'-':nf(s.winRate,1)+'%','')
  +stat('Profit factor',pf,'di atas 1 = total untung > total rugi')+stat('Ekspektasi / trade',s.expectancy==null?'-':sg(s.expectancy)+' USDT','rata-rata hasil per trade',s.expectancy==null?null:cl(s.expectancy))
  +stat('Rata-rata menang',s.avgWin==null?'-':sg(s.avgWin),'USDT','var(--up)')+stat('Rata-rata kalah',s.avgLoss==null?'-':sg(s.avgLoss),'USDT','var(--dn)')
@@ -558,6 +559,7 @@ function openSettings(){
  +'<div class="dc"><small>Saldo awal akun</small><b>'+(A?nf(A.start,0)+' USDT':'Belum dibuat')+'</b></div>'
  +'<div class="dsec"><h4>Reset akun</h4><p class="dnote" style="margin-top:0">Menghapus semua posisi, order, dan riwayat, lalu mulai dari saldo baru. Ketuk dua kali untuk konfirmasi.</p><div class="dchips" id="rsC"><button data-v="1000">1.000 USDT</button><button data-v="10000">10.000 USDT</button><button data-v="100000">100.000 USDT</button></div></div>'
  +'<div class="dsec"><h4>Jurnal</h4><button class="dbtn" data-a="csv">Ekspor CSV</button></div>'
+ +'<div class="dsec"><h4>Cara pakai</h4>'+GUIDE+'</div>'
  +'<div class="dsec"><h4>Cara kerja simulasi</h4><p class="dnote" style="margin-top:0">Harga dari Binance. Order market diisi menurut kedalaman order book 20 level. Order limit terisi saat harga menyentuh. Biaya 0,1% per transaksi. Stop Loss dan Take Profit hanya dipantau saat aplikasi terbuka dan terisi dengan slippage kecil. Hanya pair USDT spot. Ini bukan trading sungguhan.</p></div>';
  $('spB').innerHTML=h;
  qa('#rsC button').forEach(function(b){var t=b.textContent;b.onclick=function(){
@@ -571,10 +573,11 @@ function act(e){
  var b=e.target.closest('[data-a],[data-hv],[data-t]');if(!b)return;
  var a=b.dataset.a,s=b.dataset.s;
  if(b.dataset.hv){hv=b.dataset.hv;render();return}
- if(a==='go'){close();K.openTrade(symObj('BTCUSDT'));return}
+ if(a==='go'){close();K.dmBar(true);K.openTrade(symObj('BTCUSDT'));return}
+ if(a==='start'){close();K.dmBar(true);K.openTrade(symObj('BTCUSDT'));setTimeout(function(){openOrder('buy','BTCUSDT')},550);return}
  if(a==='sell')openOrder('sell',s,+b.dataset.p);
  else if(a==='sltp')openSLTP(s);
- else if(a==='chart'){close();K.openTrade(symObj(s))}
+ else if(a==='chart'){close();K.dmBar(true);K.openTrade(symObj(s))}
  else if(a==='posai')posAI(s);
  else if(a==='rev')reviewOpen(+b.dataset.id);
  else if(a==='cancel'){E.cancel(A,+b.dataset.id);save();render();syncLines();hero(true)}

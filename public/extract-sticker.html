@@ -615,6 +615,21 @@
     async function quickMakeSticker() {
       if (!previewItem) return;
       try {
+        // Stiker gerak (WebP animasi): pakai file aslinya, jangan di-render ulang
+        const info = webpInfo(previewItem.data);
+        if (info && info.animated) {
+          const kb = Math.round((previewItem.data.length * 3) / 4 / 1024);
+          if (kb <= 500) {
+            const raw = addRawSticker(previewItem.data, kb);
+            if (raw) {
+              if (info.w !== 512 || info.h !== 512) showToast(`ANIMASI ${info.w}x${info.h}, WA BUTUH 512x512`);
+              await shareSingleSticker(raw);
+            }
+            return;
+          }
+          showToast('ANIMASI >500KB, DIJADIKAN STIKER DIAM');
+        }
+
         const img = await loadImage(previewItem.data);
         ctx.clearRect(0, 0, 512, 512);
         const s = Math.min(512 / img.width, 512 / img.height);
@@ -627,6 +642,35 @@
       } catch (err) {
         showToast(String(err.message || 'GAGAL').toUpperCase());
       }
+    }
+
+    // Baca header WebP: animasi atau bukan, dan ukurannya
+    function webpInfo(dataUrl) {
+      try {
+        const b = atob(dataUrl.split(',')[1].slice(0, 64));
+        if (b.slice(0, 4) !== 'RIFF' || b.slice(8, 12) !== 'WEBP' || b.slice(12, 16) !== 'VP8X') return null;
+        const c = (i) => b.charCodeAt(i);
+        return {
+          animated: !!(c(20) & 2),
+          w: 1 + (c(24) | (c(25) << 8) | (c(26) << 16)),
+          h: 1 + (c(27) | (c(28) << 8) | (c(29) << 16))
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Masukkan file WebP apa adanya ke paket (tanpa render ulang)
+    function addRawSticker(dataUrl, sizeKb) {
+      if (stickerPack.length >= 30) {
+        showToast('MAKSIMAL 30 STIKER PER PAKET!');
+        return null;
+      }
+      const sticker = { id: 'stk_' + Date.now(), webpBase64: dataUrl, sizeKb: sizeKb, emojis: ['😂', '🔥'] };
+      stickerPack.push(sticker);
+      localStorage.setItem('manga_sticker_pack', JSON.stringify(stickerPack));
+      renderPackGrid();
+      return sticker;
     }
 
     async function shareSingleSticker(stk) {

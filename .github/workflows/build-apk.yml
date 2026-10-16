@@ -1,0 +1,620 @@
+name: Build APK
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Tulis project Android
+        run: |
+          mkdir -p android/.
+          cat > android/settings.gradle <<'EOF'
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.name = 'KyyStickerApk'
+          include ':app'
+          EOF
+          mkdir -p android/.
+          cat > android/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.5.2' apply false
+          }
+          EOF
+          mkdir -p android/.
+          cat > android/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2g
+          android.useAndroidX=false
+          EOF
+          mkdir -p android/app
+          cat > android/app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.kyy.stickerbridge'
+              compileSdk 34
+
+              defaultConfig {
+                  applicationId 'com.kyy.stickerbridge'
+                  minSdk 24
+                  targetSdk 34
+                  versionCode 1
+                  versionName '1.0'
+              }
+
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_17
+                  targetCompatibility JavaVersion.VERSION_17
+              }
+          }
+
+          tasks.withType(JavaCompile).configureEach {
+              options.encoding = 'UTF-8'
+          }
+          EOF
+          mkdir -p android/app/src/main
+          cat > android/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <uses-permission android:name="android.permission.INTERNET" />
+
+              <queries>
+                  <package android:name="com.whatsapp" />
+                  <package android:name="com.whatsapp.w4b" />
+              </queries>
+
+              <application
+                  android:allowBackup="false"
+                  android:label="KYY Sticker"
+                  android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+                  <activity
+                      android:name=".MainActivity"
+                      android:configChanges="orientation|screenSize|keyboardHidden"
+                      android:exported="true"
+                      android:windowSoftInputMode="adjustResize">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+
+                  <provider
+                      android:name=".StickerContentProvider"
+                      android:authorities="${applicationId}.stickercontentprovider"
+                      android:enabled="true"
+                      android:exported="true"
+                      android:readPermission="com.whatsapp.sticker.READ" />
+              </application>
+          </manifest>
+          EOF
+          mkdir -p android/app/src/main/java/com/kyy/stickerbridge
+          cat > android/app/src/main/java/com/kyy/stickerbridge/StickerContentProvider.java <<'EOF'
+          package com.kyy.stickerbridge;
+
+          import android.content.ContentProvider;
+          import android.content.ContentValues;
+          import android.content.Context;
+          import android.content.UriMatcher;
+          import android.content.res.AssetFileDescriptor;
+          import android.database.Cursor;
+          import android.database.MatrixCursor;
+          import android.net.Uri;
+          import android.os.ParcelFileDescriptor;
+
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          import java.io.File;
+          import java.io.FileNotFoundException;
+          import java.io.FileInputStream;
+          import java.io.ByteArrayOutputStream;
+          import java.util.ArrayList;
+          import java.util.List;
+
+          public class StickerContentProvider extends ContentProvider {
+
+              private static final int CODE_META_ALL = 1;
+              private static final int CODE_META_ONE = 2;
+              private static final int CODE_STICKERS = 3;
+              private static final int CODE_ASSET = 4;
+
+              private UriMatcher matcher;
+
+              static String authority(Context c) {
+                  return c.getPackageName() + ".stickercontentprovider";
+              }
+
+              @Override
+              public boolean onCreate() {
+                  String a = authority(getContext());
+                  matcher = new UriMatcher(UriMatcher.NO_MATCH);
+                  matcher.addURI(a, "metadata", CODE_META_ALL);
+                  matcher.addURI(a, "metadata/*", CODE_META_ONE);
+                  matcher.addURI(a, "stickers/*", CODE_STICKERS);
+                  matcher.addURI(a, "stickers_asset/*/*", CODE_ASSET);
+                  return true;
+              }
+
+              private File packsDir() {
+                  return new File(getContext().getFilesDir(), "packs");
+              }
+
+              private JSONObject readPack(File dir) {
+                  try {
+                      File f = new File(dir, "pack.json");
+                      if (!f.exists()) return null;
+                      FileInputStream in = new FileInputStream(f);
+                      ByteArrayOutputStream out = new ByteArrayOutputStream();
+                      byte[] buf = new byte[4096];
+                      int n;
+                      while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                      in.close();
+                      return new JSONObject(out.toString("UTF-8"));
+                  } catch (Exception e) {
+                      return null;
+                  }
+              }
+
+              private List<JSONObject> allPacks() {
+                  List<JSONObject> list = new ArrayList<>();
+                  File[] dirs = packsDir().listFiles();
+                  if (dirs == null) return list;
+                  for (File d : dirs) {
+                      JSONObject p = readPack(d);
+                      if (p != null) list.add(p);
+                  }
+                  return list;
+              }
+
+              private JSONObject onePack(String id) {
+                  if (id == null || id.contains("/") || id.contains("..")) return null;
+                  return readPack(new File(packsDir(), id));
+              }
+
+              @Override
+              public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+                  int code = matcher.match(uri);
+                  try {
+                      if (code == CODE_META_ALL || code == CODE_META_ONE) {
+                          MatrixCursor c = new MatrixCursor(new String[]{
+                                  "sticker_pack_identifier",
+                                  "sticker_pack_name",
+                                  "sticker_pack_publisher",
+                                  "sticker_pack_icon",
+                                  "android_play_store_link",
+                                  "ios_app_download_link",
+                                  "sticker_pack_publisher_email",
+                                  "sticker_pack_publisher_website",
+                                  "sticker_pack_privacy_policy_website",
+                                  "sticker_pack_license_agreement_website",
+                                  "image_data_version",
+                                  "whatsapp_will_not_cache_stickers",
+                                  "animated_sticker_pack"
+                          });
+                          List<JSONObject> packs = new ArrayList<>();
+                          if (code == CODE_META_ALL) {
+                              packs = allPacks();
+                          } else {
+                              JSONObject p = onePack(uri.getLastPathSegment());
+                              if (p != null) packs.add(p);
+                          }
+                          for (JSONObject p : packs) {
+                              c.addRow(new Object[]{
+                                      p.getString("id"),
+                                      p.getString("name"),
+                                      p.getString("publisher"),
+                                      p.getString("tray"),
+                                      "", "", "", "", "", "",
+                                      p.getString("version"),
+                                      0,
+                                      p.optBoolean("animated", false) ? 1 : 0
+                              });
+                          }
+                          c.setNotificationUri(getContext().getContentResolver(), uri);
+                          return c;
+                      }
+
+                      if (code == CODE_STICKERS) {
+                          MatrixCursor c = new MatrixCursor(new String[]{
+                                  "sticker_file_name",
+                                  "sticker_emoji",
+                                  "sticker_accessibility_text"
+                          });
+                          JSONObject p = onePack(uri.getLastPathSegment());
+                          if (p != null) {
+                              JSONArray arr = p.getJSONArray("stickers");
+                              for (int i = 0; i < arr.length(); i++) {
+                                  JSONObject s = arr.getJSONObject(i);
+                                  JSONArray em = s.getJSONArray("emojis");
+                                  StringBuilder sb = new StringBuilder();
+                                  for (int k = 0; k < em.length() && k < 3; k++) {
+                                      if (k > 0) sb.append(',');
+                                      sb.append(em.getString(k));
+                                  }
+                                  c.addRow(new Object[]{s.getString("file"), sb.toString(), "Stiker"});
+                              }
+                          }
+                          c.setNotificationUri(getContext().getContentResolver(), uri);
+                          return c;
+                      }
+                  } catch (Exception e) {
+                      throw new IllegalStateException(e);
+                  }
+                  throw new IllegalArgumentException("URI tidak dikenal: " + uri);
+              }
+
+              @Override
+              public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
+                  if (matcher.match(uri) != CODE_ASSET) {
+                      throw new IllegalArgumentException("URI tidak dikenal: " + uri);
+                  }
+                  List<String> seg = uri.getPathSegments();
+                  String id = seg.get(seg.size() - 2);
+                  String name = seg.get(seg.size() - 1);
+                  if (id.contains("/") || id.contains("..") || name.contains("/") || name.contains("..")) {
+                      throw new FileNotFoundException();
+                  }
+                  File f = new File(new File(packsDir(), id), name);
+                  if (!f.exists()) throw new FileNotFoundException(f.getName());
+                  return new AssetFileDescriptor(
+                          ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY),
+                          0,
+                          AssetFileDescriptor.UNKNOWN_LENGTH);
+              }
+
+              @Override
+              public String getType(Uri uri) {
+                  String a = authority(getContext());
+                  switch (matcher.match(uri)) {
+                      case CODE_META_ALL:
+                          return "vnd.android.cursor.dir/vnd." + a + ".metadata";
+                      case CODE_META_ONE:
+                          return "vnd.android.cursor.item/vnd." + a + ".metadata";
+                      case CODE_STICKERS:
+                          return "vnd.android.cursor.dir/vnd." + a + ".stickers";
+                      case CODE_ASSET:
+                          return "image/webp";
+                      default:
+                          throw new IllegalArgumentException("URI tidak dikenal: " + uri);
+                  }
+              }
+
+              @Override
+              public Uri insert(Uri uri, ContentValues values) {
+                  throw new UnsupportedOperationException("Tidak didukung");
+              }
+
+              @Override
+              public int delete(Uri uri, String selection, String[] selectionArgs) {
+                  throw new UnsupportedOperationException("Tidak didukung");
+              }
+
+              @Override
+              public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+                  throw new UnsupportedOperationException("Tidak didukung");
+              }
+          }
+          EOF
+          mkdir -p android/app/src/main/java/com/kyy/stickerbridge
+          cat > android/app/src/main/java/com/kyy/stickerbridge/MainActivity.java <<'EOF'
+          package com.kyy.stickerbridge;
+
+          import android.app.Activity;
+          import android.app.AlertDialog;
+          import android.content.ActivityNotFoundException;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.text.InputType;
+          import android.util.Base64;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceError;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.widget.EditText;
+          import android.widget.Toast;
+
+          import org.json.JSONArray;
+          import org.json.JSONObject;
+
+          import java.io.File;
+          import java.io.FileOutputStream;
+
+          public class MainActivity extends Activity {
+
+              private static final int REQ_FILE = 100;
+              private static final int REQ_WA = 200;
+
+              private WebView web;
+              private ValueCallback<Uri[]> fileCallback;
+              private String baseHost = "";
+              private boolean dialogShowing = false;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  web = new WebView(this);
+                  setContentView(web);
+
+                  WebSettings s = web.getSettings();
+                  s.setJavaScriptEnabled(true);
+                  s.setDomStorageEnabled(true);
+                  s.setAllowFileAccess(false);
+
+                  web.addJavascriptInterface(new Bridge(), "AndroidBridge");
+
+                  web.setWebViewClient(new WebViewClient() {
+                      @Override
+                      public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                          Uri u = request.getUrl();
+                          String host = u.getHost();
+                          if (host != null && host.equals(baseHost)) return false;
+                          try {
+                              startActivity(new Intent(Intent.ACTION_VIEW, u));
+                          } catch (Exception e) {
+                              // abaikan
+                          }
+                          return true;
+                      }
+
+                      @Override
+                      public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                          if (request.isForMainFrame()) askUrl(true);
+                      }
+                  });
+
+                  web.setWebChromeClient(new WebChromeClient() {
+                      @Override
+                      public boolean onShowFileChooser(WebView w, ValueCallback<Uri[]> cb, FileChooserParams params) {
+                          if (fileCallback != null) fileCallback.onReceiveValue(null);
+                          fileCallback = cb;
+                          try {
+                              startActivityForResult(params.createIntent(), REQ_FILE);
+                          } catch (ActivityNotFoundException e) {
+                              fileCallback = null;
+                              return false;
+                          }
+                          return true;
+                      }
+                  });
+
+                  String saved = prefs().getString("url", null);
+                  if (saved == null) askUrl(false);
+                  else start(saved);
+              }
+
+              private SharedPreferences prefs() {
+                  return getSharedPreferences("kyy", MODE_PRIVATE);
+              }
+
+              private void start(String url) {
+                  String h = Uri.parse(url).getHost();
+                  baseHost = h == null ? "" : h;
+                  web.loadUrl(url);
+              }
+
+              private String normalize(String raw) {
+                  String u = raw.trim().replace(" ", "");
+                  if (u.isEmpty()) return "";
+                  if (!u.startsWith("http://") && !u.startsWith("https://")) u = "https://" + u;
+                  String path = Uri.parse(u).getPath();
+                  if (path == null || path.isEmpty() || path.equals("/")) {
+                      u = u.replaceAll("/+$", "") + "/extract-sticker.html";
+                  }
+                  return u;
+              }
+
+              private void askUrl(boolean error) {
+                  if (dialogShowing) return;
+                  dialogShowing = true;
+                  final EditText in = new EditText(this);
+                  in.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+                  in.setHint("nama-project.vercel.app");
+                  in.setText(prefs().getString("url", ""));
+
+                  AlertDialog.Builder b = new AlertDialog.Builder(this)
+                          .setTitle(error ? "Halaman gagal dibuka. Cek alamat Vercel:" : "Alamat website Vercel kamu")
+                          .setView(in)
+                          .setCancelable(false)
+                          .setPositiveButton("BUKA", (d, w) -> {
+                              dialogShowing = false;
+                              String u = normalize(in.getText().toString());
+                              if (u.isEmpty()) {
+                                  askUrl(error);
+                                  return;
+                              }
+                              prefs().edit().putString("url", u).apply();
+                              start(u);
+                          });
+                  if (error) {
+                      b.setNegativeButton("COBA LAGI", (d, w) -> {
+                          dialogShowing = false;
+                          web.reload();
+                      });
+                  }
+                  b.show();
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (web.canGoBack()) web.goBack();
+                  else super.onBackPressed();
+              }
+
+              @Override
+              protected void onActivityResult(int req, int res, Intent data) {
+                  if (req == REQ_FILE) {
+                      if (fileCallback != null) {
+                          fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+                          fileCallback = null;
+                      }
+                      return;
+                  }
+                  if (req == REQ_WA && res == RESULT_CANCELED && data != null) {
+                      String err = data.getStringExtra("validation_error");
+                      if (err != null) toast("WhatsApp menolak paket: " + err);
+                  }
+                  super.onActivityResult(req, res, data);
+              }
+
+              private void toast(final String m) {
+                  runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show());
+              }
+
+              private static byte[] decodeDataUrl(String s) {
+                  int i = s.indexOf(',');
+                  return Base64.decode(s.substring(i + 1), Base64.DEFAULT);
+              }
+
+              private static void write(File f, byte[] b) throws Exception {
+                  try (FileOutputStream o = new FileOutputStream(f)) {
+                      o.write(b);
+                  }
+              }
+
+              private static boolean isAnimatedWebp(byte[] b) {
+                  return b.length > 21
+                          && b[0] == 'R' && b[1] == 'I' && b[2] == 'F' && b[3] == 'F'
+                          && b[8] == 'W' && b[9] == 'E' && b[10] == 'B' && b[11] == 'P'
+                          && b[12] == 'V' && b[13] == 'P' && b[14] == '8' && b[15] == 'X'
+                          && (b[20] & 2) != 0;
+              }
+
+              private void launchWhatsApp(String id, String name) {
+                  Intent i = new Intent("com.whatsapp.intent.action.ENABLE_STICKER_PACK");
+                  i.putExtra("sticker_pack_id", id);
+                  i.putExtra("sticker_pack_authority", StickerContentProvider.authority(this));
+                  i.putExtra("sticker_pack_name", name);
+                  i.setPackage("com.whatsapp");
+                  try {
+                      startActivityForResult(i, REQ_WA);
+                  } catch (ActivityNotFoundException e) {
+                      i.setPackage("com.whatsapp.w4b");
+                      try {
+                          startActivityForResult(i, REQ_WA);
+                      } catch (ActivityNotFoundException e2) {
+                          toast("WhatsApp tidak ditemukan di HP ini");
+                      }
+                  }
+              }
+
+              // Dipanggil dari JavaScript: window.AndroidBridge.addStickerPackToWhatsApp(json)
+              public class Bridge {
+                  @JavascriptInterface
+                  public void addStickerPackToWhatsApp(final String json) {
+                      new Thread(() -> {
+                          try {
+                              JSONObject o = new JSONObject(json);
+                              String id = o.getString("identifier").replaceAll("[^A-Za-z0-9_.-]", "_");
+                              String name = o.optString("name", "Kyy Sticker Pack");
+                              String publisher = o.optString("publisher", "Kyy Studio");
+                              JSONArray arr = o.getJSONArray("stickers");
+                              if (arr.length() < 3 || arr.length() > 30) {
+                                  toast("Paket harus berisi 3-30 stiker");
+                                  return;
+                              }
+
+                              File dir = new File(new File(getFilesDir(), "packs"), id);
+                              dir.mkdirs();
+                              write(new File(dir, "tray.png"), decodeDataUrl(o.getString("tray_image")));
+
+                              JSONArray list = new JSONArray();
+                              boolean animated = false;
+                              for (int i = 0; i < arr.length(); i++) {
+                                  JSONObject s = arr.getJSONObject(i);
+                                  byte[] bytes = decodeDataUrl(s.getString("data"));
+                                  if (isAnimatedWebp(bytes)) animated = true;
+                                  String file = (i + 1) + ".webp";
+                                  write(new File(dir, file), bytes);
+
+                                  JSONArray em = s.optJSONArray("emojis");
+                                  if (em == null || em.length() == 0) {
+                                      em = new JSONArray();
+                                      em.put("\uD83D\uDE02");
+                                  }
+                                  JSONObject e = new JSONObject();
+                                  e.put("file", file);
+                                  e.put("emojis", em);
+                                  list.put(e);
+                              }
+
+                              JSONObject meta = new JSONObject();
+                              meta.put("id", id);
+                              meta.put("name", name);
+                              meta.put("publisher", publisher);
+                              meta.put("tray", "tray.png");
+                              meta.put("version", String.valueOf(System.currentTimeMillis()));
+                              meta.put("animated", animated);
+                              meta.put("stickers", list);
+                              write(new File(dir, "pack.json"), meta.toString().getBytes("UTF-8"));
+
+                              runOnUiThread(() -> launchWhatsApp(id, name));
+                          } catch (Exception e) {
+                              toast("Gagal menyiapkan paket: " + e.getMessage());
+                          }
+                      }).start();
+                  }
+              }
+          }
+          EOF
+
+      - name: Build APK
+        working-directory: android
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Siapkan file APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk KYY-Sticker.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KYY-Sticker-apk
+          path: KYY-Sticker.apk
+
+      - name: Publikasikan ke Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-terbaru
+          name: KYY Sticker APK (terbaru)
+          files: KYY-Sticker.apk
+          make_latest: true

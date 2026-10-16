@@ -147,21 +147,30 @@ function pick(obj, keys) {
   return out.length ? out : collectUrls(obj, []);
 }
 
+const SKIP_KEY = /^(user|reply_to_user|author|text_extra|label_list|share_info|avatar.*|.*avatar.*)$/i;
+const HINT_KEY = /sticker|image|emoji|gif|animate|media|photo|pic/i;
+const URL_PREF = ['origin_url', 'static_url', 'large_url', 'medium_url', 'crop_url', 'animate_url', 'thumb_url'];
+
 function mediaOf(c) {
   const result = [];
   const user = (c.user && (c.user.nickname || c.user.unique_id)) || '';
   const text = c.text || '';
 
-  if (c.sticker) {
-    const urls = pick(c.sticker, ['static_url', 'animate_url']);
-    if (urls.length) result.push({ cid: String(c.cid), kind: 'sticker', urls, user, text });
-  }
-  if (Array.isArray(c.image_list)) {
-    c.image_list.forEach((im) => {
-      const urls = pick(im, ['origin_url', 'crop_url', 'large_url', 'medium_url', 'thumb_url']);
-      if (urls.length) result.push({ cid: String(c.cid), kind: 'image', urls, user, text });
+  function scan(onlyHinted) {
+    Object.keys(c).forEach((k) => {
+      if (SKIP_KEY.test(k)) return;
+      if (onlyHinted && !HINT_KEY.test(k)) return;
+      const v = c[k];
+      if (!v || typeof v !== 'object') return;
+      (Array.isArray(v) ? v : [v]).forEach((it) => {
+        if (!it || typeof it !== 'object') return;
+        const urls = pick(it, URL_PREF);
+        if (urls.length) result.push({ cid: String(c.cid), kind: k, urls, user, text });
+      });
     });
   }
+  scan(true);
+  if (!result.length) scan(false); // cadangan: nama field tak dikenal
   return result;
 }
 
@@ -203,10 +212,10 @@ async function download(urls, maxBytes) {
   return null;
 }
 
-function queryUrl(req) {
-  if (req.query && req.query.url) return String(req.query.url);
+function getParam(req, name) {
+  if (req.query && req.query[name]) return String(req.query[name]);
   try {
-    return new URL(req.url, 'http://localhost').searchParams.get('url') || '';
+    return new URL(req.url, 'http://localhost').searchParams.get(name) || '';
   } catch (e) {
     return '';
   }
@@ -219,7 +228,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
 
   try {
-    const raw = queryUrl(req).trim();
+    const raw = getParam(req, "url").trim();
     if (!raw) throw new Error('Parameter url kosong');
 
     const { videoId, commentIds } = await resolveLink(raw);
@@ -276,11 +285,34 @@ module.exports = async (req, res) => {
     });
 
     const found = targetMedia.length > 0;
+    const targetComments = comments.filter((c) => commentIds.indexOf(String(c.cid)) !== -1);
+
+    if (getParam(req, 'debug')) {
+      const t = targetComments[0];
+      return res.status(200).json({
+        ok: true,
+        debug: {
+          videoId,
+          commentIds,
+          scanned: comments.length,
+          pagesBlocked: pages.filter((p) => p.blocked).length,
+          targetFound: !!t,
+          targetKeys: t ? Object.keys(t) : [],
+          targetSample: t ? JSON.stringify(t, (k, v) => (k === 'user' ? undefined : v)).slice(0, 2500) : null,
+          mediaCommentsInVideo: otherMedia.length + targetMedia.length
+        }
+      });
+    }
+
     if (commentIds.length && !found && !otherMedia.length) {
-      throw new Error('Komentar itu tidak berisi stiker/gambar, atau tidak ditemukan');
+      throw new Error(
+        targetComments.length
+          ? 'Komentar ketemu tapi formatnya belum dikenali (buka mode debug)'
+          : 'Komentar tidak ditemukan di ' + comments.length + ' komentar pertama'
+      );
     }
     if (!commentIds.length && !otherMedia.length) {
-      throw new Error('Tidak ada stiker di komentar video ini. Salin link komentar stikernya.');
+      throw new Error('Link tidak memuat ID komentar. Salin link dari komentar stikernya.');
     }
 
     const queue = targetMedia.concat(otherMedia.slice(0, MAX_OTHERS));

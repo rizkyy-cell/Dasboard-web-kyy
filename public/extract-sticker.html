@@ -401,10 +401,10 @@
     <section class="comic-panel">
       <div class="panel-label">PANEL 01 // SUMBER MEDIA</div>
       <div class="input-group">
-        <input type="url" id="tiktokUrl" class="comic-input" placeholder="Tempel Link TikTok (Slide Foto / Video)..." autocomplete="off">
+        <input type="url" id="tiktokUrl" class="comic-input" placeholder="Tempel link komentar stiker TikTok..." autocomplete="off" oninput="onUrlInput()">
         <div class="btn-row">
           <button id="btnExtract" class="comic-btn primary" onclick="extractTikTok()">
-            <span>⚡ EKSTRAK TIKTOK</span>
+            <span>⚡ TEMPEL & AMBIL</span>
           </button>
           <button class="comic-btn" onclick="document.getElementById('fileInput').click()">
             <span>📁 GALERI</span>
@@ -416,8 +416,15 @@
 
     <!-- PANEL 2: HASIL EKSTRAKSI TIKTOK -->
     <section class="comic-panel" id="resultPanel" style="display:none;">
-      <div class="panel-label">PANEL 02 // PILIH BAHAN STIKER</div>
+      <div class="panel-label">PANEL 02 // PREVIEW STIKER</div>
       <p id="postTitle" style="font-size: 0.8rem; font-weight:700; margin-top:6px; border-bottom:2px solid #000; padding-bottom:6px;"></p>
+      <div class="sticker-slot" style="max-width:280px; margin:14px auto;">
+        <img id="previewImg" alt="Preview stiker">
+      </div>
+      <div class="btn-row">
+        <button class="comic-btn" onclick="editPreview()">✏️ EDIT</button>
+        <button class="comic-btn primary" id="btnQuick" onclick="quickMakeSticker()" style="flex:2;">⚡ JADI STIKER WA</button>
+      </div>
       <div id="extractedGrid" class="media-grid"></div>
     </section>
 
@@ -444,7 +451,7 @@
       <div id="packGrid" class="media-grid"></div>
       <div id="emptyPackMsg" class="speech-bubble">
         BELUM ADA STIKER DI PAKET INI!<br>
-        Ekstrak link TikTok di atas atau pilih foto dari Galeri untuk mulai meracik stiker.
+        Tempel link komentar stiker TikTok di atas atau pilih foto dari Galeri untuk mulai meracik stiker.
       </div>
     </section>
 
@@ -510,69 +517,135 @@
       setTimeout(() => t.classList.remove('show'), 2200);
     }
 
-    // 1. EKSTRAK MEDIA DARI TIKTOK (TANPA API KEY VIA TIKWM)
-    async function extractTikTok() {
-      const urlInput = document.getElementById('tiktokUrl').value.trim();
-      const btn = document.getElementById('btnExtract');
+    // 1. AMBIL STIKER DARI LINK KOMENTAR TIKTOK (VIA /api/comment-sticker)
+    const API_BASE = ''; // kosong = domain Vercel yang sama
+    let extractedItems = [];
+    let previewItem = null;
+    let urlTimer = null;
+    let lastFetched = '';
 
-      if (!urlInput) {
-        showToast('TEMPEL LINK TIKTOK DULU!');
+    // Otomatis jalan setelah link ditempel (jeda 0,5 detik)
+    function onUrlInput() {
+      clearTimeout(urlTimer);
+      urlTimer = setTimeout(() => {
+        const v = document.getElementById('tiktokUrl').value.trim();
+        if (/https?:\/\/\S*tiktok\.com\S*/i.test(v) && v !== lastFetched) extractTikTok();
+      }, 500);
+    }
+
+    async function extractTikTok() {
+      const input = document.getElementById('tiktokUrl');
+      const btn = document.getElementById('btnExtract');
+      if (btn.disabled) return;
+
+      let raw = input.value.trim();
+      if (!raw && navigator.clipboard && navigator.clipboard.readText) {
+        try { raw = (await navigator.clipboard.readText()).trim(); } catch (e) {}
+      }
+      const m = raw.match(/https?:\/\/[^\s]+/);
+      if (!m) {
+        showToast('SALIN LINK KOMENTAR TIKTOK DULU!');
         return;
       }
+      const link = m[0].replace(/[)\]}>.,;]+$/, '');
+      input.value = link;
+      lastFetched = link;
 
       btn.disabled = true;
-      btn.innerHTML = '<span>⏳ MENGEKSTRAK...</span>';
+      btn.innerHTML = '<span>⏳ MENGAMBIL...</span>';
 
       try {
-        const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(urlInput)}`);
-        const json = await res.json();
+        const res = await fetch(`${API_BASE}/api/comment-sticker?url=${encodeURIComponent(link)}`);
+        let json;
+        try { json = await res.json(); } catch (e) { throw new Error('SERVER /api BELUM TERPASANG DI VERCEL'); }
+        if (!json.ok) throw new Error(json.error || 'GAGAL MENGAMBIL STIKER');
 
-        if (json.code !== 0 || !json.data) {
-          throw new Error('Link tidak valid atau video privat');
-        }
-
-        const data = json.data;
-        const mediaList = [];
-
-        // Jika postingan berupa Slide Foto TikTok, ambil semua fotonya
-        if (data.images && data.images.length > 0) {
-          data.images.forEach((imgUrl, idx) => {
-            mediaList.push({ url: imgUrl, label: `SLIDE #${idx + 1}` });
-          });
-        }
-
-        // Tambahkan Cover & Avatar Pembuat sebagai bahan stiker tambahan
-        if (data.origin_cover) mediaList.push({ url: data.origin_cover, label: 'COVER VIDEO' });
-        if (data.author && data.author.avatar) mediaList.push({ url: data.author.avatar, label: 'AVATAR' });
-
-        displayExtractedMedia(mediaList, data.title || 'Media TikTok Berhasil Diambil');
-        showToast(`BERHASIL! ${mediaList.length} BAHAN DITEMUKAN`);
+        displayExtractedMedia(json);
+        showToast(json.found ? 'STIKER DITEMUKAN!' : 'KOMENTAR TIDAK TERDETEKSI, PILIH STIKER');
       } catch (err) {
-        showToast('GAGAL EKSTRAK! PASTIKAN LINK TIKTOK PUBLIK');
+        showToast(String(err.message || 'GAGAL').toUpperCase().slice(0, 70));
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<span>⚡ EKSTRAK TIKTOK</span>';
+        btn.innerHTML = '<span>⚡ TEMPEL & AMBIL</span>';
       }
     }
 
-    function displayExtractedMedia(list, title) {
-      const panel = document.getElementById('resultPanel');
+    function displayExtractedMedia(json) {
+      extractedItems = json.items;
+      document.getElementById('resultPanel').style.display = 'block';
+      selectPreview(0);
+
       const grid = document.getElementById('extractedGrid');
-      document.getElementById('postTitle').textContent = title;
       grid.innerHTML = '';
+      if (extractedItems.length > 1) {
+        extractedItems.forEach((item, i) => {
+          const div = document.createElement('div');
+          div.className = 'sticker-slot';
+          div.style.cursor = 'pointer';
+          div.onclick = () => selectPreview(i);
+          div.innerHTML = `<img src="${item.data}"><span class="size-tag">PILIH</span>`;
+          grid.appendChild(div);
+        });
+      }
+      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-      list.forEach((item) => {
-        const div = document.createElement('div');
-        div.className = 'media-card';
-        div.onclick = () => openEditorWithUrl(item.url);
-        div.innerHTML = `
-          <img src="${item.url}" crossorigin="anonymous" loading="lazy">
-          <span class="add-overlay">+ EDIT STIKER</span>
-        `;
-        grid.appendChild(div);
+    function selectPreview(i) {
+      previewItem = extractedItems[i];
+      document.getElementById('previewImg').src = previewItem.data;
+      const who = previewItem.user ? ' // ' + previewItem.user : '';
+      document.getElementById('postTitle').textContent =
+        (previewItem.isTarget ? 'KOMENTAR DITEMUKAN' : 'STIKER LAIN DI VIDEO INI') + who;
+    }
+
+    function editPreview() {
+      if (previewItem) openEditorWithUrl(previewItem.data);
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('FORMAT GAMBAR TIDAK DIDUKUNG HP INI'));
+        img.src = src;
       });
+    }
 
-      panel.style.display = 'block';
+    // Jalur cepat: preview -> WebP 512x512 -> masuk paket -> menu share (pilih WhatsApp)
+    async function quickMakeSticker() {
+      if (!previewItem) return;
+      try {
+        const img = await loadImage(previewItem.data);
+        ctx.clearRect(0, 0, 512, 512);
+        const s = Math.min(512 / img.width, 512 / img.height);
+        const w = img.width * s;
+        const h = img.height * s;
+        ctx.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h);
+
+        const stk = saveStickerToPack();
+        if (stk) await shareSingleSticker(stk);
+      } catch (err) {
+        showToast(String(err.message || 'GAGAL').toUpperCase());
+      }
+    }
+
+    async function shareSingleSticker(stk) {
+      const file = new File([dataURLtoBlob(stk.webpBase64)], `kyy_sticker_${Date.now()}.webp`, { type: 'image/webp' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch (e) {
+          if (e && e.name === 'AbortError') return;
+        }
+      }
+      const a = document.createElement('a');
+      a.href = stk.webpBase64;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('FILE .WEBP DIUNDUH, KIRIM LEWAT WHATSAPP');
     }
 
     // 2. INPUT DARI GALERI LOKAL
@@ -677,7 +750,7 @@
     function saveStickerToPack() {
       if (stickerPack.length >= 30) {
         showToast('MAKSIMAL 30 STIKER PER PAKET!');
-        return;
+        return null;
       }
 
       // Kompresi otomatis ke format WebP 512x512 di bawah 100KB
@@ -691,17 +764,19 @@
         sizeKb = Math.round((webpDataUrl.length * 3) / 4 / 1024);
       }
 
-      stickerPack.push({
+      const sticker = {
         id: 'stk_' + Date.now(),
         webpBase64: webpDataUrl,
         sizeKb: sizeKb,
         emojis: ['😂', '🔥']
-      });
+      };
+      stickerPack.push(sticker);
 
       localStorage.setItem('manga_sticker_pack', JSON.stringify(stickerPack));
       renderPackGrid();
       closeEditor();
       showToast(`BAM! STIKER MASUK (${sizeKb} KB)`);
+      return sticker;
     }
 
     function removeSticker(id) {

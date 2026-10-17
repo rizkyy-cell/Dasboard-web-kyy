@@ -5,10 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111111">
 <title>KYY Sticker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f3f1;--card:#fff;--ink:#111;--mut:#6b6b6b;--line:#e2e2de}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+body{font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 input,button,textarea{font-family:inherit;font-weight:inherit}
 input{user-select:text;-webkit-user-select:text}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
@@ -176,9 +179,14 @@ input:focus{border-color:var(--ink)}
   async function blobToSticker(blob) {
     const head = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
     const info = webpInfo(head);
-    if (info && info.w === 512 && info.h === 512 &&
-        ((info.animated && blob.size <= WA_ANIM) || (!info.animated && blob.size <= WA_STATIC))) {
-      return { data: await readAsDataURL(blob), animated: info.animated };
+    if (info && info.animated) {
+      if (info.w === 512 && info.h === 512 && blob.size <= WA_ANIM) {
+        return { data: await readAsDataURL(blob), animated: true };
+      }
+      throw new Error('Stiker gerak tidak memenuhi syarat WhatsApp (512x512, maks 500 KB).');
+    }
+    if (info && info.w === 512 && info.h === 512 && blob.size <= WA_STATIC) {
+      return { data: await readAsDataURL(blob), animated: false };
     }
     const url = URL.createObjectURL(blob);
     try {

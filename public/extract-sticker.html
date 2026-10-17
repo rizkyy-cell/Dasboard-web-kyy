@@ -8,8 +8,7 @@
 <style>
 :root{--bg:#f3f3f1;--card:#fff;--ink:#111;--mut:#6b6b6b;--line:#e2e2de}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;font-weight:400;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+body{font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
 input,button,textarea{font-family:inherit;font-weight:inherit}
 input{user-select:text;-webkit-user-select:text}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
@@ -177,8 +176,9 @@ input:focus{border-color:var(--ink)}
   async function blobToSticker(blob) {
     const head = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
     const info = webpInfo(head);
-    if (info && info.animated && info.w === 512 && info.h === 512 && blob.size <= WA_ANIM) {
-      return { data: await readAsDataURL(blob), animated: true };
+    if (info && info.w === 512 && info.h === 512 &&
+        ((info.animated && blob.size <= WA_ANIM) || (!info.animated && blob.size <= WA_STATIC))) {
+      return { data: await readAsDataURL(blob), animated: info.animated };
     }
     const url = URL.createObjectURL(blob);
     try {
@@ -324,7 +324,7 @@ input:focus{border-color:var(--ink)}
       if (pack.some((p) => p.key === list[i].key)) { c.dup++; continue; }
       setStatus('Memproses ' + (i + 1) + ' dari ' + list.length + '...');
       try {
-        const r = await fetch(list[i].src);
+        const r = await fetch(list[i].src + '&n=1');
         if (!r.ok) throw new Error('gagal unduh');
         const s = await blobToSticker(await r.blob());
         c[pushSticker(list[i].key, s)]++;

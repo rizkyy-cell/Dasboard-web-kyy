@@ -1,1026 +1,460 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EXTRACT STICKER - TikTok to WA</title>
-  <!-- Font Komik & Tegas -->
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <!-- Library JSZip untuk membungkus file .wastickers -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <style>
-    :root {
-      --bg: #ffffff;
-      --fg: #000000;
-      --border: 3px solid #000000;
-      --shadow: 5px 5px 0px #000000;
-      --shadow-sm: 3px 3px 0px #000000;
-      --radius: 0px; /* Sudut tajam ala panel komik */
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: var(--fg);
-      font-family: 'Space Grotesk', sans-serif;
-      padding-bottom: 110px;
-      overflow-x: hidden;
-    }
-
-    /* Efek Halftone Komik Tipis di Header */
-    .halftone-bg {
-      background-image: radial-gradient(#000 1.25px, transparent 1.25px);
-      background-size: 10px 10px;
-    }
-
-    /* HEADER KOMIK */
-    header {
-      border-bottom: var(--border);
-      padding: 16px;
-      background: var(--bg);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .brand-title {
-      font-family: 'Bangers', cursive;
-      font-size: 2rem;
-      letter-spacing: 2px;
-      line-height: 1;
-      text-transform: uppercase;
-      background: #fff;
-      padding: 4px 10px;
-      border: var(--border);
-      box-shadow: var(--shadow-sm);
-      transform: rotate(-1.5deg);
-    }
-
-    .badge-comic {
-      font-size: 0.75rem;
-      font-weight: 700;
-      border: 2px solid #000;
-      padding: 4px 8px;
-      background: #000;
-      color: #fff;
-      text-transform: uppercase;
-    }
-
-    /* CONTAINER UTAMA */
-    .container {
-      max-width: 540px;
-      margin: 0 auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    /* PANEL KOMIK */
-    .comic-panel {
-      background: #ffffff;
-      border: var(--border);
-      box-shadow: var(--shadow);
-      padding: 16px;
-      position: relative;
-    }
-
-    .panel-label {
-      position: absolute;
-      top: -13px;
-      left: 12px;
-      background: #000;
-      color: #fff;
-      font-family: 'Bangers', cursive;
-      font-size: 1rem;
-      letter-spacing: 1.5px;
-      padding: 2px 10px;
-      border: 2px solid #000;
-    }
-
-    /* INPUT & TOMBOL */
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .comic-input {
-      width: 100%;
-      padding: 12px;
-      border: var(--border);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      background: #fff;
-      color: #000;
-      outline: none;
-    }
-
-    .comic-input:focus {
-      background: #f5f5f5;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .comic-btn {
-      flex: 1;
-      padding: 12px 14px;
-      border: var(--border);
-      background: #fff;
-      color: #000;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.1s, box-shadow 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .comic-btn.primary {
-      background: #000;
-      color: #fff;
-    }
-
-    .comic-btn:active {
-      transform: translate(3px, 3px);
-      box-shadow: 0px 0px 0px #000;
-    }
-
-    .comic-btn:disabled {
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    /* GRID HASIL EKSTRAK TIKTOK */
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .media-card {
-      border: 2px solid #000;
-      aspect-ratio: 1 / 1;
-      position: relative;
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 3px 3px 0px #000;
-      cursor: pointer;
-    }
-
-    .media-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .media-card .add-overlay {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      background: #000;
-      color: #fff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 3px 6px;
-      border-top: 2px solid #000;
-      border-left: 2px solid #000;
-    }
-
-    /* BALON DIALOG KOMIK (EMPTY STATE / INFO) */
-    .speech-bubble {
-      border: 2px dashed #000;
-      padding: 16px;
-      text-align: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      margin-top: 8px;
-      background: #fff;
-    }
-
-    /* KERANJANG STICKER PACK */
-    .pack-meta {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 8px;
-      margin-bottom: 14px;
-    }
-
-    .pack-header-status {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid #000;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
-
-    .sticker-slot {
-      border: 2px solid #000;
-      aspect-ratio: 1 / 1;
-      position: relative;
-      background-image: 
-        linear-gradient(45deg, #eee 25%, transparent 25%), 
-        linear-gradient(-45deg, #eee 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #eee 75%), 
-        linear-gradient(-45deg, transparent 75%, #eee 75%);
-      background-size: 16px 16px;
-      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-      box-shadow: 3px 3px 0px #000;
-    }
-
-    .sticker-slot img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .btn-del-sticker {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 24px;
-      height: 24px;
-      background: #fff;
-      color: #000;
-      border: 2px solid #000;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-    }
-
-    .size-tag {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      background: #fff;
-      color: #000;
-      border-top: 2px solid #000;
-      border-right: 2px solid #000;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 1px 4px;
-    }
-
-    /* MODAL EDITOR STIKER (CANVAS 512x512) */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.92);
-      z-index: 100;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .modal-backdrop.active {
-      display: flex;
-    }
-
-    .modal-box {
-      width: 100%;
-      max-width: 420px;
-      background: #fff;
-      border: var(--border);
-      box-shadow: 8px 8px 0px #000;
-      padding: 16px;
-    }
-
-    .canvas-wrapper {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      border: var(--border);
-      margin: 12px 0;
-      background-image: 
-        linear-gradient(45deg, #e5e5e5 25%, transparent 25%), 
-        linear-gradient(-45deg, #e5e5e5 25%, transparent 25%), 
-        linear-gradient(45deg, transparent 75%, #e5e5e5 75%), 
-        linear-gradient(-45deg, transparent 75%, #e5e5e5 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    canvas#stickerCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* BOTTOM BAR AKSI WHATSAPP */
-    .bottom-dock {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border-top: var(--border);
-      padding: 12px 16px;
-      z-index: 60;
-    }
-
-    .bottom-dock-inner {
-      max-width: 540px;
-      margin: 0 auto;
-      display: flex;
-      gap: 10px;
-    }
-
-    /* TOAST KOMIK */
-    #comicToast {
-      position: fixed;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%) scale(0.9);
-      background: #000;
-      color: #fff;
-      border: 3px solid #000;
-      box-shadow: 4px 4px 0px #fff, 6px 6px 0px #000;
-      padding: 10px 18px;
-      font-weight: 700;
-      font-size: 0.85rem;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.2s ease;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
-    #comicToast.show {
-      opacity: 1;
-      transform: translateX(-50%) scale(1);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>KYY Sticker</title>
+<style>
+:root{--bg:#f3f3f1;--card:#fff;--ink:#111;--mut:#6b6b6b;--line:#e2e2de}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+input{user-select:text;-webkit-user-select:text}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+img{display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
+::selection{background:transparent}
+.top{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
+.top h1{font-size:16px;font-weight:700;letter-spacing:.03em}
+.badge{font-size:13px;opacity:.8;font-variant-numeric:tabular-nums}
+main{padding:14px;display:grid;gap:12px;max-width:560px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.head .label{margin:0}
+input{width:100%;height:46px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:15px;background:#fff;color:var(--ink);outline:none}
+input:focus{border-color:var(--ink)}
+.row{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);border-radius:10px;font-weight:600;background:#fff}
+.btn.primary{background:var(--ink);color:#fff}
+.btn:disabled{opacity:.4}
+.btn.full{width:100%;flex:none}
+.link{font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.status{margin-top:10px;font-size:13px;color:var(--mut);min-height:1.45em}
+.hint{font-size:13px;color:var(--mut);margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/16px 16px;padding:0}
+.tile img{width:100%;height:100%;object-fit:contain}
+.tile.on{border-color:var(--ink)}
+.tile.on::after{content:"";position:absolute;right:6px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fff}
+.tile .tag{position:absolute;left:4px;bottom:4px;font-size:10px;font-weight:700;background:#fff;border:1px solid var(--line);padding:1px 5px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
+.tile.broken{opacity:.35}
+.pack{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.pack .hint{grid-column:1/-1;margin:0}
+.ptile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/12px 12px}
+.ptile img{width:100%;height:100%;object-fit:contain}
+.ptile .x{position:absolute;left:0;right:0;bottom:0;height:24px;background:rgba(17,17,17,.88);color:#fff;font-size:11px;font-weight:600}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fields .label{margin-bottom:6px}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.bottom .btn{width:100%;max-width:560px;margin:0 auto;display:flex}
+</style>
 </head>
 <body>
+<header class="top">
+  <h1>KYY STICKER</h1>
+  <span class="badge" id="badge">0/30</span>
+</header>
 
-  <!-- NOTIFIKASI ALA BALON KOMIK -->
-  <div id="comicToast">POW! STIKER DITAMBAHKAN!</div>
+<main>
+  <section class="card">
+    <label class="label" for="link">Link komentar stiker</label>
+    <input id="link" type="url" inputmode="url" placeholder="https://vt.tiktok.com/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    <div class="row">
+      <button class="btn" id="btnPaste" type="button">Tempel</button>
+      <button class="btn primary" id="btnFetch" type="button">Ambil</button>
+      <button class="btn" id="btnGallery" type="button">Galeri</button>
+    </div>
+    <input id="file" type="file" accept="image/*" hidden>
+    <p class="status" id="status">Tempel link komentar stiker dari TikTok.</p>
+  </section>
 
-  <!-- HEADER -->
-  <header class="halftone-bg">
-    <div class="brand-title">KYY STICKER</div>
-    <div class="badge-comic">WEBP 512x512 READY</div>
-  </header>
+  <section class="card">
+    <div class="head">
+      <span class="label">Hasil</span>
+      <button class="link" id="btnAll" type="button">Pilih semua</button>
+    </div>
+    <div id="grid" class="grid"></div>
+    <p class="hint" id="hint"></p>
+    <div class="row">
+      <button class="btn full" id="btnAdd" type="button" disabled>Tambah terpilih ke paket</button>
+    </div>
+  </section>
 
-  <main class="container">
-
-    <!-- PANEL 1: AMBIL DARI TIKTOK ATAU GALERI -->
-    <section class="comic-panel">
-      <div class="panel-label">PANEL 01 // SUMBER MEDIA</div>
-      <div class="input-group">
-        <input type="url" id="tiktokUrl" class="comic-input" placeholder="Tempel link komentar stiker TikTok..." autocomplete="off" oninput="onUrlInput()">
-        <div class="btn-row">
-          <button id="btnExtract" class="comic-btn primary" onclick="extractTikTok()">
-            <span>⚡ TEMPEL & AMBIL</span>
-          </button>
-          <button class="comic-btn" onclick="document.getElementById('fileInput').click()">
-            <span>📁 GALERI</span>
-          </button>
-          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleLocalFile(event)">
-        </div>
+  <section class="card">
+    <div class="head">
+      <span class="label">Paket</span>
+      <button class="link" id="btnReset" type="button">Kosongkan</button>
+    </div>
+    <div id="packGrid" class="pack"></div>
+    <div class="fields">
+      <div>
+        <label class="label" for="pname">Nama paket</label>
+        <input id="pname" maxlength="60" value="KYY Sticker Pack">
       </div>
-    </section>
-
-    <!-- PANEL 2: HASIL EKSTRAKSI TIKTOK -->
-    <section class="comic-panel" id="resultPanel" style="display:none;">
-      <div class="panel-label">PANEL 02 // PREVIEW STIKER</div>
-      <p id="postTitle" style="font-size: 0.8rem; font-weight:700; margin-top:6px; border-bottom:2px solid #000; padding-bottom:6px;"></p>
-      <div class="sticker-slot" style="max-width:280px; margin:14px auto;">
-        <img id="previewImg" alt="Preview stiker">
-      </div>
-      <div class="btn-row">
-        <button class="comic-btn" onclick="editPreview()">✏️ EDIT</button>
-        <button class="comic-btn primary" id="btnQuick" onclick="quickMakeSticker()" style="flex:2;">⚡ JADI STIKER WA</button>
-      </div>
-      <div id="extractedGrid" class="media-grid"></div>
-    </section>
-
-    <!-- PANEL 3: STICKER PACK BUILDER (KERANJANG WA) -->
-    <section class="comic-panel">
-      <div class="panel-label">PANEL 03 // PAKET STIKER WHATSAPP</div>
-      
-      <div class="pack-meta">
-        <div>
-          <label style="font-size:0.7rem; font-weight:700;">NAMA PAKET STIKER</label>
-          <input type="text" id="packName" class="comic-input" value="Kyy Sticker Pack" style="padding:8px; font-size:0.85rem;">
-        </div>
-        <div>
-          <label style="font-size:0.7rem; font-weight:700;">PEMBUAT (AUTHOR)</label>
-          <input type="text" id="packAuthor" class="comic-input" value="Kyy Studio" style="padding:8px; font-size:0.85rem;">
-        </div>
-      </div>
-
-      <div class="pack-header-status">
-        <span>KOLEKSI STIKER (<span id="stickerCount">0</span>/30)</span>
-        <span id="packRequirement" style="background:#000; color:#fff; padding:2px 6px; font-size:0.7rem;">MINIMAL 3 STIKER</span>
-      </div>
-
-      <div id="packGrid" class="media-grid"></div>
-      <div id="emptyPackMsg" class="speech-bubble">
-        BELUM ADA STIKER DI PAKET INI!<br>
-        Tempel link komentar stiker TikTok di atas atau pilih foto dari Galeri untuk mulai meracik stiker.
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL STUDIO EDITOR STIKER (512x512) -->
-  <div id="editorModal" class="modal-backdrop">
-    <div class="modal-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #000; padding-bottom:8px;">
-        <span style="font-family:'Bangers'; font-size:1.4rem; letter-spacing:1px;">STUDIO POTONG 512x512</span>
-        <button onclick="closeEditor()" style="border:2px solid #000; background:#fff; font-weight:700; padding:2px 8px; cursor:pointer;">X</button>
-      </div>
-
-      <div class="canvas-wrapper">
-        <canvas id="stickerCanvas" width="512" height="512"></canvas>
-      </div>
-
-      <div class="input-group" style="margin-bottom:12px;">
-        <input type="text" id="comicText" class="comic-input" placeholder="Tambah Teks Komik (Opsional)..." oninput="renderCanvas()">
-        <div class="btn-row">
-          <button class="comic-btn" onclick="toggleScaleMode()" id="btnScaleMode">MODE: FIT (TRANSPARAN)</button>
-          <button class="comic-btn" onclick="toggleBwFilter()" id="btnBwMode">FILTER: NORMAL</button>
-        </div>
-      </div>
-
-      <div class="btn-row">
-        <button class="comic-btn" onclick="closeEditor()">BATAL</button>
-        <button class="comic-btn primary" onclick="saveStickerToPack()">✔ MASUKKAN KE PAKET</button>
+      <div>
+        <label class="label" for="pauthor">Pembuat</label>
+        <input id="pauthor" maxlength="60" value="KYY Studio">
       </div>
     </div>
-  </div>
+  </section>
+</main>
 
-  <!-- BOTTOM DOCK: TOMBOL KIRIM FILE & PAKET (.WASTICKERS) -->
-  <div class="bottom-dock">
-    <div class="bottom-dock-inner">
-      <button class="comic-btn" onclick="shareWebPFiles()" id="btnDownloadZip" disabled>
-        📤 SHARE .WEBP
-      </button>
-      <button class="comic-btn primary" onclick="exportWastickersFile()" id="btnSendWA" disabled style="flex:2;">
-        📦 UNDUH PAKET (.WASTICKERS)
-      </button>
-    </div>
-  </div>
+<footer class="bottom">
+  <button class="btn primary" id="btnWA" type="button" disabled>Tambah ke WhatsApp</button>
+</footer>
 
-  <script>
-    // STATE APLIKASI
-    let stickerPack = JSON.parse(localStorage.getItem('manga_sticker_pack') || '[]');
-    let currentEditingImage = null;
-    let scaleMode = 'contain'; // 'contain' (transparan) atau 'cover' (penuh)
-    let bwFilter = false;      // Filter komik hitam-putih
+<script>
+(function () {
+  'use strict';
 
-    const canvas = document.getElementById('stickerCanvas');
-    const ctx = canvas.getContext('2d');
+  const MAX = 30, MIN = 3;
+  const WA_STATIC = 100 * 1024, WA_ANIM = 500 * 1024;
+  const $ = (id) => document.getElementById(id);
 
-    // Inisialisasi tampilan awal
-    renderPackGrid();
-    if (window.AndroidBridge) document.getElementById('btnSendWA').textContent = '✅ TAMBAH KE WHATSAPP';
+  let items = [];          // {key, src, isTarget, broken}
+  let selected = new Set();
+  let pack = [];           // {key, data, animated}
+  let lastLink = '';
+  let busy = false;
+  let timer = null;
+  let localSeq = 0;
 
-    // FUNGSI TOAST KOMIK
-    function showToast(msg) {
-      const t = document.getElementById('comicToast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2200);
+  // Blokir klik kanan, drag, dan seleksi teks di luar kolom input
+  document.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('dragstart', (e) => e.preventDefault());
+  document.addEventListener('selectstart', (e) => {
+    if (!(e.target && e.target.closest && e.target.closest('input'))) e.preventDefault();
+  });
+
+  function setStatus(t) { $('status').textContent = t; }
+
+  function setBusy(v) {
+    busy = v;
+    $('btnFetch').disabled = v;
+    $('btnPaste').disabled = v;
+    updateHint();
+    renderPack();
+  }
+
+  function sizeOf(d) {
+    return Math.floor((d.length - d.indexOf(',') - 1) * 3 / 4);
+  }
+
+  function webpInfo(u8) {
+    if (u8.length < 30) return null;
+    const s = (a, b) => String.fromCharCode.apply(null, Array.from(u8.slice(a, b)));
+    if (s(0, 4) !== 'RIFF' || s(8, 12) !== 'WEBP') return null;
+    if (s(12, 16) !== 'VP8X') return { animated: false, w: 0, h: 0 };
+    return {
+      animated: !!(u8[20] & 2),
+      w: 1 + (u8[24] | (u8[25] << 8) | (u8[26] << 16)),
+      h: 1 + (u8[27] | (u8[28] << 8) | (u8[29] << 16))
+    };
+  }
+
+  function readAsDataURL(blob) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = () => rej(new Error('Gagal membaca file.'));
+      r.readAsDataURL(blob);
+    });
+  }
+
+  function loadImage(src) {
+    return new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = () => rej(new Error('Format gambar tidak didukung.'));
+      i.src = src;
+    });
+  }
+
+  // Ubah gambar/stiker jadi format WhatsApp: gerak (512x512, <=500 KB) dipertahankan, selain itu WebP diam <=100 KB
+  async function blobToSticker(blob) {
+    const head = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
+    const info = webpInfo(head);
+    if (info && info.animated && info.w === 512 && info.h === 512 && blob.size <= WA_ANIM) {
+      return { data: await readAsDataURL(blob), animated: true };
     }
-
-    // 1. AMBIL STIKER DARI LINK KOMENTAR TIKTOK (VIA /api/comment-sticker)
-    const API_BASE = ''; // kosong = domain Vercel yang sama
-    let extractedItems = [];
-    let previewItem = null;
-    let urlTimer = null;
-    let lastFetched = '';
-
-    // Otomatis jalan setelah link ditempel (jeda 0,5 detik)
-    function onUrlInput() {
-      clearTimeout(urlTimer);
-      urlTimer = setTimeout(() => {
-        const v = document.getElementById('tiktokUrl').value.trim();
-        if (/https?:\/\/\S*tiktok\.com\S*/i.test(v) && v !== lastFetched) extractTikTok();
-      }, 500);
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = await loadImage(url);
+      const cv = document.createElement('canvas');
+      cv.width = 512; cv.height = 512;
+      const cx = cv.getContext('2d');
+      const k = Math.min(512 / img.naturalWidth, 512 / img.naturalHeight);
+      const w = Math.round(img.naturalWidth * k), h = Math.round(img.naturalHeight * k);
+      cx.drawImage(img, Math.round((512 - w) / 2), Math.round((512 - h) / 2), w, h);
+      let q = 0.9;
+      let d = cv.toDataURL('image/webp', q);
+      while (sizeOf(d) > WA_STATIC && q > 0.1) {
+        q = Math.round((q - 0.1) * 10) / 10;
+        d = cv.toDataURL('image/webp', q);
+      }
+      if (!d.startsWith('data:image/webp')) throw new Error('Browser ini tidak bisa membuat WebP.');
+      if (sizeOf(d) > WA_STATIC) throw new Error('Gambar terlalu besar untuk stiker diam.');
+      return { data: d, animated: false };
+    } finally {
+      URL.revokeObjectURL(url);
     }
+  }
 
-    async function extractTikTok() {
-      const input = document.getElementById('tiktokUrl');
-      const btn = document.getElementById('btnExtract');
-      if (btn.disabled) return;
+  function pushSticker(key, s) {
+    if (pack.length >= MAX) return 'full';
+    if (pack.some((p) => p.key === key)) return 'dup';
+    if (pack.length && pack[0].animated !== s.animated) return 'type';
+    pack.push({ key: key, data: s.data, animated: s.animated });
+    return 'ok';
+  }
 
-      let raw = input.value.trim();
-      if (!raw && navigator.clipboard && navigator.clipboard.readText) {
-        try { raw = (await navigator.clipboard.readText()).trim(); } catch (e) {}
-      }
-      const m = raw.match(/https?:\/\/[^\s]+/);
-      if (!m) {
-        showToast('SALIN LINK KOMENTAR TIKTOK DULU!');
-        return;
-      }
-      const link = m[0].replace(/[)\]}>.,;]+$/, '');
-      input.value = link;
-      lastFetched = link;
+  function summary(c) {
+    const parts = [];
+    if (c.ok) parts.push(c.ok + ' stiker ditambahkan');
+    if (c.dup) parts.push(c.dup + ' sudah ada di paket');
+    if (c.type) parts.push(c.type + ' dilewati karena beda jenis (gerak/diam). Satu paket hanya boleh satu jenis');
+    if (c.full) parts.push('paket penuh, maksimal ' + MAX);
+    if (c.fail) parts.push(c.fail + ' gagal diproses');
+    return parts.length ? parts.join('. ') + '.' : 'Tidak ada perubahan.';
+  }
 
-      btn.disabled = true;
-      btn.innerHTML = '<span>⏳ MENGAMBIL...</span>';
+  function scheduleFetch(ms) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fetchLink(true), ms);
+  }
 
+  async function fetchLink(auto) {
+    if (busy) return;
+    const m = $('link').value.match(/https?:\/\/\S+/);
+    if (!m || !/tiktok\.com/i.test(m[0])) {
+      if (!auto) setStatus('Tempel link TikTok dulu.');
+      return;
+    }
+    const link = m[0].replace(/[)\]}>.,;]+$/, '');
+    $('link').value = link;
+    if (auto && link === lastLink) return;
+
+    setBusy(true);
+    setStatus('Mengambil komentar dan stiker...');
+    try {
+      const r = await fetch('/api/comment-sticker?url=' + encodeURIComponent(link));
+      let j;
       try {
-        const res = await fetch(`${API_BASE}/api/comment-sticker?url=${encodeURIComponent(link)}`);
-        let json;
-        try { json = await res.json(); } catch (e) { throw new Error('SERVER /api BELUM TERPASANG DI VERCEL'); }
-        if (!json.ok) throw new Error(json.error || 'GAGAL MENGAMBIL STIKER');
-
-        displayExtractedMedia(json);
-        showToast(json.found ? 'STIKER DITEMUKAN!' : 'KOMENTAR TIDAK TERDETEKSI, PILIH STIKER');
-      } catch (err) {
-        showToast(String(err.message || 'GAGAL').toUpperCase().slice(0, 70));
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span>⚡ TEMPEL & AMBIL</span>';
-      }
-    }
-
-    function displayExtractedMedia(json) {
-      extractedItems = json.items;
-      document.getElementById('resultPanel').style.display = 'block';
-      selectPreview(0);
-
-      const grid = document.getElementById('extractedGrid');
-      grid.innerHTML = '';
-      if (extractedItems.length > 1) {
-        extractedItems.forEach((item, i) => {
-          const div = document.createElement('div');
-          div.className = 'sticker-slot';
-          div.style.cursor = 'pointer';
-          div.onclick = () => selectPreview(i);
-          div.innerHTML = `<img src="${item.data}"><span class="size-tag">PILIH</span>`;
-          grid.appendChild(div);
-        });
-      }
-      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function selectPreview(i) {
-      previewItem = extractedItems[i];
-      document.getElementById('previewImg').src = previewItem.data;
-      const who = previewItem.user ? ' // ' + previewItem.user : '';
-      document.getElementById('postTitle').textContent =
-        (previewItem.isTarget ? 'KOMENTAR DITEMUKAN' : 'STIKER LAIN DI VIDEO INI') + who;
-    }
-
-    function editPreview() {
-      if (previewItem) openEditorWithUrl(previewItem.data);
-    }
-
-    function loadImage(src) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('FORMAT GAMBAR TIDAK DIDUKUNG HP INI'));
-        img.src = src;
-      });
-    }
-
-    // Jalur cepat: preview -> WebP 512x512 -> masuk paket -> menu share (pilih WhatsApp)
-    async function quickMakeSticker() {
-      if (!previewItem) return;
-      try {
-        // Stiker gerak (WebP animasi): pakai file aslinya, jangan di-render ulang
-        const info = webpInfo(previewItem.data);
-        if (info && info.animated) {
-          const kb = Math.round((previewItem.data.length * 3) / 4 / 1024);
-          if (kb <= 500) {
-            const raw = addRawSticker(previewItem.data, kb);
-            if (raw) {
-              if (info.w !== 512 || info.h !== 512) showToast(`ANIMASI ${info.w}x${info.h}, WA BUTUH 512x512`);
-              await afterStickerAdded(raw);
-            }
-            return;
-          }
-          showToast('ANIMASI >500KB, DIJADIKAN STIKER DIAM');
-        }
-
-        const img = await loadImage(previewItem.data);
-        ctx.clearRect(0, 0, 512, 512);
-        const s = Math.min(512 / img.width, 512 / img.height);
-        const w = img.width * s;
-        const h = img.height * s;
-        ctx.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h);
-
-        const stk = saveStickerToPack();
-        if (stk) await afterStickerAdded(stk);
-      } catch (err) {
-        showToast(String(err.message || 'GAGAL').toUpperCase());
-      }
-    }
-
-    // Baca header WebP: animasi atau bukan, dan ukurannya
-    function webpInfo(dataUrl) {
-      try {
-        const b = atob(dataUrl.split(',')[1].slice(0, 64));
-        if (b.slice(0, 4) !== 'RIFF' || b.slice(8, 12) !== 'WEBP' || b.slice(12, 16) !== 'VP8X') return null;
-        const c = (i) => b.charCodeAt(i);
-        return {
-          animated: !!(c(20) & 2),
-          w: 1 + (c(24) | (c(25) << 8) | (c(26) << 16)),
-          h: 1 + (c(27) | (c(28) << 8) | (c(29) << 16))
-        };
+        j = await r.json();
       } catch (e) {
-        return null;
+        throw new Error('Server belum terpasang. Pastikan folder api sudah ada di Vercel.');
       }
+      if (!j.ok) throw new Error(j.error || 'Gagal mengambil data.');
+      lastLink = link;
+      items = j.items.map((it) => ({ key: it.src, src: it.src, isTarget: it.isTarget, broken: false }));
+      selected = new Set(items.filter((it) => it.isTarget).map((it) => it.key));
+      renderGrid();
+      const nt = items.filter((it) => it.isTarget).length;
+      setStatus(
+        j.found
+          ? nt + ' stiker dari komentar ditemukan. Stiker lain dari video ini juga bisa dipilih.'
+          : 'Komentar target tidak terbaca. Pilih stiker dari daftar di bawah.'
+      );
+    } catch (e) {
+      items = [];
+      selected = new Set();
+      renderGrid();
+      setStatus(e.message || 'Gagal mengambil data.');
     }
+    setBusy(false);
+  }
 
-    // Masukkan file WebP apa adanya ke paket (tanpa render ulang)
-    function addRawSticker(dataUrl, sizeKb) {
-      if (stickerPack.length >= 30) {
-        showToast('MAKSIMAL 30 STIKER PER PAKET!');
-        return null;
-      }
-      const sticker = { id: 'stk_' + Date.now(), webpBase64: dataUrl, sizeKb: sizeKb, emojis: ['😂', '🔥'] };
-      stickerPack.push(sticker);
-      localStorage.setItem('manga_sticker_pack', JSON.stringify(stickerPack));
-      renderPackGrid();
-      return sticker;
-    }
-
-    // Di APK: cukup kumpulkan stiker, kirim ke WhatsApp lewat tombol paket. Di browser: menu share.
-    async function afterStickerAdded(stk) {
-      if (window.AndroidBridge) {
-        showToast(stickerPack.length >= 3
-          ? 'SIAP! TEKAN TAMBAH KE WHATSAPP'
-          : `KURANG ${3 - stickerPack.length} STIKER LAGI`);
-      } else {
-        await shareSingleSticker(stk);
-      }
-    }
-
-    async function shareSingleSticker(stk) {
-      const file = new File([dataURLtoBlob(stk.webpBase64)], `kyy_sticker_${Date.now()}.webp`, { type: 'image/webp' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file] });
-          return;
-        } catch (e) {
-          if (e && e.name === 'AbortError') return;
-        }
-      }
-      const a = document.createElement('a');
-      a.href = stk.webpBase64;
-      a.download = file.name;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('FILE .WEBP DIUNDUH, KIRIM LEWAT WHATSAPP');
-    }
-
-    // 2. INPUT DARI GALERI LOKAL
-    function handleLocalFile(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => openEditorWithUrl(ev.target.result);
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
-
-    // 3. STUDIO EDITOR KANVAS 512x512 (KONVERSI WEBP STANDAR WA)
-    function openEditorWithUrl(imgUrl) {
-      showToast('MEMUAT GAMBAR KE STUDIO...');
+  function renderGrid() {
+    const g = $('grid');
+    g.textContent = '';
+    items.forEach((it) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'tile' + (selected.has(it.key) ? ' on' : '') + (it.broken ? ' broken' : '');
+      b.disabled = it.broken;
       const img = new Image();
-      img.crossOrigin = 'anonymous';
-
-      img.onload = () => {
-        currentEditingImage = img;
-        document.getElementById('comicText').value = '';
-        document.getElementById('editorModal').classList.add('active');
-        renderCanvas();
-      };
-
+      img.draggable = false;
+      img.alt = '';
       img.onerror = () => {
-        // Fallback proxy jika terkena CORS dari CDN TikTok
-        const proxyUrl = `https://wsrv.nl/?url=${encodeURIComponent(imgUrl)}&output=webp`;
-        const proxyImg = new Image();
-        proxyImg.crossOrigin = 'anonymous';
-        proxyImg.onload = () => {
-          currentEditingImage = proxyImg;
-          document.getElementById('comicText').value = '';
-          document.getElementById('editorModal').classList.add('active');
-          renderCanvas();
-        };
-        proxyImg.src = proxyUrl;
+        it.broken = true;
+        selected.delete(it.key);
+        b.classList.add('broken');
+        b.classList.remove('on');
+        b.disabled = true;
+        updateHint();
       };
-
-      img.src = imgUrl;
-    }
-
-    function closeEditor() {
-      document.getElementById('editorModal').classList.remove('active');
-      currentEditingImage = null;
-    }
-
-    function toggleScaleMode() {
-      scaleMode = scaleMode === 'contain' ? 'cover' : 'contain';
-      document.getElementById('btnScaleMode').textContent = 
-        scaleMode === 'contain' ? 'MODE: FIT (TRANSPARAN)' : 'MODE: FULL KOTAK';
-      renderCanvas();
-    }
-
-    function toggleBwFilter() {
-      bwFilter = !bwFilter;
-      document.getElementById('btnBwMode').textContent = 
-        bwFilter ? 'FILTER: KOMIK B&W' : 'FILTER: NORMAL';
-      renderCanvas();
-    }
-
-    function renderCanvas() {
-      if (!currentEditingImage) return;
-      ctx.clearRect(0, 0, 512, 512);
-
-      ctx.save();
-      if (bwFilter) {
-        ctx.filter = 'grayscale(100%) contrast(135%)';
-      }
-
-      const iw = currentEditingImage.width;
-      const ih = currentEditingImage.height;
-      const scale = scaleMode === 'contain' 
-        ? Math.min(512 / iw, 512 / ih) 
-        : Math.max(512 / iw, 512 / ih);
-
-      const nw = iw * scale;
-      const nh = ih * scale;
-      const x = (512 - nw) / 2;
-      const y = (512 - nh) / 2;
-
-      ctx.drawImage(currentEditingImage, x, y, nw, nh);
-      ctx.restore();
-
-      // Render Teks Komik di Bagian Bawah Stiker
-      const text = document.getElementById('comicText').value.trim().toUpperCase();
-      if (text) {
-        ctx.save();
-        ctx.font = '48px "Bangers", cursive';
-        ctx.textAlign = 'center';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = 10;
-        ctx.strokeStyle = '#000000';
-        ctx.fillStyle = '#FFFFFF';
-        ctx.strokeText(text, 256, 475);
-        ctx.fillText(text, 256, 475);
-        ctx.restore();
-      }
-    }
-
-    // 4. SIMPAN HASIL KONVERSI WEBP (<100KB) KE KERANJANG PAKET
-    function saveStickerToPack() {
-      if (stickerPack.length >= 30) {
-        showToast('MAKSIMAL 30 STIKER PER PAKET!');
-        return null;
-      }
-
-      // Kompresi otomatis ke format WebP 512x512 di bawah 100KB
-      let quality = 0.82;
-      let webpDataUrl = canvas.toDataURL('image/webp', quality);
-      let sizeKb = Math.round((webpDataUrl.length * 3) / 4 / 1024);
-
-      while (sizeKb > 95 && quality > 0.2) {
-        quality -= 0.12;
-        webpDataUrl = canvas.toDataURL('image/webp', quality);
-        sizeKb = Math.round((webpDataUrl.length * 3) / 4 / 1024);
-      }
-
-      const sticker = {
-        id: 'stk_' + Date.now(),
-        webpBase64: webpDataUrl,
-        sizeKb: sizeKb,
-        emojis: ['😂', '🔥']
+      img.src = it.src;
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = it.isTarget ? 'KOMENTAR' : 'VIDEO';
+      b.append(img, tag);
+      b.onclick = () => {
+        if (selected.has(it.key)) {
+          selected.delete(it.key);
+          b.classList.remove('on');
+        } else {
+          selected.add(it.key);
+          b.classList.add('on');
+        }
+        updateHint();
       };
-      stickerPack.push(sticker);
+      g.appendChild(b);
+    });
+    updateHint();
+  }
 
-      localStorage.setItem('manga_sticker_pack', JSON.stringify(stickerPack));
-      renderPackGrid();
-      closeEditor();
-      showToast(`BAM! STIKER MASUK (${sizeKb} KB)`);
-      return sticker;
-    }
+  function updateHint() {
+    const n = selected.size;
+    const usable = items.filter((it) => !it.broken).length;
+    $('hint').textContent = items.length ? usable + ' stiker tersedia, ' + n + ' dipilih.' : '';
+    $('btnAdd').disabled = busy || n === 0;
+    $('btnAll').textContent = usable && n === usable ? 'Batal pilih' : 'Pilih semua';
+  }
 
-    function removeSticker(id) {
-      stickerPack = stickerPack.filter(s => s.id !== id);
-      localStorage.setItem('manga_sticker_pack', JSON.stringify(stickerPack));
-      renderPackGrid();
-    }
-
-    function renderPackGrid() {
-      const grid = document.getElementById('packGrid');
-      const emptyMsg = document.getElementById('emptyPackMsg');
-      const countEl = document.getElementById('stickerCount');
-      const reqEl = document.getElementById('packRequirement');
-      const btnWA = document.getElementById('btnSendWA');
-      const btnDl = document.getElementById('btnDownloadZip');
-
-      countEl.textContent = stickerPack.length;
-      grid.innerHTML = '';
-
-      if (stickerPack.length === 0) {
-        emptyMsg.style.display = 'block';
-      } else {
-        emptyMsg.style.display = 'none';
-        stickerPack.forEach((stk) => {
-          const slot = document.createElement('div');
-          slot.className = 'sticker-slot';
-          slot.innerHTML = `
-            <img src="${stk.webpBase64}">
-            <span class="size-tag">${stk.sizeKb}KB</span>
-            <button class="btn-del-sticker" onclick="removeSticker('${stk.id}')">X</button>
-          `;
-          grid.appendChild(slot);
-        });
-      }
-
-      // Validasi Syarat Resmi WhatsApp (Minimal 3 Stiker)
-      const isReady = stickerPack.length >= 3;
-      btnWA.disabled = !isReady;
-      btnDl.disabled = stickerPack.length === 0;
-
-      if (isReady) {
-        reqEl.textContent = 'SIAP DIKIRIM KE WA!';
-        reqEl.style.background = '#000';
-      } else {
-        reqEl.textContent = `KURANG ${3 - stickerPack.length} STIKER LAGI`;
+  async function addSelected() {
+    const list = items.filter((it) => selected.has(it.key) && !it.broken);
+    if (!list.length) return;
+    setBusy(true);
+    const c = { ok: 0, dup: 0, type: 0, full: 0, fail: 0 };
+    for (let i = 0; i < list.length; i++) {
+      if (pack.length >= MAX) { c.full += list.length - i; break; }
+      if (pack.some((p) => p.key === list[i].key)) { c.dup++; continue; }
+      setStatus('Memproses ' + (i + 1) + ' dari ' + list.length + '...');
+      try {
+        const r = await fetch(list[i].src);
+        if (!r.ok) throw new Error('gagal unduh');
+        const s = await blobToSticker(await r.blob());
+        c[pushSticker(list[i].key, s)]++;
+      } catch (e) {
+        c.fail++;
       }
     }
+    setBusy(false);
+    setStatus(summary(c));
+  }
 
-    // 5. HELPER KONVERSI BASE64 & PEMBUAT TRAY ICON 96x96
-    function generateTrayIconBase64(firstStickerBase64) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          const trayCanvas = document.createElement('canvas');
-          trayCanvas.width = 96;
-          trayCanvas.height = 96;
-          const tCtx = trayCanvas.getContext('2d');
-          tCtx.drawImage(img, 0, 0, 96, 96);
-          resolve(trayCanvas.toDataURL('image/png'));
-        };
-        img.src = firstStickerBase64;
-      });
+  function renderPack() {
+    const g = $('packGrid');
+    g.textContent = '';
+    pack.forEach((p, i) => {
+      const d = document.createElement('div');
+      d.className = 'ptile';
+      const img = new Image();
+      img.draggable = false;
+      img.alt = '';
+      img.src = p.data;
+      const x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'x';
+      x.textContent = 'Hapus';
+      x.onclick = () => { pack.splice(i, 1); renderPack(); };
+      d.append(img, x);
+      g.appendChild(d);
+    });
+    if (!pack.length) {
+      const p = document.createElement('p');
+      p.className = 'hint';
+      p.textContent = 'Paket masih kosong.';
+      g.appendChild(p);
     }
+    $('badge').textContent = pack.length + '/' + MAX;
+    $('btnWA').disabled = busy || pack.length < MIN;
+  }
 
-    function dataURLtoBlob(dataurl) {
-      const arr = dataurl.split(',');
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], { type: mime });
+  function packId() {
+    let id = null;
+    try { id = localStorage.getItem('kyy.packId'); } catch (e) {}
+    if (!id) {
+      id = 'kyy' + Date.now().toString(36);
+      try { localStorage.setItem('kyy.packId', id); } catch (e) {}
     }
+    return id;
+  }
 
-    // 6. FITUR UTAMA: BUNGKUS JADI 1 FILE PAKET (.WASTICKERS) ATAU KIRIM KE ANDROID BRIDGE
-    async function exportWastickersFile() {
-      if (stickerPack.length < 3) {
-        showToast('MINIMAL 3 STIKER UNTUK DIGABUNG!');
-        return;
-      }
+  async function makeTray(data) {
+    const img = await loadImage(data);
+    const cv = document.createElement('canvas');
+    cv.width = 96; cv.height = 96;
+    const cx = cv.getContext('2d');
+    const k = Math.min(96 / img.naturalWidth, 96 / img.naturalHeight);
+    const w = img.naturalWidth * k, h = img.naturalHeight * k;
+    cx.drawImage(img, (96 - w) / 2, (96 - h) / 2, w, h);
+    return cv.toDataURL('image/png');
+  }
 
-      const packName = document.getElementById('packName').value.trim() || 'Kyy Sticker Pack';
-      const packAuthor = document.getElementById('packAuthor').value.trim() || 'Kyy Studio';
-      const trayBase64 = await generateTrayIconBase64(stickerPack[0].webpBase64);
-
-      // JIKA DIBUKA DI APK ANDROID (SKETCHWARE / WEBVIEW DENGAN BRIDGE), KIRIM KE BRIDGE
-      if (window.AndroidBridge && typeof window.AndroidBridge.addStickerPackToWhatsApp === 'function') {
-        const payload = {
-          identifier: 'pack_' + Date.now(),
-          name: packName,
-          publisher: packAuthor,
-          tray_image: trayBase64,
-          stickers: stickerPack.map(s => ({
-            data: s.webpBase64,
-            emojis: s.emojis
-          }))
-        };
-        showToast('MENGIRIM PAKET KE WHATSAPP...');
-        window.AndroidBridge.addStickerPackToWhatsApp(JSON.stringify(payload));
-        return;
-      }
-
-      // JIKA DI BROWSER / UMUM: BUNGKUS JADI 1 FILE .WASTICKERS
-      showToast('MEMBUNGKUS FILE .WASTICKERS...');
-      const zip = new JSZip();
-
-      // Metadata standar .wastickers
-      zip.file('title.txt', packName);
-      zip.file('author.txt', packAuthor);
-
-      // Masukkan Tray Icon 96x96
-      const trayData = trayBase64.split(',')[1];
-      zip.file('tray.png', trayData, { base64: true });
-      zip.file('tray.webp', trayData, { base64: true });
-
-      // Masukkan semua stiker 512x512 (.webp)
-      stickerPack.forEach((stk, idx) => {
-        const base64Data = stk.webpBase64.split(',')[1];
-        zip.file(`sticker_${idx + 1}.webp`, base64Data, { base64: true });
-      });
-
-      const content = await zip.generateAsync({ type: 'blob' });
-      const safeFileName = packName.toLowerCase().replace(/[^a-z0-9]/g, '_') + '.wastickers';
-      const wastickersFile = new File([content], safeFileName, { type: 'application/octet-stream' });
-
-      // Coba panggil menu Share File HP jika didukung
-      if (navigator.canShare && navigator.canShare({ files: [wastickersFile] })) {
-        try {
-          await navigator.share({
-            title: packName,
-            text: `Paket Stiker WhatsApp: ${packName}`,
-            files: [wastickersFile]
-          });
-          showToast('FILE .WASTICKERS DIBAGIKAN!');
-          return;
-        } catch (e) {
-          // Lanjut ke unduh otomatis jika user menutup pop-up share
-        }
-      }
-
-      // Unduh file .wastickers langsung ke penyimpanan HP
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(content);
-      a.download = safeFileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('FILE .WASTICKERS DIUNDUH!');
+  async function sendWA() {
+    if (pack.length < MIN) {
+      setStatus('Minimal ' + MIN + ' stiker. Sekarang ' + pack.length + '.');
+      return;
     }
-
-    // 7. FITUR SHARE / UNDUH FILE .WEBP SATUAN (512x512)
-    async function shareWebPFiles() {
-      if (stickerPack.length === 0) return;
-
-      const filesArray = stickerPack.map((stk, idx) => {
-        const blob = dataURLtoBlob(stk.webpBase64);
-        return new File([blob], `kyy_sticker_${idx + 1}.webp`, { type: 'image/webp' });
-      });
-
-      if (navigator.canShare && navigator.canShare({ files: filesArray })) {
-        try {
-          await navigator.share({
-            files: filesArray,
-            title: 'Kyy Sticker WebP 512x512'
-          });
-          showToast('MEMBUKA MENU SHARE HP...');
-          return;
-        } catch (err) {
-          // Jika batal share, lanjut unduh manual
-        }
-      }
-
-      downloadAllWebP();
+    if (!window.AndroidBridge) {
+      setStatus('Tambah ke WhatsApp hanya bisa dari aplikasi KYY Sticker.');
+      return;
     }
-
-    function downloadAllWebP() {
-      stickerPack.forEach((stk, idx) => {
-        const a = document.createElement('a');
-        a.href = stk.webpBase64;
-        a.download = `kyy_sticker_512x512_${idx + 1}.webp`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      });
-      showToast(`${stickerPack.length} FILE .WEBP DIUNDUH!`);
+    setBusy(true);
+    setStatus('Menyiapkan paket...');
+    try {
+      const tray = await makeTray(pack[0].data);
+      window.AndroidBridge.addStickerPackToWhatsApp(JSON.stringify({
+        identifier: packId(),
+        name: $('pname').value.trim() || 'KYY Sticker Pack',
+        publisher: $('pauthor').value.trim() || 'KYY Studio',
+        tray_image: tray,
+        stickers: pack.map((p) => ({ data: p.data, emojis: [] }))
+      }));
+      setStatus('Konfirmasi di WhatsApp untuk menambahkan paket.');
+    } catch (e) {
+      setStatus('Gagal menyiapkan paket.');
     }
-  </script>
+    setBusy(false);
+  }
+
+  // Event
+  $('link').addEventListener('input', () => scheduleFetch(700));
+  $('link').addEventListener('paste', () => scheduleFetch(150));
+  $('link').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fetchLink(false); } });
+  $('btnFetch').onclick = () => fetchLink(false);
+  $('btnPaste').onclick = async () => {
+    try {
+      $('link').value = (await navigator.clipboard.readText()).trim();
+      fetchLink(true);
+    } catch (e) {
+      setStatus('Izin clipboard ditolak. Tekan lama kolom link, lalu pilih Tempel.');
+    }
+  };
+  $('btnAll').onclick = () => {
+    const usable = items.filter((it) => !it.broken);
+    if (!usable.length) return;
+    if (selected.size === usable.length) selected = new Set();
+    else selected = new Set(usable.map((it) => it.key));
+    renderGrid();
+  };
+  $('btnAdd').onclick = addSelected;
+  $('btnGallery').onclick = () => $('file').click();
+  $('file').onchange = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    setBusy(true);
+    setStatus('Memproses gambar...');
+    try {
+      const s = await blobToSticker(f);
+      const r = pushSticker('local-' + (++localSeq), s);
+      const c = {}; c[r] = 1;
+      setStatus(summary(c));
+    } catch (err) {
+      setStatus(err.message || 'Gagal memproses gambar.');
+    }
+    setBusy(false);
+  };
+  $('btnReset').onclick = () => { pack = []; renderPack(); setStatus('Paket dikosongkan.'); };
+  $('btnWA').onclick = sendWA;
+
+  renderPack();
+  updateHint();
+})();
+</script>
 </body>
 </html>

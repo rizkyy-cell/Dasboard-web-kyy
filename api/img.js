@@ -1,9 +1,14 @@
 // api/img.js
-// GET /api/img?u=<url CDN TikTok>&u=<url cadangan>
+// GET /api/img?u=<url CDN TikTok>&u=<url cadangan>[&n=1]
 // Mengambil gambar stiker dari CDN TikTok lewat server (hindari CORS). Hanya host CDN TikTok yang diizinkan.
+// n=1: normalisasi ke format WhatsApp 512x512 (animasi tetap animasi, <=500 KB; diam <=100 KB).
+const sharp = require('sharp');
+
 const UA = 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 const CDN = /(^|\.)(tiktokcdn(-us|-eu)?\.com|byteimg\.com|ibyteimg\.com|ibytedtos\.com|tiktokv\.(com|us|eu)|muscdn\.com|byteoversea\.com|tiktok\.com)$/i;
 const MAX_BYTES = 3 * 1024 * 1024;
+const WA_STATIC = 100 * 1024;
+const WA_ANIM = 500 * 1024;
 
 function sniff(b) {
   if (b.length < 12) return null;
@@ -33,10 +38,37 @@ function getUrls(req) {
   }
 }
 
+function wantsNormalize(req) {
+  if (req.query && req.query.n) return String(req.query.n) === '1';
+  try {
+    return new URL(req.url, 'http://localhost').searchParams.get('n') === '1';
+  } catch (e) {
+    return false;
+  }
+}
+
+// Ubah ke WebP 512x512 dengan animasi dipertahankan (jika sumber animasi).
+async function normalize(buf) {
+  const meta = await sharp(buf, { animated: true, limitInputPixels: false }).metadata();
+  const animated = (meta.pages || 1) > 1;
+  const limit = animated ? WA_ANIM : WA_STATIC;
+  const qualities = animated ? [70, 55, 40, 25] : [90, 75, 60, 40];
+  let out = null;
+  for (const q of qualities) {
+    out = await sharp(buf, { animated, limitInputPixels: false })
+      .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .webp({ quality: q, effort: 3, loop: 0 })
+      .toBuffer();
+    if (out.length <= limit) break;
+  }
+  return out;
+}
+
 module.exports = async (req, res) => {
   const start = Date.now();
+  const norm = wantsNormalize(req);
   for (const raw of getUrls(req).slice(0, 3)) {
-    if (Date.now() - start > 7000) break;
+    if (Date.now() - start > 6000) break;
     let u;
     try {
       u = new URL(raw);
@@ -51,10 +83,21 @@ module.exports = async (req, res) => {
         4000
       );
       if (!r.ok) continue;
-      const buf = Buffer.from(await r.arrayBuffer());
+      let buf = Buffer.from(await r.arrayBuffer());
       if (!buf.length || buf.length > MAX_BYTES) continue;
-      const type = sniff(buf);
+      let type = sniff(buf);
       if (!type) continue;
+      if (norm) {
+        try {
+          const out = await normalize(buf);
+          if (out) {
+            buf = out;
+            type = 'image/webp';
+          }
+        } catch (e) {
+          // kirim sumber asli jika normalisasi gagal
+        }
+      }
       res.statusCode = 200;
       res.setHeader('Content-Type', type);
       res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400');

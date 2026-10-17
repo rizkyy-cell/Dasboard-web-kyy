@@ -47,19 +47,31 @@ function wantsNormalize(req) {
   }
 }
 
-// Ubah ke WebP 512x512 dengan animasi dipertahankan (jika sumber animasi).
+// Ubah ke WebP 512x512. Animasi dipertahankan; jika terlalu besar, isi dikecilkan di dalam kanvas 512.
 async function normalize(buf) {
   const meta = await sharp(buf, { animated: true, limitInputPixels: false }).metadata();
   const animated = (meta.pages || 1) > 1;
-  const limit = animated ? WA_ANIM : WA_STATIC;
-  const qualities = animated ? [70, 55, 40, 25] : [90, 75, 60, 40];
+  if (!animated) {
+    let out = null;
+    for (const q of [90, 75, 60, 40]) {
+      out = await sharp(buf, { limitInputPixels: false })
+        .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .webp({ quality: q, effort: 3, loop: 0 })
+        .toBuffer();
+      if (out.length <= WA_STATIC) break;
+    }
+    return out;
+  }
+  const ladder = [[512, 70], [512, 55], [448, 50], [384, 50], [320, 40], [288, 35]];
   let out = null;
-  for (const q of qualities) {
-    out = await sharp(buf, { animated, limitInputPixels: false })
-      .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  for (const [size, q] of ladder) {
+    const pad = (512 - size) / 2;
+    out = await sharp(buf, { animated: true, limitInputPixels: false })
+      .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .webp({ quality: q, effort: 3, loop: 0 })
       .toBuffer();
-    if (out.length <= limit) break;
+    if (out.length <= WA_ANIM) break;
   }
   return out;
 }

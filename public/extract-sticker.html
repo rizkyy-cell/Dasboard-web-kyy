@@ -18,14 +18,31 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 img{display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
 ::selection{background:transparent}
 
-/* Splash saat aplikasi dibuka */
-#splash{position:fixed;inset:0;background:var(--ink);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:50;transition:opacity .45s ease,visibility .45s;}
+/* Splash: awan muncul, kedip, lalu teks */
+#splash{position:fixed;inset:0;background:#0a0a0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:50;transition:opacity .5s ease,visibility .5s;}
 #splash.hide{opacity:0;visibility:hidden}
-#splash .logo{font-weight:700;font-size:28px;letter-spacing:.1em;animation:pop .8s cubic-bezier(.2,.9,.3,1.2) both}
-#splash .bar{width:140px;height:2px;background:rgba(255,255,255,.2);overflow:hidden;border-radius:2px}
-#splash .bar::after{content:"";display:block;height:100%;background:#fff;transform:translateX(-100%);animation:load 1s ease-in-out forwards}
-@keyframes pop{0%{opacity:0;transform:scale(.6) rotate(-4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
-@keyframes load{to{transform:translateX(0)}}
+#splash .sc{width:150px;height:150px;animation:pop .9s cubic-bezier(.2,.9,.3,1.25) both}
+#splash .sc .eye{animation:blink 3.6s infinite}
+#splash .st{color:#fff;font-weight:700;font-size:15px;letter-spacing:.32em;animation:fadeUp .6s .35s both}
+
+/* Karakter awan di halaman */
+.char-wrap{display:flex;justify-content:center;margin-bottom:-4px}
+.char{width:84px;height:84px;cursor:pointer;animation:float 3s ease-in-out infinite;transform-origin:50% 100%;--ex:0px;--ey:0px}
+.char .eyes{transform:translate(var(--ex),var(--ey));transition:transform .18s ease-out}
+.char .f{display:none}
+.char[data-face="normal"] .f-normal,.char[data-face="focus"] .f-focus,.char[data-face="happy"] .f-happy,.char[data-face="sad"] .f-sad,.char[data-face="sleepy"] .f-sleepy,.char[data-face="surprised"] .f-surprised,.char[data-face="wink"] .f-wink{display:inline}
+.char .f-normal .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+.char.busy{animation:breathe .7s ease-in-out infinite}
+.char.done{animation:hop .6s ease}
+.char.bad{animation:shake .5s}
+#splash .sc .f-normal .eye{animation:blink 3.6s infinite}
+@keyframes pop{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07,.94)}}
+@keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-14px) scale(1.04,.97)}60%{transform:translateY(0) scale(1.06,.94)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 @keyframes rot{to{transform:rotate(360deg)}}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
@@ -104,7 +121,7 @@ input:focus{border-color:var(--ink)}
 </head>
 <body>
 
-<div id="splash"><div class="logo">KYY STICKER</div><div class="bar"></div></div>
+<div id="splash"><svg class="sc" data-face="normal" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#0a0a0c"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="eyes"><g class="f f-normal"><rect class="eye" x="404" y="398" width="86" height="178" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect class="eye" x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-focus"><rect x="404" y="438" width="86" height="98" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect x="581" y="426" width="80" height="98" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-happy" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 500 Q447 440 489 500"/><path d="M580 488 Q621 428 662 488"/></g><g class="f f-sad" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 458 Q447 518 489 458"/><path d="M580 446 Q621 506 662 446"/></g><g class="f f-sleepy" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 490 H489"/><path d="M580 478 H662"/></g><g class="f f-surprised" fill="#f9f9f9"><circle cx="447" cy="487" r="50"/><circle cx="621" cy="475" r="48"/></g><g class="f f-wink"><path d="M405 487 H489" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"/><rect x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g></g></svg><div class="st">KYY STICKER</div></div>
 
 <header class="top">
   <h1>KYY STICKER</h1>
@@ -115,6 +132,7 @@ input:focus{border-color:var(--ink)}
 </header>
 
 <main>
+  <div class="char-wrap"><svg id="char" class="char" data-face="normal" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#0a0a0c"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="eyes"><g class="f f-normal"><rect class="eye" x="404" y="398" width="86" height="178" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect class="eye" x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-focus"><rect x="404" y="438" width="86" height="98" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect x="581" y="426" width="80" height="98" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-happy" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 500 Q447 440 489 500"/><path d="M580 488 Q621 428 662 488"/></g><g class="f f-sad" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 458 Q447 518 489 458"/><path d="M580 446 Q621 506 662 446"/></g><g class="f f-sleepy" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 490 H489"/><path d="M580 478 H662"/></g><g class="f f-surprised" fill="#f9f9f9"><circle cx="447" cy="487" r="50"/><circle cx="621" cy="475" r="48"/></g><g class="f f-wink"><path d="M405 487 H489" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"/><rect x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g></g></svg></div>
   <section class="card">
     <label class="label" for="link">Link TikTok</label>
     <input id="link" type="url" inputmode="url" placeholder="Tempel link video atau komentar stiker" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -284,8 +302,58 @@ input:focus{border-color:var(--ink)}
     $('status').classList.toggle('busy', !!spinning);
   }
 
+  let faceTimer = null;
+  let idleTimer = null;
+
+  function setFace(f, ms) {
+    const c = $('char');
+    c.dataset.face = f;
+    clearTimeout(faceTimer);
+    if (ms) faceTimer = setTimeout(() => { c.dataset.face = busy ? 'focus' : 'normal'; }, ms);
+  }
+
+  function flashChar(cls) {
+    const c = $('char');
+    c.classList.remove('done', 'bad');
+    void c.getBoundingClientRect();
+    c.classList.add(cls);
+    setTimeout(() => c.classList.remove(cls), 1200);
+    if (cls === 'done') setFace('happy', 1300);
+    if (cls === 'bad') setFace('sad', 1500);
+  }
+
+  // Mata mengikuti kursor atau sentuhan
+  function gaze(x, y) {
+    const c = $('char');
+    const r = c.getBoundingClientRect();
+    const dx = x - (r.left + r.width / 2);
+    const dy = y - (r.top + r.height / 2);
+    const d = Math.hypot(dx, dy) || 1;
+    const m = Math.min(d / 260, 1);
+    c.style.setProperty('--ex', (dx / d * m * 22).toFixed(1) + 'px');
+    c.style.setProperty('--ey', (dy / d * m * 14).toFixed(1) + 'px');
+  }
+
+  // Setelah 20 detik tanpa sentuhan, karakter tidur sampai disentuh lagi
+  function resetIdle() {
+    if ($('char').dataset.face === 'sleepy') setFace('normal');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => { if (!busy) setFace('sleepy'); }, 20000);
+  }
+
+  document.addEventListener('pointermove', (e) => { gaze(e.clientX, e.clientY); resetIdle(); }, { passive: true });
+  document.addEventListener('pointerdown', (e) => { gaze(e.clientX, e.clientY); resetIdle(); });
+  $('char').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const list = ['wink', 'surprised', 'happy'];
+    setFace(list[Math.floor(Math.random() * list.length)], 1100);
+  });
+
   function setBusy(v) {
     busy = v;
+    $('char').classList.toggle('busy', !!v);
+    if (v) setFace('focus');
+    else if ($('char').dataset.face === 'focus') setFace('normal');
     $('btnFetch').disabled = v;
     $('btnPaste').disabled = v;
     $('btnSave').disabled = v;
@@ -463,6 +531,7 @@ input:focus{border-color:var(--ink)}
           : items.length + ' stiker ditemukan dari video. Pilih yang diinginkan.'
       );
       setBusy(false);
+      flashChar('done');
       detectAll();
     } catch (e) {
       items = [];
@@ -470,6 +539,7 @@ input:focus{border-color:var(--ink)}
       renderGrid();
       setStatus(e.message || 'Gagal mengambil data.');
       setBusy(false);
+      flashChar('bad');
     }
   }
 
@@ -715,6 +785,8 @@ input:focus{border-color:var(--ink)}
   }
 
   // Event
+  $('link').addEventListener('focus', () => { if (!busy) setFace('focus'); });
+  $('link').addEventListener('blur', () => { if (!busy) setFace('normal'); });
   $('link').addEventListener('input', () => scheduleFetch(700));
   $('link').addEventListener('paste', () => scheduleFetch(150));
   $('link').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); fetchLink(false); } });
@@ -805,8 +877,9 @@ input:focus{border-color:var(--ink)}
     renderPack();
     renderSaved();
     updateHint();
-    setTimeout(() => $('splash').classList.add('hide'), 1100);
-    setTimeout(() => $('splash').remove(), 1700);
+    setTimeout(() => $('splash').classList.add('hide'), 2000);
+    setTimeout(() => $('splash').remove(), 2600);
+    resetIdle();
   }
   init();
 })();

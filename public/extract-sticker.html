@@ -9,68 +9,122 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f3f3f1;--card:#fff;--ink:#111;--mut:#6b6b6b;--line:#e2e2de}
+:root{--bg:#f2f2ef;--card:#fff;--ink:#111;--mut:#6a6a66;--line:#e3e3df;--ok:#1f7a4d}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
-input,button,textarea{font-family:inherit;font-weight:inherit}
-input{user-select:text;-webkit-user-select:text}
+body{font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+input{user-select:text;-webkit-user-select:text;font-family:inherit;font-weight:inherit}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
 button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 img{display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
 ::selection{background:transparent}
+
+/* Splash saat aplikasi dibuka */
+#splash{position:fixed;inset:0;background:var(--ink);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:50;transition:opacity .45s ease,visibility .45s;}
+#splash.hide{opacity:0;visibility:hidden}
+#splash .logo{font-weight:700;font-size:28px;letter-spacing:.1em;animation:pop .8s cubic-bezier(.2,.9,.3,1.2) both}
+#splash .bar{width:140px;height:2px;background:rgba(255,255,255,.2);overflow:hidden;border-radius:2px}
+#splash .bar::after{content:"";display:block;height:100%;background:#fff;transform:translateX(-100%);animation:load 1s ease-in-out forwards}
+@keyframes pop{0%{opacity:0;transform:scale(.6) rotate(-4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes load{to{transform:translateX(0)}}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+
 .top{position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
-.top h1{font-size:16px;font-weight:700;letter-spacing:.03em}
-.badge{font-size:13px;opacity:.8;font-variant-numeric:tabular-nums}
+.top h1{font-size:16px;font-weight:700;letter-spacing:.08em}
+.top .right{display:flex;align-items:center;gap:12px}
+.badge{font-size:13px;opacity:.85;font-variant-numeric:tabular-nums}
+.info{width:30px;height:30px;border:1.5px solid #fff;border-radius:50%;font-size:16px;font-weight:700;display:grid;place-items:center;line-height:1}
+
 main{padding:14px;display:grid;gap:12px;max-width:560px;margin:0 auto}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-.label{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
 .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .head .label{margin:0}
-input{width:100%;height:46px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:15px;background:#fff;color:var(--ink);outline:none}
+input{width:100%;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 12px;font-size:15px;background:#fff;color:var(--ink);outline:none}
 input:focus{border-color:var(--ink)}
 .row{display:flex;gap:8px;margin-top:10px}
-.btn{flex:1;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);border-radius:10px;font-weight:600;background:#fff}
+.btn{flex:1;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);border-radius:11px;font-weight:600;background:#fff}
 .btn.primary{background:var(--ink);color:#fff}
 .btn:disabled{opacity:.4}
 .btn.full{width:100%;flex:none}
 .link{font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
-.status{margin-top:10px;font-size:13px;color:var(--mut);min-height:1.45em}
-.hint{font-size:13px;color:var(--mut);margin-top:10px}
+.status{margin-top:10px;font-size:13px;color:var(--mut);min-height:1.45em;display:flex;align-items:center;gap:8px}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:none;animation:rot .8s linear infinite;flex:none}
+.busy .spin{display:inline-block}
+
+.seg{display:flex;border:1px solid var(--ink);border-radius:11px;overflow:hidden;margin-bottom:10px}
+.seg button{flex:1;height:36px;font-weight:600;font-size:13px}
+.seg button.on{background:var(--ink);color:#fff}
+
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tile{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/16px 16px;padding:0}
+.tile{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/16px 16px;padding:0}
 .tile img{width:100%;height:100%;object-fit:contain}
 .tile.on{border-color:var(--ink)}
 .tile.on::after{content:"";position:absolute;right:6px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fff}
-.tile .tag{position:absolute;left:4px;bottom:4px;font-size:10px;font-weight:700;background:#fff;border:1px solid var(--line);padding:1px 5px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
+.tile .tag{position:absolute;left:4px;bottom:4px;font-size:10px;font-weight:700;background:#fff;border:1px solid var(--line);padding:1px 6px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
+.tile .kind{position:absolute;left:4px;top:4px;font-size:10px;font-weight:700;background:var(--ink);color:#fff;padding:1px 6px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
 .tile.broken{opacity:.35}
+.skel{aspect-ratio:1;border-radius:12px;background:linear-gradient(90deg,#ececea 25%,#f8f8f6 50%,#ececea 75%);background-size:200% 100%;animation:sh 1.2s linear infinite}
+.hint{font-size:13px;color:var(--mut);margin-top:10px}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.fields .label{margin-bottom:6px}
 .pack{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
 .pack .hint{grid-column:1/-1;margin:0}
 .ptile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/12px 12px}
 .ptile img{width:100%;height:100%;object-fit:contain}
 .ptile .x{position:absolute;left:0;right:0;bottom:0;height:24px;background:rgba(17,17,17,.88);color:#fff;font-size:11px;font-weight:600}
-.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.fields .label{margin-bottom:6px}
+.plist{display:grid;gap:8px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.prow small{display:block;color:var(--mut);font-size:12px}
+.prow .acts{display:flex;gap:8px}
+.mini{height:32px;padding:0 12px;border:1px solid var(--ink);border-radius:9px;font-weight:600;font-size:13px}
+.mini.primary{background:var(--ink);color:#fff}
+.empty{font-size:13px;color:var(--mut)}
+
 .bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
-.bottom .btn{width:100%;max-width:560px;margin:0 auto;display:flex}
+.bottom .inner{max-width:560px;margin:0 auto}
+.prog{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:8px;display:none}
+.prog.on{display:block}
+.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .25s ease}
+.bottom .btn{width:100%}
+.bottom .btn .spin{margin-right:8px}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));max-height:82vh;overflow:auto;animation:up .3s ease}
+.sheet h2{font-size:17px;font-weight:700;margin-bottom:10px}
+.sheet h3{font-size:14px;font-weight:700;margin:14px 0 6px}
+.sheet ol{padding-left:20px;color:#333;font-size:14px}
+.sheet ol li{margin-bottom:6px}
+.sheet .dl{display:inline-flex;margin-top:10px;height:40px;align-items:center;padding:0 14px;border:1px solid var(--ink);border-radius:10px;font-weight:600;font-size:14px}
+.sheet .close{margin-top:14px;width:100%;height:44px;border:1px solid var(--ink);border-radius:11px;font-weight:600;background:#fff}
 </style>
 </head>
 <body>
+
+<div id="splash"><div class="logo">KYY STICKER</div><div class="bar"></div></div>
+
 <header class="top">
   <h1>KYY STICKER</h1>
-  <span class="badge" id="badge">0/30</span>
+  <div class="right">
+    <span class="badge" id="badge">0/30</span>
+    <button class="info" id="btnInfo" type="button" aria-label="Panduan">&#9432;</button>
+  </div>
 </header>
 
 <main>
   <section class="card">
-    <label class="label" for="link">Link komentar stiker</label>
-    <input id="link" type="url" inputmode="url" placeholder="https://vt.tiktok.com/..." autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label class="label" for="link">Link TikTok</label>
+    <input id="link" type="url" inputmode="url" placeholder="Tempel link video atau komentar stiker" autocomplete="off" autocapitalize="off" spellcheck="false">
     <div class="row">
       <button class="btn" id="btnPaste" type="button">Tempel</button>
       <button class="btn primary" id="btnFetch" type="button">Ambil</button>
       <button class="btn" id="btnGallery" type="button">Galeri</button>
     </div>
     <input id="file" type="file" accept="image/*" hidden>
-    <p class="status" id="status">Tempel link komentar stiker dari TikTok.</p>
+    <p class="status" id="status"><span class="spin"></span><span id="statusTxt">Tempel link TikTok, lalu tekan Ambil.</span></p>
   </section>
 
   <section class="card">
@@ -78,16 +132,18 @@ input:focus{border-color:var(--ink)}
       <span class="label">Hasil</span>
       <button class="link" id="btnAll" type="button">Pilih semua</button>
     </div>
+    <div class="seg" id="seg">
+      <button type="button" data-tab="all" class="on">Semua</button>
+      <button type="button" data-tab="gerak">Gerak</button>
+      <button type="button" data-tab="diam">Diam</button>
+    </div>
     <div id="grid" class="grid"></div>
     <p class="hint" id="hint"></p>
-    <div class="row">
-      <button class="btn full" id="btnAdd" type="button" disabled>Tambah terpilih ke paket</button>
-    </div>
   </section>
 
   <section class="card">
     <div class="head">
-      <span class="label">Paket</span>
+      <span class="label">Paket aktif</span>
       <button class="link" id="btnReset" type="button">Kosongkan</button>
     </div>
     <div class="fields">
@@ -101,44 +157,146 @@ input:focus{border-color:var(--ink)}
       </div>
     </div>
     <div id="packGrid" class="pack"></div>
+    <div class="row">
+      <button class="btn" id="btnSave" type="button">Simpan paket</button>
+      <button class="btn primary" id="btnWA" type="button" disabled>Tambah ke WhatsApp</button>
+    </div>
+    <p class="hint" id="packHint"></p>
+  </section>
+
+  <section class="card">
+    <div class="head"><span class="label">Paket tersimpan</span></div>
+    <div id="savedList" class="plist"></div>
   </section>
 </main>
 
 <footer class="bottom">
-  <button class="btn primary" id="btnWA" type="button" disabled>Tambah ke WhatsApp</button>
+  <div class="inner">
+    <div class="prog" id="prog"><i id="progBar"></i></div>
+    <button class="btn primary" id="btnAdd" type="button" disabled>
+      <span class="spin"></span><span id="btnAddTxt">Tambah terpilih ke paket</span>
+    </button>
+  </div>
 </footer>
+
+<div class="modal" id="guide">
+  <div class="sheet">
+    <h2>Panduan</h2>
+    <h3>Cara pakai</h3>
+    <ol>
+      <li>Di TikTok, tekan lama komentar stiker, pilih Bagikan, lalu Salin link. Atau salin link video.</li>
+      <li>Tempel di kolom Link TikTok. Stiker akan muncul di Hasil.</li>
+      <li>Pilih stiker dengan mengetuk. Pilih tab Gerak atau Diam untuk memisahkan jenisnya.</li>
+      <li>Tekan Tambah terpilih ke paket. Ulangi sampai cukup, minimal 3 stiker.</li>
+      <li>Tekan Simpan paket agar tersimpan di daftar Paket tersimpan.</li>
+      <li>Tekan Tambah ke WhatsApp. Konfirmasi di WhatsApp.</li>
+    </ol>
+    <h3>Android</h3>
+    <p class="hint" style="margin-top:0">Tombol Tambah ke WhatsApp hanya berfungsi di aplikasi Android.</p>
+    <a class="dl" id="apkLink" href="#" hidden>Unduh aplikasi</a>
+    <h3>iOS</h3>
+    <ol>
+      <li>Di iPhone, WhatsApp belum bisa menerima paket langsung dari website.</li>
+      <li>Gunakan aplikasi pembuat stiker dari App Store untuk memasukkan stiker ke WhatsApp.</li>
+    </ol>
+    <button class="close" id="btnClose" type="button">Tutup</button>
+  </div>
+</div>
 
 <script>
 (function () {
   'use strict';
 
+  // Isi link APK Android di sini nanti. Kosongkan jika belum ada.
+  const APK_URL = '';
+
   const MAX = 30, MIN = 3;
   const WA_STATIC = 100 * 1024, WA_ANIM = 500 * 1024;
   const $ = (id) => document.getElementById(id);
 
-  let items = [];          // {key, src, isTarget, broken}
+  let items = [];           // {key, src, isTarget, broken, animated: null|true|false, el}
   let selected = new Set();
-  let pack = [];           // {key, data, animated}
+  let pack = [];            // {key, data, animated}
+  let active = { id: '', name: 'KYY Sticker Pack', author: 'KYY Studio' };
+  let saved = [];           // {id, name, author, items:[{key,data,animated}]}
   let lastLink = '';
   let busy = false;
   let timer = null;
   let localSeq = 0;
+  let tab = 'all';
 
-  // Blokir klik kanan, drag, dan seleksi teks di luar kolom input
+  // Blokir klik kanan, drag, dan seleksi di luar kolom input
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('dragstart', (e) => e.preventDefault());
   document.addEventListener('selectstart', (e) => {
     if (!(e.target && e.target.closest && e.target.closest('input'))) e.preventDefault();
   });
 
-  function setStatus(t) { $('status').textContent = t; }
+  // Penyimpanan permanen (IndexedDB) agar paket tidak hilang saat app dibuka lagi
+  const DB = (() => {
+    let p = null;
+    function open() {
+      if (p) return p;
+      p = new Promise((res, rej) => {
+        const r = indexedDB.open('kyy-sticker', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('kv');
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      return p;
+    }
+    async function get(k) {
+      const db = await open();
+      return new Promise((res, rej) => {
+        const q = db.transaction('kv').objectStore('kv').get(k);
+        q.onsuccess = () => res(q.result);
+        q.onerror = () => rej(q.error);
+      });
+    }
+    async function set(k, v) {
+      const db = await open();
+      return new Promise((res, rej) => {
+        const t = db.transaction('kv', 'readwrite');
+        t.objectStore('kv').put(v, k);
+        t.oncomplete = () => res();
+        t.onerror = () => rej(t.error);
+      });
+    }
+    return { get, set };
+  })();
+
+  function saveActive() {
+    active.name = $('pname').value.trim() || 'KYY Sticker Pack';
+    active.author = $('pauthor').value.trim() || 'KYY Studio';
+    DB.set('active', { id: active.id, name: active.name, author: active.author, pack: pack }).catch(() => {});
+  }
+
+  function saveList() {
+    DB.set('saved', saved).catch(() => {});
+  }
+
+  function newId() {
+    return 'kyy' + Date.now().toString(36);
+  }
+
+  function setStatus(t, spinning) {
+    $('statusTxt').textContent = t;
+    $('status').classList.toggle('busy', !!spinning);
+  }
 
   function setBusy(v) {
     busy = v;
     $('btnFetch').disabled = v;
     $('btnPaste').disabled = v;
-    updateHint();
+    $('btnSave').disabled = v;
     renderPack();
+    updateHint();
+  }
+
+  function setProgress(done, total) {
+    const on = total > 0;
+    $('prog').classList.toggle('on', on);
+    $('progBar').style.width = total ? Math.round((done / total) * 100) + '%' : '0';
   }
 
   function sizeOf(d) {
@@ -175,7 +333,7 @@ input:focus{border-color:var(--ink)}
     });
   }
 
-  // Ubah gambar/stiker jadi format WhatsApp: gerak (512x512, <=500 KB) dipertahankan, selain itu WebP diam <=100 KB
+  // Stiker gerak harus 512x512 dan maks 500 KB. Stiker diam maks 100 KB.
   async function blobToSticker(blob) {
     const head = new Uint8Array(await blob.slice(0, 32).arrayBuffer());
     const info = webpInfo(head);
@@ -211,6 +369,33 @@ input:focus{border-color:var(--ink)}
     }
   }
 
+  // Cek apakah stiker gerak atau diam (membaca header saja)
+  async function detectKind(it) {
+    if (it.animated !== null) return it.animated;
+    try {
+      const r = await fetch(it.src);
+      const b = await r.blob();
+      const info = webpInfo(new Uint8Array(await b.slice(0, 32).arrayBuffer()));
+      it.animated = !!(info && info.animated);
+    } catch (e) {
+      it.animated = false;
+    }
+    refreshTile(it);
+    return it.animated;
+  }
+
+  async function detectAll() {
+    const queue = items.filter((it) => it.animated === null && !it.broken);
+    const workers = [];
+    for (let w = 0; w < 4; w++) {
+      workers.push((async () => {
+        while (queue.length) await detectKind(queue.shift());
+      })());
+    }
+    await Promise.all(workers);
+    applyFilter();
+  }
+
   function pushSticker(key, s) {
     if (pack.length >= MAX) return 'full';
     if (pack.some((p) => p.key === key)) return 'dup';
@@ -234,6 +419,16 @@ input:focus{border-color:var(--ink)}
     timer = setTimeout(() => fetchLink(true), ms);
   }
 
+  function showSkeleton() {
+    const g = $('grid');
+    g.textContent = '';
+    for (let i = 0; i < 6; i++) {
+      const d = document.createElement('div');
+      d.className = 'skel';
+      g.appendChild(d);
+    }
+  }
+
   async function fetchLink(auto) {
     if (busy) return;
     const m = $('link').value.match(/https?:\/\/\S+/);
@@ -246,7 +441,8 @@ input:focus{border-color:var(--ink)}
     if (auto && link === lastLink) return;
 
     setBusy(true);
-    setStatus('Mengambil komentar dan stiker...');
+    setStatus('Mengambil stiker dari TikTok...', true);
+    showSkeleton();
     try {
       const r = await fetch('/api/comment-sticker?url=' + encodeURIComponent(link));
       let j;
@@ -257,22 +453,41 @@ input:focus{border-color:var(--ink)}
       }
       if (!j.ok) throw new Error(j.error || 'Gagal mengambil data.');
       lastLink = link;
-      items = j.items.map((it) => ({ key: it.src, src: it.src, isTarget: it.isTarget, broken: false }));
+      items = j.items.map((it) => ({ key: it.src, src: it.src, isTarget: it.isTarget, broken: false, animated: null, el: null }));
       selected = new Set(items.filter((it) => it.isTarget).map((it) => it.key));
       renderGrid();
       const nt = items.filter((it) => it.isTarget).length;
       setStatus(
         j.found
-          ? nt + ' stiker dari komentar ditemukan. Stiker lain dari video ini juga bisa dipilih.'
-          : 'Komentar target tidak terbaca. Pilih stiker dari daftar di bawah.'
+          ? nt + ' stiker dari komentar ditemukan. Stiker lain dari video juga bisa dipilih.'
+          : items.length + ' stiker ditemukan dari video. Pilih yang diinginkan.'
       );
+      setBusy(false);
+      detectAll();
     } catch (e) {
       items = [];
       selected = new Set();
       renderGrid();
       setStatus(e.message || 'Gagal mengambil data.');
+      setBusy(false);
     }
-    setBusy(false);
+  }
+
+  function refreshTile(it) {
+    if (!it.el) return;
+    const k = it.el.querySelector('.kind');
+    if (k) k.textContent = it.animated === null ? '...' : (it.animated ? 'GERAK' : 'DIAM');
+    it.el.dataset.kind = it.animated === null ? '' : (it.animated ? 'gerak' : 'diam');
+    applyFilter();
+  }
+
+  function applyFilter() {
+    items.forEach((it) => {
+      if (!it.el) return;
+      const show = tab === 'all' || it.el.dataset.kind === tab;
+      it.el.style.display = show ? '' : 'none';
+    });
+    updateHint();
   }
 
   function renderGrid() {
@@ -295,10 +510,14 @@ input:focus{border-color:var(--ink)}
         updateHint();
       };
       img.src = it.src;
+      const kind = document.createElement('span');
+      kind.className = 'kind';
+      kind.textContent = it.animated === null ? '...' : (it.animated ? 'GERAK' : 'DIAM');
       const tag = document.createElement('span');
       tag.className = 'tag';
       tag.textContent = it.isTarget ? 'KOMENTAR' : 'VIDEO';
-      b.append(img, tag);
+      b.append(img, kind, tag);
+      b.dataset.kind = it.animated === null ? '' : (it.animated ? 'gerak' : 'diam');
       b.onclick = () => {
         if (selected.has(it.key)) {
           selected.delete(it.key);
@@ -309,28 +528,33 @@ input:focus{border-color:var(--ink)}
         }
         updateHint();
       };
+      it.el = b;
       g.appendChild(b);
     });
-    updateHint();
+    applyFilter();
   }
 
   function updateHint() {
     const n = selected.size;
     const usable = items.filter((it) => !it.broken).length;
-    $('hint').textContent = items.length ? usable + ' stiker tersedia, ' + n + ' dipilih.' : '';
+    const visible = items.filter((it) => it.el && it.el.style.display !== 'none' && !it.broken).length;
+    $('hint').textContent = items.length ? visible + ' ditampilkan, ' + n + ' dipilih.' : '';
     $('btnAdd').disabled = busy || n === 0;
     $('btnAll').textContent = usable && n === usable ? 'Batal pilih' : 'Pilih semua';
+    $('btnAddTxt').textContent = n ? 'Tambah ' + n + ' stiker terpilih ke paket' : 'Tambah terpilih ke paket';
   }
 
   async function addSelected() {
     const list = items.filter((it) => selected.has(it.key) && !it.broken);
     if (!list.length) return;
     setBusy(true);
+    $('btnAdd').classList.add('busy');
     const c = { ok: 0, dup: 0, type: 0, full: 0, fail: 0 };
     for (let i = 0; i < list.length; i++) {
+      setProgress(i, list.length);
+      setStatus('Memproses ' + (i + 1) + ' dari ' + list.length + '...', true);
       if (pack.length >= MAX) { c.full += list.length - i; break; }
       if (pack.some((p) => p.key === list[i].key)) { c.dup++; continue; }
-      setStatus('Memproses ' + (i + 1) + ' dari ' + list.length + '...');
       try {
         const r = await fetch(list[i].src + '&n=1');
         if (!r.ok) throw new Error('gagal unduh');
@@ -340,8 +564,13 @@ input:focus{border-color:var(--ink)}
         c.fail++;
       }
     }
+    setProgress(list.length, list.length);
+    setTimeout(() => setProgress(0, 0), 400);
     setBusy(false);
+    $('btnAdd').classList.remove('busy');
     setStatus(summary(c));
+    renderPack();
+    saveActive();
   }
 
   function renderPack() {
@@ -358,7 +587,7 @@ input:focus{border-color:var(--ink)}
       x.type = 'button';
       x.className = 'x';
       x.textContent = 'Hapus';
-      x.onclick = () => { pack.splice(i, 1); renderPack(); };
+      x.onclick = () => { pack.splice(i, 1); renderPack(); saveActive(); };
       d.append(img, x);
       g.appendChild(d);
     });
@@ -370,16 +599,80 @@ input:focus{border-color:var(--ink)}
     }
     $('badge').textContent = pack.length + '/' + MAX;
     $('btnWA').disabled = busy || pack.length < MIN;
+    const kind = pack.length ? (pack[0].animated ? 'Jenis paket: gerak' : 'Jenis paket: diam') : '';
+    $('packHint').textContent = pack.length
+      ? pack.length + ' stiker. ' + kind + '. Minimal ' + MIN + ' stiker untuk WhatsApp.'
+      : 'Minimal ' + MIN + ' stiker untuk WhatsApp.';
   }
 
-  function packId() {
-    let id = null;
-    try { id = localStorage.getItem('kyy.packId'); } catch (e) {}
-    if (!id) {
-      id = 'kyy' + Date.now().toString(36);
-      try { localStorage.setItem('kyy.packId', id); } catch (e) {}
+  function renderSaved() {
+    const box = $('savedList');
+    box.textContent = '';
+    if (!saved.length) {
+      const e = document.createElement('p');
+      e.className = 'empty';
+      e.textContent = 'Belum ada paket tersimpan. Tekan Simpan paket setelah stiker terisi.';
+      box.appendChild(e);
+      return;
     }
-    return id;
+    saved.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'prow';
+      const info = document.createElement('div');
+      const t = document.createElement('strong');
+      t.textContent = p.name;
+      const s = document.createElement('small');
+      s.textContent = p.items.length + ' stiker, ' + (p.items.length && p.items[0].animated ? 'gerak' : 'diam');
+      info.append(t, s);
+      const acts = document.createElement('div');
+      acts.className = 'acts';
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'mini primary';
+      open.textContent = 'Buka';
+      open.onclick = () => {
+        pack = p.items.map((x) => ({ key: x.key, data: x.data, animated: x.animated }));
+        active = { id: p.id, name: p.name, author: p.author };
+        $('pname').value = p.name;
+        $('pauthor').value = p.author;
+        renderPack();
+        saveActive();
+        setStatus('Paket "' + p.name + '" dibuka.');
+      };
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'mini';
+      del.textContent = 'Hapus';
+      del.onclick = () => {
+        saved.splice(i, 1);
+        saveList();
+        renderSaved();
+      };
+      acts.append(open, del);
+      row.append(info, acts);
+      box.appendChild(row);
+    });
+  }
+
+  function saveCurrent() {
+    if (pack.length < 1) {
+      setStatus('Paket masih kosong.');
+      return;
+    }
+    const entry = {
+      id: active.id || newId(),
+      name: $('pname').value.trim() || 'KYY Sticker Pack',
+      author: $('pauthor').value.trim() || 'KYY Studio',
+      items: pack.map((p) => ({ key: p.key, data: p.data, animated: p.animated }))
+    };
+    active.id = entry.id;
+    const idx = saved.findIndex((p) => p.id === entry.id);
+    if (idx >= 0) saved[idx] = entry;
+    else saved.unshift(entry);
+    saveList();
+    saveActive();
+    renderSaved();
+    setStatus('Paket "' + entry.name + '" disimpan.');
   }
 
   async function makeTray(data) {
@@ -399,15 +692,16 @@ input:focus{border-color:var(--ink)}
       return;
     }
     if (!window.AndroidBridge) {
-      setStatus('Tambah ke WhatsApp hanya bisa dari aplikasi KYY Sticker.');
+      setStatus('Tambah ke WhatsApp hanya bisa dari aplikasi KYY Sticker Android.');
       return;
     }
     setBusy(true);
-    setStatus('Menyiapkan paket...');
+    setStatus('Menyiapkan paket...', true);
     try {
+      if (!active.id) active.id = newId();
       const tray = await makeTray(pack[0].data);
       window.AndroidBridge.addStickerPackToWhatsApp(JSON.stringify({
-        identifier: packId(),
+        identifier: active.id,
         name: $('pname').value.trim() || 'KYY Sticker Pack',
         publisher: $('pauthor').value.trim() || 'KYY Studio',
         tray_image: tray,
@@ -434,12 +728,21 @@ input:focus{border-color:var(--ink)}
     }
   };
   $('btnAll').onclick = () => {
-    const usable = items.filter((it) => !it.broken);
+    const usable = items.filter((it) => !it.broken && it.el && it.el.style.display !== 'none');
     if (!usable.length) return;
-    if (selected.size === usable.length) selected = new Set();
-    else selected = new Set(usable.map((it) => it.key));
+    const allOn = usable.every((it) => selected.has(it.key));
+    usable.forEach((it) => {
+      if (allOn) selected.delete(it.key); else selected.add(it.key);
+    });
     renderGrid();
   };
+  document.querySelectorAll('#seg button').forEach((b) => {
+    b.onclick = () => {
+      tab = b.dataset.tab;
+      document.querySelectorAll('#seg button').forEach((x) => x.classList.toggle('on', x === b));
+      applyFilter();
+    };
+  });
   $('btnAdd').onclick = addSelected;
   $('btnGallery').onclick = () => $('file').click();
   $('file').onchange = async (e) => {
@@ -447,7 +750,7 @@ input:focus{border-color:var(--ink)}
     e.target.value = '';
     if (!f) return;
     setBusy(true);
-    setStatus('Memproses gambar...');
+    setStatus('Memproses gambar...', true);
     try {
       const s = await blobToSticker(f);
       const r = pushSticker('local-' + (++localSeq), s);
@@ -457,12 +760,55 @@ input:focus{border-color:var(--ink)}
       setStatus(err.message || 'Gagal memproses gambar.');
     }
     setBusy(false);
+    renderPack();
+    saveActive();
   };
-  $('btnReset').onclick = () => { pack = []; renderPack(); setStatus('Paket dikosongkan.'); };
+  $('btnReset').onclick = () => {
+    pack = [];
+    active.id = newId();
+    renderPack();
+    saveActive();
+    setStatus('Paket dikosongkan.');
+  };
+  $('btnSave').onclick = saveCurrent;
   $('btnWA').onclick = sendWA;
+  $('pname').addEventListener('change', saveActive);
+  $('pauthor').addEventListener('change', saveActive);
 
-  renderPack();
-  updateHint();
+  // Panduan
+  const modal = $('guide');
+  if (APK_URL) {
+    const a = $('apkLink');
+    a.href = APK_URL;
+    a.hidden = false;
+  }
+  $('btnInfo').onclick = () => modal.classList.add('on');
+  $('btnClose').onclick = () => modal.classList.remove('on');
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('on'); });
+
+  // Muat data tersimpan
+  async function init() {
+    try {
+      const a = await DB.get('active');
+      if (a) {
+        pack = a.pack || [];
+        active = { id: a.id || newId(), name: a.name, author: a.author };
+        $('pname').value = a.name || 'KYY Sticker Pack';
+        $('pauthor').value = a.author || 'KYY Studio';
+      } else {
+        active.id = newId();
+      }
+      saved = (await DB.get('saved')) || [];
+    } catch (e) {
+      active.id = newId();
+    }
+    renderPack();
+    renderSaved();
+    updateHint();
+    setTimeout(() => $('splash').classList.add('hide'), 1100);
+    setTimeout(() => $('splash').remove(), 1700);
+  }
+  init();
 })();
 </script>
 </body>

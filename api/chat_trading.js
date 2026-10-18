@@ -6,7 +6,8 @@
 const SB_URL = process.env.SUPABASE_URL || 'https://djojqarslfsvubuflwdn.supabase.co';
 const SB_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_vqUvkJX5XNx5_D75lCnJzw_KPeFSim9';
 const ALLOW = (process.env.ALLOWED_ORIGINS || 'https://dashboard-bm-tech.vercel.app').split(',').map(s => s.trim()).filter(Boolean);
-const MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+const MODELS = [process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite'].concat((process.env.GEMINI_FALLBACK_MODELS || 'gemini-2.5-flash-lite,gemini-2.5-flash').split(',').map(s => s.trim()).filter(Boolean));
+const MAX_TRY = 8;                                  // batas total percobaan (model x key) agar tidak melewati batas waktu fungsi
 const LIMIT = 20, WINDOW = 10 * 60 * 1000;     // 20 pesan per 10 menit per akun (best effort pada serverless)
 const hits = new Map();
 
@@ -27,6 +28,7 @@ async function verify(req) {
     return u && u.id ? u : null;
   } catch (e) { return null; }
 }
+function refund(id) { const a = hits.get(id); if (a && a.length) a.pop(); }
 function limited(id) {
   const now = Date.now(), a = (hits.get(id) || []).filter(t => now - t < WINDOW);
   if (a.length >= LIMIT) { hits.set(id, a); return true; }
@@ -70,10 +72,13 @@ export default async function handler(req, res) {
   contents.push({ role: 'user', parts: [{ text: q }] });
   const body = JSON.stringify({ system_instruction: { parts: [{ text: system }] }, contents, generationConfig: { maxOutputTokens: 700, temperature: 0.4 } });
 
-  let last = 'tidak diketahui';
-  for (const key of keys) {                          // satu key gagal/limit -> coba key berikutnya
+  let last = 'tidak diketahui', tries = 0;
+  const combos = [];
+  for (const m of MODELS) for (const k of keys) combos.push([m, k]);
+  for (const [model, key] of combos) {                // gagal/limit/sibuk -> coba key atau model berikutnya
+    if (tries++ >= MAX_TRY) break;
     try {
-      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':streamGenerateContent?alt=sse&key=' + key,
+      const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':streamGenerateContent?alt=sse&key=' + key,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
       if (!r.ok || !r.body) { last = 'status ' + r.status; continue; }
       const reader = r.body.getReader(), dec = new TextDecoder();
@@ -92,17 +97,20 @@ export default async function handler(req, res) {
           }
         } catch (e) { /* abaikan baris rusak */ }
       };
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, { stream: true });
-        let i;
-        while ((i = buf.indexOf('\n')) >= 0) { emit(buf.slice(0, i)); buf = buf.slice(i + 1); }
-      }
-      if (buf) emit(buf);
+      try {
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true });
+          let i;
+          while ((i = buf.indexOf('\n')) >= 0) { emit(buf.slice(0, i)); buf = buf.slice(i + 1); }
+        }
+        if (buf) emit(buf);
+      } catch (e) { if (started) return res.end(); throw e; }   // putus di tengah jawaban: kirim yang sudah ada
       if (started) return res.end();
       last = 'respons kosong';
     } catch (e) { last = e.message; }
   }
-  return res.status(502).json({ error: 'AI sedang tidak bisa menjawab (' + last + '). Coba lagi sebentar.' });
+  refund(user.id);
+  return res.status(503).json({ error: 'AI sedang sibuk (' + last + ').' });
 }

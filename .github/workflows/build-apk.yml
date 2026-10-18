@@ -604,6 +604,11 @@ jobs:
           }
           EOF
 
+      - name: Pasang ImageMagick
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick fontconfig
+
       - name: Buat ikon aplikasi
         run: |
           RES=android/app/src/main/res

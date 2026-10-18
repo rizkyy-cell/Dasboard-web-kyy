@@ -244,14 +244,20 @@ $('auF').onclick=async function(){
  tsReset();
 };
 
-async function aiOnce(text,onChunk,signal){
+async function aiOnce(text,onChunk,signal,hist){
  if(!AI.sb)await aiInit();
  if(!AI.user){var e1=new Error('Masuk dulu untuk memakai AI.');e1.login=true;throw e1}
  var ss=await AI.sb.auth.getSession(),tok=ss.data.session&&ss.data.session.access_token;
  if(!tok){var e2=new Error('Sesi berakhir. Silakan masuk lagi.');e2.login=true;throw e2}
  var snap=await K.snapshot();
- var r=await fetch(K.api+'/api/chat_trading',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({pesan:text,riwayat:[],snapshot:snap}),signal:signal});
- if(!r.ok){var j={};try{j=await r.json()}catch(x){}throw new Error(j.error||('Kesalahan server ('+r.status+')'))}
+ var body=JSON.stringify({pesan:text,riwayat:(hist||[]).slice(-10),snapshot:snap}),r=null,tries=0;
+ for(;;){
+  r=await fetch(K.api+'/api/chat_trading',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:body,signal:signal});
+  if(r.ok||tries>=2||[429,500,502,503,504].indexOf(r.status)<0)break;
+  tries++;
+  await new Promise(function(ok,no){var t=setTimeout(ok,1500*tries);if(signal)signal.addEventListener('abort',function(){clearTimeout(t);var ab=new Error('Dibatalkan');ab.name='AbortError';no(ab)})});
+ }
+ if(!r.ok){var j={};try{j=await r.json()}catch(x){}var em=j.error||('Kesalahan server ('+r.status+')');if(r.status>=500||r.status===429)em+=' Coba lagi beberapa saat.';throw new Error(em)}
  var ct=(r.headers&&r.headers.get('content-type'))||'',out='';
  if(ct.indexOf('application/json')>=0){var jj=await r.json();out=jj.balasan||jj.reply||'';if(onChunk)onChunk(out)}
  else if(r.body&&r.body.getReader){var rd=r.body.getReader(),dc=new TextDecoder();for(;;){var x=await rd.read();if(x.done)break;out+=dc.decode(x.value,{stream:true});if(onChunk)onChunk(out)}}

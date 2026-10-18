@@ -200,6 +200,8 @@ var css='#demo{position:fixed;inset:0;z-index:11;background:var(--bg);color:var(
 +'.dac{display:flex;gap:8px;margin-top:14px}.dac button{padding:14px;border-radius:14px;font-weight:800;font-size:1rem}.dac .gh{flex:0 0 auto;border:1px solid var(--bd);background:var(--bg);padding:14px 16px}.dac .go{flex:1;color:#fff;position:relative;overflow:hidden;transition:background .3s,opacity .2s,transform .12s}.dac .go:disabled{opacity:.45}.dac .go.ok{background:var(--up)!important}'
 +'.dac .go svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.dac .go svg path{stroke-dasharray:30;stroke-dashoffset:30;animation:dsd2 .45s ease forwards}@keyframes dsd2{to{stroke-dashoffset:0}}'
 +'.coach{margin-top:12px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--bd);font-size:.88rem;line-height:1.5}.coach h5{font-size:.74rem;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.coach p{margin:0 0 6px}.coach ul,.coach ol{margin:4px 0 6px 18px}.coach pre{background:var(--pn);padding:6px;border-radius:8px;overflow-x:auto}'
++'.hint{margin:6px 2px 0;color:var(--mu);font-size:.76rem;line-height:1.5}.hint b{color:var(--tx);font-weight:700}'
++'.cq{display:flex;gap:8px;margin-top:10px}.cq input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:.92rem}.cq button{flex:none;padding:0 16px;border-radius:12px;background:var(--ac);color:#fff;font-weight:800}.cq button:disabled{opacity:.45}.cu{margin:10px 0 6px auto;max-width:88%;padding:8px 12px;border-radius:14px 14px 4px 14px;background:var(--ac);color:#fff;font-size:.86rem;width:fit-content}.cs{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.cs button{padding:7px 11px;border-radius:999px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:.78rem}'
 +'.res{text-align:center;padding:18px 16px 8px}.res .big{font-size:2.4rem;font-weight:800;line-height:1.1;margin:6px 0}.res .rg{position:relative;width:76px;height:76px;margin:0 auto 6px;border-radius:50%;display:grid;place-items:center;background:var(--rc)}.res .rg::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--rc);animation:rpl 1.3s ease-out infinite}@keyframes rpl{from{transform:scale(1);opacity:.7}to{transform:scale(1.7);opacity:0}}'
 +'.res .rg svg{width:34px;height:34px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.res .rr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;text-align:left}'
 +'#dBar{display:none;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--bd);flex:none;background:var(--pn)}body.dm #dBar{display:flex;animation:sIn .3s ease both}#dBar>div{flex:1;min-width:0;font-size:.72rem;color:var(--mu);line-height:1.3}#dBar b{display:block;color:var(--tx);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
@@ -213,24 +215,25 @@ document.body.insertAdjacentHTML('beforeend',
 +'<div class="dtabs" id="dTabs"><button data-t="sum" class="on">Ringkasan</button><button data-t="pos">Posisi</button><button data-t="ord">Order</button><button data-t="his">Riwayat</button><button data-t="sta">Statistik</button><i id="dInd"></i></div><div id="dBody"></div></section>'
 +'<div class="dov" id="dOrd" aria-hidden="true"><div class="dbk" data-cl="dOrd"></div><div class="dsh" role="dialog" aria-label="Order demo"><div class="grab"></div><div class="dsb">'
 +'<div class="oh"><span id="oIc"></span><div><b id="oSym">-</b><small id="oLast">-</small></div><span class="sp"></span><button class="ib" data-cl="dOrd" aria-label="Tutup">'+X+'</button></div>'
-+'<div class="sd big" id="oSide"><button data-s="buy" class="on">Beli</button><button data-s="sell">Jual</button></div><div class="sd sm" id="oType"><button data-t="market" class="on">Market</button><button data-t="limit">Limit</button></div>'
-+'<div id="oPW" hidden><label class="dfl" for="oPrice">Harga limit (USDT)</label><input class="fi" id="oPrice" inputmode="decimal" autocomplete="off"></div>'
-+'<label class="dfl" for="oAmt" id="oAL">Jumlah (USDT)</label><input class="fi" id="oAmt" inputmode="decimal" autocomplete="off" placeholder="0"><div class="pch" id="oPct"><button data-p="25">25%</button><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="100">100%</button></div><div class="avl"><span id="oAvT">Kas tersedia</span><b id="oAv">-</b></div>'
-+'<div id="oRiskW"><label class="dfl" for="oSL">Stop Loss (opsional)</label><input class="fi" id="oSL" inputmode="decimal" autocomplete="off" placeholder="Harga stop loss"><div class="pch" id="oSLc"><button data-v="1">-1%</button><button data-v="2">-2%</button><button data-v="3">-3%</button><button data-v="atr">1,5 ATR</button></div>'
-+'<label class="dfl" for="oTP">Take Profit (opsional)</label><input class="fi" id="oTP" inputmode="decimal" autocomplete="off" placeholder="Harga take profit"><div class="pch" id="oTPc"><button data-v="2">+2%</button><button data-v="4">+4%</button><button data-v="6">+6%</button><button data-v="r2">2R</button></div>'
-+'<label class="dfl" for="oNote">Catatan / alasan masuk (opsional)</label><input class="fi" id="oNote" maxlength="140" placeholder="Mis. pantulan di support, RSI oversold" style="font-size:.9rem"></div>'
-+'<div class="dsm" id="oSum"></div><div class="dwn" id="oWn"></div><div class="coach" id="oCo" hidden></div>'
++'<div class="sd big" id="oSide"><button data-s="buy" class="on">Beli</button><button data-s="sell">Jual</button></div><div class="sd sm" id="oType"><button data-t="market" class="on">Market</button><button data-t="limit">Limit</button></div><p class="hint" id="oTH"></p>'
++'<div id="oPW" hidden><label class="dfl" for="oPrice">Harga limit (USDT)</label><input class="fi" id="oPrice" inputmode="decimal" autocomplete="off"><p class="hint" id="oPH"></p></div>'
++'<label class="dfl" for="oAmt" id="oAL">Jumlah (USDT)</label><input class="fi" id="oAmt" inputmode="decimal" autocomplete="off" placeholder="0"><div class="pch" id="oPct"><button data-p="25">25%</button><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="100">100%</button></div><div class="avl"><span id="oAvT">Kas tersedia</span><b id="oAv">-</b></div><p class="hint" id="oAH"></p>'
++'<div id="oRiskW"><label class="dfl" for="oSL">Stop Loss (opsional)</label><input class="fi" id="oSL" inputmode="decimal" autocomplete="off" placeholder="Harga stop loss"><div class="pch" id="oSLc"><button data-v="1">-1%</button><button data-v="2">-2%</button><button data-v="3">-3%</button><button data-v="atr">1,5 ATR</button></div><p class="hint" id="oSH"><b>Batas rugi.</b> Jika harga turun sampai angka ini, posisi dijual otomatis supaya rugi tidak makin besar. Isi di bawah harga sekarang. <b>-2%</b> = 2% di bawah harga beli. <b>1,5 ATR</b> = jarak yang menyesuaikan seberapa liar harga bergerak.</p>'
++'<label class="dfl" for="oTP">Take Profit (opsional)</label><input class="fi" id="oTP" inputmode="decimal" autocomplete="off" placeholder="Harga take profit"><div class="pch" id="oTPc"><button data-v="2">+2%</button><button data-v="4">+4%</button><button data-v="6">+6%</button><button data-v="r2">2R</button></div><p class="hint" id="oTPH"><b>Target untung.</b> Jika harga naik sampai angka ini, posisi dijual otomatis untuk mengunci untung. Isi di atas harga sekarang. <b>2R</b> = untung 2 kali lipat dari risiko rugi di Stop Loss.</p>'
++'<label class="dfl" for="oNote">Catatan / alasan masuk (opsional)</label><input class="fi" id="oNote" maxlength="140" placeholder="Mis. pantulan di support, RSI oversold" style="font-size:.9rem"><p class="hint" id="oNH">Tulis alasanmu membeli. Dipakai AI dan jurnal untuk belajar dari keputusanmu.</p></div>'
++'<div class="dsm" id="oSum"></div><div class="dwn" id="oWn"></div><div class="coach" id="oCo" hidden></div><form class="cq" id="oCq" autocomplete="off"><input maxlength="500" placeholder="Ketik pertanyaan sendiri..." aria-label="Pertanyaan untuk AI"><button type="submit" aria-label="Kirim">Kirim</button></form>'
 +'<div class="dac"><button class="gh" id="oAI" type="button">Tanya AI</button><button class="go" id="oGo" type="button">Beli</button></div></div></div></div>'
 +'<div class="dov" id="dSlt" aria-hidden="true"><div class="dbk" data-cl="dSlt"></div><div class="dsh"><div class="grab"></div><div class="dsb"><div class="oh"><div><b id="sSym">Atur SL / TP</b><small id="sInfo"></small></div><span class="sp"></span><button class="ib" data-cl="dSlt" aria-label="Tutup">'+X+'</button></div>'
 +'<label class="dfl" for="sSL">Stop Loss</label><input class="fi" id="sSL" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><label class="dfl" for="sTP">Take Profit</label><input class="fi" id="sTP" inputmode="decimal" placeholder="Kosongkan untuk menghapus"><div class="dwn" id="sWn"></div><div class="dac"><button class="go" id="sGo" type="button" style="background:var(--ac)">Simpan</button></div></div></div></div>'
 +'<div class="dov" id="dRes" aria-hidden="true"><div class="dbk" data-cl="dRes"></div><div class="dsh"><div class="grab"></div><div class="dsb" id="rB"></div></div></div>'
-+'<div class="dov" id="dCo" aria-hidden="true"><div class="dbk" data-cl="dCo"></div><div class="dsh"><div class="grab"></div><div class="dsb"><div class="oh"><b id="cT">Ulasan AI</b><span class="sp"></span><button class="ib" data-cl="dCo" aria-label="Tutup">'+X+'</button></div><div class="coach" id="cB" style="margin-top:0"></div><div class="dnote">AI menilai berdasarkan data yang tampil dan bukan nasihat keuangan.</div></div></div></div>'
++'<div class="dov" id="dCo" aria-hidden="true"><div class="dbk" data-cl="dCo"></div><div class="dsh"><div class="grab"></div><div class="dsb"><div class="oh"><b id="cT">Ulasan AI</b><span class="sp"></span><button class="ib" data-cl="dCo" aria-label="Tutup">'+X+'</button></div><div class="coach" id="cB" style="margin-top:0"></div><form class="cq" id="cQ" autocomplete="off"><input maxlength="500" placeholder="Ketik pertanyaan sendiri..." aria-label="Pertanyaan untuk AI"><button type="submit" aria-label="Kirim">Kirim</button></form><div class="dnote">AI menilai berdasarkan data yang tampil dan bukan nasihat keuangan.</div></div></div></div>'
 +'<div class="dov" id="dSP" aria-hidden="true"><div class="dbk" data-cl="dSP"></div><div class="dsh"><div class="grab"></div><div class="dsb" id="spB"></div></div></div>');
 var DOTS='<span class="dots"><i></i><i></i><i></i></span>';
 var st2=document.createElement('style');st2.textContent='.dots{display:inline-flex;gap:4px;padding:5px 0}.dots i{width:6px;height:6px;border-radius:50%;background:var(--mu);animation:pulse 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}';document.head.appendChild(st2);
 function sheet(id,on){var e=$(id);e.classList.toggle('on',on);e.setAttribute('aria-hidden',on?'false':'true')}
 var coachCtl=null,dtimer=0,depth=null,focus=null;
 function closeSheet(id){
+ if(id==='dOrd'||id==='dCo'){coachH=[];var cb=$(id==='dOrd'?'oCo':'cB');if(cb){cb.innerHTML='';if(id==='dOrd')cb.hidden=true}}
  sheet(id,false);
  if(id==='dOrd'){O=null;draft=null;depth=null;clearInterval(dtimer);if(coachCtl)coachCtl.abort()}
  if(id==='dCo'){review=null;focus=null;if(coachCtl)coachCtl.abort()}
@@ -380,6 +383,9 @@ function oMode(){
  $('oPW').hidden=!lim;if(lim&&!$('oPrice').value){var p=px(O.sym);if(p)$('oPrice').value=String(rd(p))}
  $('oAL').textContent=sell?'Jumlah ('+o.b+')':'Jumlah (USDT)';$('oAvT').textContent=sell?'Posisi tersedia':'Kas tersedia';
  $('oRiskW').hidden=sell;
+ $('oTH').innerHTML=lim?'<b>Limit:</b> kamu menentukan harga sendiri. Order menunggu sampai harga pasar menyentuh angka itu, baru terisi. Dana dikunci sementara.':'<b>Market:</b> langsung '+(sell?'jual':'beli')+' sekarang di harga pasar yang tersedia. Cocok kalau ingin cepat.';
+ $('oPH').innerHTML=sell?'Harga yang kamu mau untuk menjual. Biasanya di atas harga sekarang.':'Harga yang kamu mau untuk membeli. Biasanya di bawah harga sekarang, jadi kamu menunggu harga turun dulu.';
+ $('oAH').innerHTML=sell?'Berapa banyak koin yang dijual. Pilih 100% untuk menjual semua.':'Uang demo (USDT) yang dipakai untuk membeli. <b>25%</b> = seperempat dari kas tersedia. Sebaiknya jangan langsung 100%.';
  var g=$('oGo');g.textContent=(sell?'Jual ':'Beli ')+o.b+(lim?' (Limit)':'')+' - Demo';g.style.background=sell?'var(--dn)':'var(--up)';
  oRecalc();
 }
@@ -420,18 +426,18 @@ function oRecalc(){
   if(!depth&&!lim)W('i','Mengambil kedalaman order book. Estimasi sementara memakai harga terakhir.');
   if(lim&&pI>0&&(sell?pI<=last:pI>=last))W('i','Harga limit melewati harga pasar. Order akan langsung terisi pada harga pasar atau lebih baik.');
   if(qty>0){
-   var fe=qty*est*fee;row('Harga isi (estimasi)',fp(est));row('Jumlah',nf(qty,6)+' '+o.b);row('Biaya (0,1%)',nf(fe,4)+' USDT');
+   var fe=qty*est*fee;row('Harga beli/jual (perkiraan)',fp(est));row('Jumlah',nf(qty,6)+' '+o.b);row('Biaya transaksi (0,1%)',nf(fe,4)+' USDT');
    if(!sell){
     row('Total',nf(qty*est+fe,2)+' USDT');
     var bad=E.valid(est,sl,tp);if(bad){W('e',bad==='sl'?ERR.sl:ERR.tp);$('o'+bad.toUpperCase()).classList.add('err');block=true}
     var rk=E.risk({qty:qty,price:est,sl:bad==='sl'?0:sl,tp:bad==='tp'?0:tp,eq:eq,cash:cash,fee:fee,atr:K.atr()||0});
-    row('Impas bila harga naik','+'+nf(rk.breakEvenPct,2)+'%');
-    if(sl>0&&!bad){row('Risiko jika SL kena',nf(rk.riskUSDT,2)+' USDT ('+nf(rk.riskPctEq,2)+'% ekuitas)');row('Jarak Stop Loss',nf(rk.slDistPct,2)+'%'+(rk.slDistATR?' ('+nf(rk.slDistATR,1)+' ATR)':''))}
-    if(rk.rr!=null)row('Risk : Reward','1 : '+nf(rk.rr,2));
-    if(!block&&!(sl>0))W('','Tanpa Stop Loss, kerugian tidak dibatasi.');
-    if(!block&&rk.riskPctEq>2)W('','Risiko '+nf(rk.riskPctEq,2)+'% dari ekuitas. Banyak trader membatasi sekitar 1-2% per trade.');
-    if(!block&&rk.pctEq>50)W('','Posisi ini '+nf(rk.pctEq,0)+'% dari ekuitas. Portofolio jadi sangat terkonsentrasi.');
-    if(!block&&rk.rr!=null&&rk.rr<1.5)W('','Risk:reward di bawah 1:1,5 membutuhkan win rate tinggi agar tetap untung.');
+    row('Harga harus naik agar balik modal','+'+nf(rk.breakEvenPct,2)+'%');
+    if(sl>0&&!bad){row('Maksimal rugi jika Stop Loss kena',nf(rk.riskUSDT,2)+' USDT ('+nf(rk.riskPctEq,2)+'% total saldo)');row('Jarak Stop Loss dari harga beli',nf(rk.slDistPct,2)+'%'+(rk.slDistATR?' ('+nf(rk.slDistATR,1)+' ATR)':''))}
+    if(rk.rr!=null)row('Rugi vs untung (1 : x)','1 : '+nf(rk.rr,2));
+    if(!block&&!(sl>0))W('','Tanpa Stop Loss, rugi tidak dibatasi: kalau harga terus turun, kamu harus menjual sendiri.');
+    if(!block&&rk.riskPctEq>2)W('','Risiko '+nf(rk.riskPctEq,2)+'% dari total saldo. Terlalu besar. Banyak trader membatasi rugi sekitar 1-2% per transaksi.');
+    if(!block&&rk.pctEq>50)W('','Posisi ini '+nf(rk.pctEq,0)+'% dari total saldo. Hampir semua uang ada di satu koin, risikonya tinggi.');
+    if(!block&&rk.rr!=null&&rk.rr<1.5)W('','Potensi untung kurang dari 1,5 kali potensi rugi. Kamu harus sering benar agar tetap untung.');
     draft={pair:O.sym,sisi:'beli',tipe:lim?'limit':'market',hargaEstimasi:rd(est),jumlahKoin:qty,nilaiUSDT:r2(notional),biayaUSDT:r2(fe),persenDariKas:r2(rk.pctCash),persenDariEkuitas:r2(rk.pctEq),stopLoss:sl||null,takeProfit:tp||null,risikoUSDT:r2(rk.riskUSDT),risikoPersenEkuitas:r2(rk.riskPctEq),jarakSLPersen:r2(rk.slDistPct),jarakSLdalamATR:r2(rk.slDistATR),rasioRiskReward:r2(rk.rr),catatanPengguna:$('oNote').value.trim()||null};
    }else{
     var net=qty*est-fe,part=pos?pos.cost*(qty>=pos.qty-1e-10?1:qty/pos.qty):0,pnl=net-part;
@@ -512,15 +518,35 @@ function showResult(c){
  $('rOk').onclick=function(){closeSheet('dRes')};$('rAI').onclick=function(){closeSheet('dRes');reviewOpen(c.id)};
 }
 /* ---------- pendamping AI ---------- */
-function coachRun(box,title,prompt){
+var coachH=[];
+function coachRun(box,title,prompt,keep){
  if(coachCtl)coachCtl.abort();coachCtl=new AbortController();var ctl=coachCtl;
- box.hidden=false;box.innerHTML='<h5>'+title+'</h5><div class="cb">'+DOTS+'</div>';var out=box.querySelector('.cb');
- K.loadAI().then(function(){return window.KYY_AI.once(prompt,function(t){if(ctl===coachCtl)out.innerHTML=window.KYY_AI.md(t)},ctl.signal)}).catch(function(e){
-  if(e&&e.name==='AbortError')return;
+ if(!keep)coachH=[];
+ box.hidden=false;
+ if(!keep)box.innerHTML='<h5>'+title+'</h5>';
+ var out=document.createElement('div');out.className='cb';out.innerHTML=DOTS;box.appendChild(out);
+ var shown=prompt.shown;if(shown){var u=document.createElement('div');u.className='cu';u.textContent=shown;box.insertBefore(u,out)}
+ var text=shown?prompt.text:prompt,hist=coachH.slice();
+ K.loadAI().then(function(){return window.KYY_AI.once(text,function(t){if(ctl===coachCtl)out.innerHTML=window.KYY_AI.md(t)},ctl.signal,hist)}).then(function(ans){
+  if(ctl!==coachCtl)return;coachH.push({role:'user',content:text},{role:'assistant',content:ans});box.scrollTop=box.scrollHeight;
+ }).catch(function(e){
+  if(e&&e.name==='AbortError'){if(out.innerHTML===DOTS)out.remove();return}
   if(e&&e.login){out.innerHTML='Masuk dulu untuk memakai AI. <button class="dbtn p" id="cLg" style="margin-top:6px">Masuk</button>';out.querySelector('#cLg').onclick=function(){window.KYY_AI.open()}}
   else out.textContent=(e&&e.message)||'AI tidak bisa menjawab saat ini.';
  });
 }
+function askBind(fid,boxId,title,pre){
+ var f=$(fid),inp=f.querySelector('input');
+ f.onsubmit=function(ev){
+  ev.preventDefault();var q=inp.value.trim();if(!q)return;
+  if(pre&&pre()===false)return;
+  var box=$(boxId),keep=!box.hidden&&box.querySelector('.cb');
+  inp.value='';
+  coachRun(box,title,{shown:q,text:'Pertanyaan saya tentang akun demo, posisi, atau rencana order ini (gunakan data yang tersedia, jawab sesuai pertanyaan, ringkas): '+q},!!keep);
+ };
+}
+askBind('oCq','oCo','Tanya AI',function(){oRecalc()});
+askBind('cQ','cB','Tanya AI',null);
 $('oAI').onclick=function(){oRecalc();if(!draft){K.toast('Isi jumlah order dulu');return}coachRun($('oCo'),'Penilaian AI','Evaluasi rencana order demo saya (lihat draftOrder pada data). Nilai manajemen risiko, kesesuaian dengan kondisi pasar saat ini berdasarkan indikator dan multi-timeframe, dan sebutkan hal konkret yang bisa diperbaiki. Jawab ringkas.')};
 function reviewOpen(id){
  var c=A.closed.filter(function(x){return x.id===id})[0];if(!c)return;

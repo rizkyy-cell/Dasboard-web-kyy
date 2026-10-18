@@ -371,6 +371,7 @@ jobs:
               private static final int REQ_FILE = 100;
               private static final int REQ_WA = 200;
 
+              private static final String DEFAULT_URL = "https://jrxrezkyy-dashboard.vercel.app/extract-sticker.html";
               private WebView web;
               private ValueCallback<Uri[]> fileCallback;
               private String baseHost = "";
@@ -405,7 +406,7 @@ jobs:
 
                       @Override
                       public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                          if (request.isForMainFrame()) askUrl(true);
+                          if (request.isForMainFrame()) toast("Gagal memuat halaman. Periksa koneksi internet.");
                       }
                   });
 
@@ -424,9 +425,7 @@ jobs:
                       }
                   });
 
-                  String saved = prefs().getString("url", null);
-                  if (saved == null) askUrl(false);
-                  else start(saved);
+                  start(DEFAULT_URL);
               }
 
               private SharedPreferences prefs() {

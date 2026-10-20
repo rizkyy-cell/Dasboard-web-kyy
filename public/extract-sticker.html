@@ -7,11 +7,11 @@
 <title>KYY Sticker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f2f2ef;--card:#fff;--ink:#111;--mut:#6a6a66;--line:#e3e3df}
+:root{--bg:#f2f2ef;--card:#fff;--ink:#111;--mut:#6a6a66;--line:#e3e3df;--ease:cubic-bezier(.2,.8,.2,1)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+body{font-family:"Inter",Arial,sans-serif;font-size:15px;line-height:1.45;font-weight:500;background:var(--bg);color:var(--ink);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;padding-bottom:calc(150px + env(safe-area-inset-bottom,0px));overflow-x:hidden}
 input{user-select:text;-webkit-user-select:text;font-family:inherit;font-weight:inherit}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;user-select:none;-webkit-user-select:none;outline:none}
 button:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
@@ -20,123 +20,199 @@ a{color:inherit;text-decoration:none}
 ::selection{background:transparent}
 
 /* Splash */
-#splash{position:fixed;inset:0;background:#0a0a0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:60;transition:opacity .5s ease,visibility .5s}
+#splash{position:fixed;inset:0;background:#0a0a0c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:60;transition:opacity .5s ease,visibility .5s;color:#f4f4f1}
 #splash.hide{opacity:0;visibility:hidden}
-#splash .sc{width:150px;height:150px;animation:pop .9s cubic-bezier(.2,.9,.3,1.25) both}
-#splash .st{color:#fff;font-weight:700;font-size:15px;letter-spacing:.32em;animation:fadeUp .6s .35s both}
+#splash .sc{width:170px;height:170px;animation:pop .9s cubic-bezier(.2,.9,.3,1.25) both}
+#splash .sp-eyes{transition:transform .45s cubic-bezier(.2,.9,.3,1.2)}
+#splash .sp-eyes.loading{animation:orbit 1.3s linear infinite}
+#splash .sp-eye{transform-box:fill-box;transform-origin:center;animation:blink 3.4s infinite}
+#splash .sp-eyes.done .sp-eye{animation:blinkTwice .9s ease}
+#splash .sp-num{font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:46px;letter-spacing:.02em;font-variant-numeric:tabular-nums;margin-top:22px;min-width:150px;text-align:center}
+#splash .sp-num small{font-size:20px;font-weight:500;opacity:.7;margin-left:2px}
+#splash .sp-name{font-family:"Space Grotesk",Inter,sans-serif;font-weight:500;font-size:13px;letter-spacing:.42em;text-transform:uppercase;opacity:.85;margin-right:-.42em}
+#splash .sp-bar{width:180px;height:2px;background:rgba(244,244,241,.15);border-radius:2px;overflow:hidden;margin-top:14px}
+#splash .sp-bar i{display:block;height:100%;width:0;background:#f4f4f1;transition:width .2s linear}
 
 /* Karakter awan */
 .char-wrap{display:flex;justify-content:center;padding-top:6px;margin-bottom:-6px}
-.char{width:120px;height:120px;cursor:pointer;animation:float 3s ease-in-out infinite;transform-origin:50% 100%;--ex:0px;--ey:0px}
-.char .eyes{transform:translate(var(--ex),var(--ey));transition:transform .12s ease-out}
-.char .f{display:none}
-.char[data-face="normal"] .f-normal,.char[data-face="focus"] .f-focus,.char[data-face="happy"] .f-happy,.char[data-face="sad"] .f-sad,.char[data-face="sleepy"] .f-sleepy,.char[data-face="surprised"] .f-surprised,.char[data-face="wink"] .f-wink{display:inline}
+.char{width:120px;height:120px;cursor:pointer;animation:float 3s ease-in-out infinite;transform-origin:50% 100%;--ex:0px;--ey:0px;transition:transform .3s var(--ease)}
+.char .eyes{transform:translate(var(--ex),var(--ey));transition:transform .14s ease-out}
+.char .f{opacity:0;transition:opacity .2s ease}
+.char[data-face="normal"] .f-normal,.char[data-face="focus"] .f-focus,.char[data-face="happy"] .f-happy,.char[data-face="sad"] .f-sad,.char[data-face="sleepy"] .f-sleepy,.char[data-face="surprised"] .f-surprised,.char[data-face="wink"] .f-wink{opacity:1}
 .char .f-normal .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
 .char.busy{animation:breathe .7s ease-in-out infinite}
 .char.done{animation:hop .6s ease}
 .char.bad{animation:shake .5s}
-.char.spin{animation:spin 1s ease}
-#splash .sc .f-normal .eye{animation:blink 3.6s infinite}
+.char.spin{animation:spin 1s var(--ease)}
 
 /* Header */
 .top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
 .top h1{font-size:16px;font-weight:700;letter-spacing:.08em}
-.top .right{display:flex;align-items:center;gap:14px}
-.badge{font-size:13px;opacity:.85;font-variant-numeric:tabular-nums}
-.menu{width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border-radius:10px}
-.menu span{display:block;width:20px;height:2px;background:#fff;border-radius:2px}
-.menu:active{background:rgba(255,255,255,.1)}
+.top .right{display:flex;align-items:center;gap:10px}
+.badge{font-size:13px;opacity:.85;font-variant-numeric:tabular-nums;transition:opacity .2s}
+.langpill{display:flex;border:1px solid rgba(255,255,255,.4);border-radius:999px;overflow:hidden}
+.langpill button{height:28px;padding:0 10px;font-size:12px;font-weight:700;color:#fff;opacity:.6;transition:background .25s,opacity .25s,color .25s}
+.langpill button.on{background:#fff;color:var(--ink);opacity:1}
+.menu{width:40px;height:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border-radius:10px;transition:background .2s,transform .15s}
+.menu span{display:block;width:20px;height:2px;background:#fff;border-radius:2px;transition:transform .3s var(--ease)}
+.menu:active{transform:scale(.94);background:rgba(255,255,255,.1)}
 
 main{padding:4px 14px 14px;display:grid;gap:12px;max-width:560px;margin:0 auto}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;animation:rise .55s var(--ease) both}
+.card:nth-of-type(2){animation-delay:.06s}
+.card:nth-of-type(3){animation-delay:.12s}
+.card:nth-of-type(4){animation-delay:.18s}
+.card:nth-of-type(5){animation-delay:.24s}
 .label{display:block;font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
 .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .head .label{margin:0}
-input{width:100%;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 12px;font-size:15px;background:#fff;color:var(--ink);outline:none}
-input:focus{border-color:var(--ink)}
+input{width:100%;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 12px;font-size:15px;background:#fff;color:var(--ink);outline:none;transition:border-color .25s,box-shadow .25s}
+input:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.08)}
 .row{display:flex;gap:8px;margin-top:10px}
-.btn{flex:1;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);border-radius:11px;font-weight:600;background:#fff}
+.btn{flex:1;height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ink);border-radius:11px;font-weight:600;background:#fff;transition:transform .15s var(--ease),background-color .25s,color .25s,opacity .25s}
+.btn:active:not(:disabled){transform:scale(.97)}
 .btn.primary{background:var(--ink);color:#fff}
+.btn.primary:hover:not(:disabled){background:#2a2a2a}
 .btn:disabled{opacity:.4}
 .btn.full{width:100%;flex:none}
-.link{font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.link{font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;transition:opacity .2s}
+.link:active{opacity:.5}
 .status{margin-top:10px;font-size:13px;color:var(--mut);min-height:1.45em;display:flex;align-items:center;gap:8px}
+.status span.txt{animation:fadeIn .35s ease both}
 .spin-ring{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:none;animation:rot .8s linear infinite;flex:none}
 .busy .spin-ring{display:inline-block}
 
-.seg{display:flex;border:1px solid var(--ink);border-radius:11px;overflow:hidden;margin-bottom:10px}
-.seg button{flex:1;height:36px;font-weight:600;font-size:13px}
-.seg button.on{background:var(--ink);color:#fff}
+.seg{position:relative;display:flex;border:1px solid var(--ink);border-radius:11px;overflow:hidden;margin-bottom:10px}
+.seg button{flex:1;height:36px;font-weight:600;font-size:13px;position:relative;z-index:1;transition:color .25s}
+.seg button.on{color:#fff}
+.seg .ind{position:absolute;top:0;bottom:0;left:0;width:33.333%;background:var(--ink);border-radius:9px;transition:transform .35s var(--ease)}
 
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tile{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/16px 16px;padding:0}
-.tile img{width:100%;height:100%;object-fit:contain}
+.tile{position:relative;aspect-ratio:1;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/16px 16px;padding:0;animation:rise .45s var(--ease) both;animation-delay:calc(var(--i,0) * 35ms);transition:border-color .25s,transform .15s var(--ease),opacity .3s}
+.tile:active{transform:scale(.96)}
+.tile img{width:100%;height:100%;object-fit:contain;transition:transform .3s var(--ease)}
+.tile:hover img{transform:scale(1.04)}
 .tile.on{border-color:var(--ink)}
-.tile.on::after{content:"";position:absolute;right:6px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fff}
+.tile::after{content:"";position:absolute;right:6px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fff;transform:scale(0);transition:transform .3s var(--ease)}
+.tile.on::after{transform:scale(1)}
 .tile .tag{position:absolute;left:4px;bottom:4px;font-size:10px;font-weight:700;background:#fff;border:1px solid var(--line);padding:1px 6px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
 .tile .kind{position:absolute;left:4px;top:4px;font-size:10px;font-weight:700;background:var(--ink);color:#fff;padding:1px 6px;border-radius:6px;letter-spacing:.04em;pointer-events:none}
 .tile.broken{opacity:.35}
 .skel{aspect-ratio:1;border-radius:12px;background:linear-gradient(90deg,#ececea 25%,#f8f8f6 50%,#ececea 75%);background-size:200% 100%;animation:sh 1.2s linear infinite}
-.hint{font-size:13px;color:var(--mut);margin-top:10px}
+.hint{font-size:13px;color:var(--mut);margin-top:10px;transition:opacity .25s}
 
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .fields .label{margin-bottom:6px}
-.pack{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.pack{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;min-height:20px}
 .pack .hint{grid-column:1/-1;margin:0}
-.ptile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/12px 12px}
+.ptile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/12px 12px;animation:pop .4s var(--ease) both}
 .ptile img{width:100%;height:100%;object-fit:contain}
-.ptile .x{position:absolute;left:0;right:0;bottom:0;height:24px;background:rgba(17,17,17,.88);color:#fff;font-size:11px;font-weight:600}
+.ptile .x{position:absolute;left:0;right:0;bottom:0;height:24px;background:rgba(17,17,17,.88);color:#fff;font-size:11px;font-weight:600;transform:translateY(100%);transition:transform .25s var(--ease)}
+.ptile:hover .x,.ptile:focus-within .x{transform:none}
 .plist{display:grid;gap:8px}
-.prow{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;animation:rise .4s var(--ease) both;transition:background-color .25s}
+.prow:active{background:#f7f7f5}
+.prow .info{display:flex;align-items:center;gap:10px;min-width:0}
+.prow .thumb{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/10px 10px;overflow:hidden;flex:none}
+.prow .thumb img{width:100%;height:100%;object-fit:contain}
+.prow .txt{min-width:0}
+.prow strong{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prow small{display:block;color:var(--mut);font-size:12px}
-.prow .acts{display:flex;gap:8px}
-.mini{height:32px;padding:0 12px;border:1px solid var(--ink);border-radius:9px;font-weight:600;font-size:13px}
+.prow .acts{display:flex;gap:6px;flex:none}
+.mini{height:32px;padding:0 12px;border:1px solid var(--ink);border-radius:9px;font-weight:600;font-size:13px;transition:transform .15s,background-color .2s,color .2s}
+.mini:active{transform:scale(.95)}
 .mini.primary{background:var(--ink);color:#fff}
+.mini.danger{border-color:#b42318;color:#b42318}
 .empty{font-size:13px;color:var(--mut)}
 
 .bottom{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));z-index:10}
 .bottom .inner{max-width:560px;margin:0 auto}
-.prog{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:8px;display:none}
-.prog.on{display:block}
-.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .25s ease}
+.prog{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:8px;opacity:0;transition:opacity .3s}
+.prog.on{opacity:1}
+.prog i{display:block;height:100%;width:0;background:var(--ink);transition:width .35s var(--ease)}
 .bottom .btn{width:100%}
 .bottom .btn .spin-ring{margin-right:8px}
 
-/* Drawer menu dari kanan */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s;z-index:40}
-.overlay.on{opacity:1;visibility:visible}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(86vw,380px);background:#fff;transform:translateX(102%);transition:transform .35s cubic-bezier(.2,.8,.2,1);z-index:50;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.15);padding-top:env(safe-area-inset-top,0px)}
+/* Toast: atas tengah, fade in-out */
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translate(-50%,-14px);background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:10px 16px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2);opacity:0;visibility:hidden;transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s;z-index:90;max-width:calc(100vw - 32px);text-align:center;pointer-events:none}
+#toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+/* Overlay, drawer kanan, sheet bawah, konfirmasi */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s;z-index:40}
+.ov.on{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(88vw,390px);background:#fff;transform:translateX(104%);transition:transform .42s var(--ease);z-index:50;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.15);padding-top:env(safe-area-inset-top,0px)}
 .drawer.on{transform:none}
 .dhead{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
 .dhead strong{font-size:16px;letter-spacing:.06em}
-.dclose{width:36px;height:36px;display:grid;place-items:center;border-radius:10px}
-.dclose:active{background:#f0f0ee}
-.dbody{overflow:auto;padding:6px 18px 30px;-webkit-overflow-scrolling:touch}
+.dclose{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;transition:background .2s,transform .15s}
+.dclose:active{background:#f0f0ee;transform:scale(.92)}
+.dbody{overflow:auto;padding:6px 18px 30px;-webkit-overflow-scrolling:touch;flex:1}
 .dsec{padding:16px 0;border-bottom:1px solid var(--line)}
 .dsec:last-child{border-bottom:0}
 .dsec h3{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.dsec ol{padding-left:20px;font-size:14px;color:#333}
-.dsec ol li{margin-bottom:6px}
-.dsec p{font-size:14px;color:#333}
-details{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
-summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color .25s}
+details[open]{border-color:var(--ink)}
+summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;line-height:1.35}
 summary::-webkit-details-marker{display:none}
-summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);transition:transform .2s;flex:none;margin-right:4px}
+summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);transform:rotate(45deg);transition:transform .3s var(--ease);flex:none;margin-right:4px}
 details[open] summary::after{transform:rotate(225deg)}
-details p{padding:0 14px 14px;font-size:14px;color:#333}
-.dev{font-size:18px;font-weight:700;letter-spacing:.04em;margin-bottom:12px}
-.lrow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px}
-.lrow:active{background:#f6f6f4}
+details .ans{padding:0 14px 14px;font-size:14px;color:#333;line-height:1.55;animation:fadeDown .35s var(--ease) both}
+details .ans p+p{margin-top:8px}
+.lrow{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;transition:background-color .2s,transform .15s var(--ease)}
+.lrow:active{background:#f6f6f4;transform:scale(.98)}
 .lrow .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--ink)}
 .lrow .ico svg{width:22px;height:22px}
 .lrow .ico.wa{background:#25d366}
 .lrow b{display:block;font-size:14px}
 .lrow small{color:var(--mut);font-size:12px}
-.apk{display:inline-flex;height:42px;align-items:center;padding:0 16px;border:1px solid var(--ink);border-radius:11px;font-weight:600;font-size:14px;margin-top:4px}
+.dev{font-size:18px;font-weight:700;letter-spacing:.04em;margin-bottom:12px}
+.langrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.langrow .langpill{border-color:var(--ink)}
+.langrow .langpill button{color:var(--ink);opacity:.5}
+.langrow .langpill button.on{background:var(--ink);color:#fff;opacity:1}
+.langrow .langpill button.on{background:var(--ink)}
 
-@keyframes pop{0%{opacity:0;transform:scale(.4) rotate(-6deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:88vh;background:#fff;border-radius:22px 22px 0 0;transform:translateY(106%);transition:transform .45s var(--ease);z-index:50;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -10px 30px rgba(0,0,0,.12)}
+.sheet.on{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:5px;background:#d6d6d2;margin:10px auto 4px;flex:none}
+.sheet .sh-head{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 10px;flex:none}
+.sheet .sh-head strong{font-size:17px}
+.sheet .sh-body{overflow:auto;padding:4px 18px 22px;-webkit-overflow-scrolling:touch}
+.tabs2{display:flex;border:1px solid var(--ink);border-radius:11px;overflow:hidden;margin-bottom:14px}
+.tabs2 button{flex:1;height:38px;font-weight:600;font-size:14px;transition:background-color .25s,color .25s}
+.tabs2 button.on{background:var(--ink);color:#fff}
+.steps{list-style:none;counter-reset:s;display:grid;gap:10px}
+.steps li{counter-increment:s;position:relative;padding:12px 12px 12px 48px;border:1px solid var(--line);border-radius:12px;font-size:14px;color:#222;line-height:1.5;animation:rise .4s var(--ease) both}
+.steps li::before{content:counter(s);position:absolute;left:12px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center}
+.note{margin-top:12px;font-size:13px;color:var(--mut);line-height:1.5}
+.storebtns{display:grid;gap:8px;margin-top:14px}
+.storebtns a{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--ink);border-radius:12px;padding:12px 14px;font-weight:600;font-size:14px;transition:transform .15s var(--ease),background-color .2s,color .2s}
+.storebtns a:active{transform:scale(.98)}
+.storebtns a:hover{background:var(--ink);color:#fff}
+.storebtns a small{font-weight:500;opacity:.6;font-size:12px}
+.sh-sub{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 8px}
+.dlrow{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:14px;font-weight:600;transition:background-color .2s,transform .15s var(--ease)}
+.dlrow:active{transform:scale(.98);background:#f6f6f4}
+.dlrow span.n{display:flex;align-items:center;gap:10px}
+.dlrow img{width:40px;height:40px;object-fit:contain;border-radius:8px;background:repeating-conic-gradient(#ececea 0 25%,#fff 0 50%) 0 0/10px 10px}
+
+.confirm{position:fixed;left:50%;top:50%;width:min(88vw,360px);background:#fff;border-radius:18px;padding:20px 18px 16px;z-index:70;opacity:0;visibility:hidden;transform:translate(-50%,-46%) scale(.96);transition:opacity .3s var(--ease),transform .3s var(--ease),visibility .3s;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.confirm.on{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}
+.confirm h4{font-size:17px;margin-bottom:8px}
+.confirm p{font-size:14px;color:#333;line-height:1.5}
+.confirm .row{margin-top:16px}
+
+.modal-fade{animation:fadeIn .3s ease both}
+
+/* Animasi */
+@keyframes pop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes blink{0%,91%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes blinkTwice{0%,100%{transform:scaleY(1)}15%{transform:scaleY(.08)}30%{transform:scaleY(1)}50%{transform:scaleY(.08)}65%{transform:scaleY(1)}}
+@keyframes orbit{0%{transform:translate(0,-34px)}25%{transform:translate(34px,0)}50%{transform:translate(0,34px)}75%{transform:translate(-34px,0)}100%{transform:translate(0,-34px)}}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.07,.94)}}
 @keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-14px) scale(1.04,.97)}60%{transform:translateY(0) scale(1.06,.94)}}
@@ -144,44 +220,50 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes rot{to{transform:rotate(360deg)}}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
 
-<div id="splash"><svg class="sc" data-face="normal" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#0a0a0c"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="eyes"><g class="f f-normal"><rect class="eye" x="404" y="398" width="86" height="178" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect class="eye" x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-focus"><rect x="404" y="438" width="86" height="98" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect x="581" y="426" width="80" height="98" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-happy" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 500 Q447 440 489 500"/><path d="M580 488 Q621 428 662 488"/></g><g class="f f-sad" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 458 Q447 518 489 458"/><path d="M580 446 Q621 506 662 446"/></g><g class="f f-sleepy" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 490 H489"/><path d="M580 478 H662"/></g><g class="f f-surprised" fill="#f9f9f9"><circle cx="447" cy="487" r="50"/><circle cx="621" cy="475" r="48"/></g><g class="f f-wink"><path d="M405 487 H489" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"/><rect x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g></g></svg><div class="st">KYY STICKER</div></div>
+<div id="splash"><svg class="sc" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#f4f4f1"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="sp-eyes loading" id="spEyes"><rect class="sp-eye" x="404" y="398" width="86" height="178" rx="43" fill="#0a0a0c" transform="rotate(-3 447 487)"/><rect class="sp-eye" x="581" y="386" width="80" height="178" rx="40" fill="#0a0a0c" transform="rotate(3 621 475)"/></g></svg><div class="sp-num"><span id="spPct">0</span><small>%</small></div><div class="sp-name">KYY STICKER</div><div class="sp-bar"><i id="spBar"></i></div></div>
 
 <header class="top">
   <h1>KYY STICKER</h1>
   <div class="right">
-    <span class="badge" id="badge" title="Jumlah stiker di paket aktif">0/30</span>
-    <button class="menu" id="btnMenu" type="button" aria-label="Buka menu"><span></span><span></span><span></span></button>
+    <span class="badge" id="badge" title="0/30">0/30</span>
+    <div class="langpill" aria-label="Bahasa">
+      <button type="button" class="langbtn" data-lang="id">ID</button>
+      <button type="button" class="langbtn" data-lang="en">EN</button>
+    </div>
+    <button class="menu" id="btnMenu" type="button" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
 </header>
 
 <main>
-  <div class="char-wrap" id="charWrap"><svg id="char" class="char" data-face="normal" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#0a0a0c"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="eyes"><g class="f f-normal"><rect class="eye" x="404" y="398" width="86" height="178" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect class="eye" x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-focus"><rect x="404" y="438" width="86" height="98" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect x="581" y="426" width="80" height="98" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-happy" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 500 Q447 440 489 500"/><path d="M580 488 Q621 428 662 488"/></g><g class="f f-sad" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 458 Q447 518 489 458"/><path d="M580 446 Q621 506 662 446"/></g><g class="f f-sleepy" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 490 H489"/><path d="M580 478 H662"/></g><g class="f f-surprised" fill="#f9f9f9"><circle cx="447" cy="487" r="50"/><circle cx="621" cy="475" r="48"/></g><g class="f f-wink"><path d="M405 487 H489" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"/><rect x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g></g></svg></div>
+  <div class="char-wrap"><svg id="char" class="char" data-face="normal" viewBox="0 0 1024 1024" aria-hidden="true"><g fill="#0a0a0c"><circle cx="380" cy="360" r="180"/><circle cx="640" cy="360" r="165"/><circle cx="760" cy="560" r="150"/><circle cx="300" cy="600" r="190"/><circle cx="520" cy="620" r="260"/><circle cx="520" cy="700" r="180"/></g><g class="eyes"><g class="f f-normal"><rect class="eye" x="404" y="398" width="86" height="178" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect class="eye" x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-focus"><rect x="404" y="438" width="86" height="98" rx="43" fill="#f9f9f9" transform="rotate(-3 447 487)"/><rect x="581" y="426" width="80" height="98" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g><g class="f f-happy" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 500 Q447 440 489 500"/><path d="M580 488 Q621 428 662 488"/></g><g class="f f-sad" fill="none" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 458 Q447 518 489 458"/><path d="M580 446 Q621 506 662 446"/></g><g class="f f-sleepy" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"><path d="M405 490 H489"/><path d="M580 478 H662"/></g><g class="f f-surprised" fill="#f9f9f9"><circle cx="447" cy="487" r="50"/><circle cx="621" cy="475" r="48"/></g><g class="f f-wink"><path d="M405 487 H489" stroke="#f9f9f9" stroke-width="26" stroke-linecap="round"/><rect x="581" y="386" width="80" height="178" rx="40" fill="#f9f9f9" transform="rotate(3 621 475)"/></g></g></svg></div>
 
   <section class="card">
-    <label class="label" for="link">Link TikTok</label>
-    <input id="link" type="url" inputmode="url" placeholder="Tempel link video atau komentar stiker" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label class="label" for="link" data-i18n="link_label">Link TikTok</label>
+    <input id="link" type="url" inputmode="url" data-i18n-ph="link_ph" placeholder="Tempel link video atau komentar stiker" autocomplete="off" autocapitalize="off" spellcheck="false">
     <div class="row">
-      <button class="btn" id="btnPaste" type="button">Tempel</button>
-      <button class="btn primary" id="btnFetch" type="button">Ambil</button>
-      <button class="btn" id="btnGallery" type="button">Galeri</button>
+      <button class="btn" id="btnPaste" type="button" data-i18n="paste">Tempel</button>
+      <button class="btn primary" id="btnFetch" type="button" data-i18n="fetch">Ambil</button>
+      <button class="btn" id="btnGallery" type="button" data-i18n="gallery">Galeri</button>
     </div>
     <input id="file" type="file" accept="image/*" hidden>
-    <p class="status" id="status"><span class="spin-ring"></span><span id="statusTxt">Tempel link TikTok, lalu tekan Ambil.</span></p>
+    <p class="status" id="status"><span class="spin-ring"></span><span class="txt" id="statusTxt" data-i18n="status_idle">Tempel link TikTok, lalu tekan Ambil.</span></p>
   </section>
 
   <section class="card">
     <div class="head">
-      <span class="label">Hasil</span>
-      <button class="link" id="btnAll" type="button">Pilih semua</button>
+      <span class="label" data-i18n="results">Hasil</span>
+      <button class="link" id="btnAll" type="button" data-i18n="select_all">Pilih semua</button>
     </div>
     <div class="seg" id="seg">
-      <button type="button" data-tab="all" class="on">Semua</button>
-      <button type="button" data-tab="gerak">Gerak</button>
-      <button type="button" data-tab="diam">Diam</button>
+      <span class="ind" id="segInd"></span>
+      <button type="button" data-tab="all" class="on" data-i18n="tab_all">Semua</button>
+      <button type="button" data-tab="gerak" data-i18n="tab_gerak">Gerak</button>
+      <button type="button" data-tab="diam" data-i18n="tab_diam">Diam</button>
     </div>
     <div id="grid" class="grid"></div>
     <p class="hint" id="hint"></p>
@@ -189,29 +271,32 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
 
   <section class="card">
     <div class="head">
-      <span class="label">Paket aktif</span>
-      <button class="link" id="btnReset" type="button">Kosongkan</button>
+      <span class="label" data-i18n="pack_active">Paket aktif</span>
+      <button class="link" id="btnReset" type="button" data-i18n="clear">Kosongkan</button>
     </div>
     <div class="fields">
       <div>
-        <label class="label" for="pname">Nama paket</label>
+        <label class="label" for="pname" data-i18n="pack_name">Nama paket</label>
         <input id="pname" value="KYY Sticker Pack">
       </div>
       <div>
-        <label class="label" for="pauthor">Pembuat</label>
+        <label class="label" for="pauthor" data-i18n="pack_author">Pembuat</label>
         <input id="pauthor" value="KYY Studio">
       </div>
     </div>
     <div id="packGrid" class="pack"></div>
     <div class="row">
-      <button class="btn" id="btnSave" type="button">Simpan paket</button>
-      <button class="btn primary" id="btnWA" type="button" disabled>Tambah ke WhatsApp</button>
+      <button class="btn" id="btnSave" type="button" data-i18n="save_pack">Simpan paket</button>
+      <button class="btn primary" id="btnWA" type="button" disabled data-i18n="to_wa">Tambah ke WhatsApp</button>
+    </div>
+    <div class="row">
+      <button class="btn full" id="btnDownload" type="button" data-i18n="download_stickers">Unduh stiker</button>
     </div>
     <p class="hint" id="packHint"></p>
   </section>
 
   <section class="card">
-    <div class="head"><span class="label">Paket tersimpan</span></div>
+    <div class="head"><span class="label" data-i18n="saved_title">Paket tersimpan</span></div>
     <div id="savedList" class="plist"></div>
   </section>
 </main>
@@ -220,124 +305,334 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
   <div class="inner">
     <div class="prog" id="prog"><i id="progBar"></i></div>
     <button class="btn primary" id="btnAdd" type="button" disabled>
-      <span class="spin-ring"></span><span id="btnAddTxt">Tambah terpilih ke paket</span>
+      <span class="spin-ring"></span><span id="btnAddTxt" data-i18n="add_selected">Tambah terpilih ke paket</span>
     </button>
   </div>
 </footer>
 
-<div class="overlay" id="overlay"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="ov" id="ov"></div>
+
 <aside class="drawer" id="drawer" aria-hidden="true">
   <div class="dhead">
-    <strong>MENU</strong>
-    <button class="dclose" id="btnClose" type="button" aria-label="Tutup menu">
+    <strong data-i18n="menu">MENU</strong>
+    <button class="dclose" id="btnClose" type="button" aria-label="Close">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
   </div>
   <div class="dbody">
     <section class="dsec">
-      <h3>Panduan</h3>
-      <ol>
-        <li>Di TikTok, tekan lama komentar stiker, pilih Bagikan, lalu Salin link. Atau salin link video.</li>
-        <li>Tempel di kolom Link TikTok, lalu tekan Ambil.</li>
-        <li>Pilih stiker dengan mengetuk. Gunakan tab Gerak atau Diam untuk memilah jenisnya.</li>
-        <li>Tekan Tambah terpilih ke paket. Minimal 3 stiker.</li>
-        <li>Tekan Simpan paket agar tersimpan di Paket tersimpan.</li>
-        <li>Tekan Tambah ke WhatsApp, lalu konfirmasi di WhatsApp.</li>
-      </ol>
+      <div class="langrow">
+        <h3 data-i18n="language" style="margin:0">Bahasa</h3>
+        <div class="langpill">
+          <button type="button" class="langbtn" data-lang="id">ID</button>
+          <button type="button" class="langbtn" data-lang="en">EN</button>
+        </div>
+      </div>
     </section>
 
     <section class="dsec">
-      <h3>FAQ</h3>
-      <details>
-        <summary>Apa itu KYY Sticker?</summary>
-        <p>Alat untuk mengambil stiker dari komentar TikTok, lalu memasukkannya ke WhatsApp sebagai paket stiker.</p>
-      </details>
-      <details>
-        <summary>Stiker yang muncul kurang lengkap, kenapa?</summary>
-        <p>TikTok membatasi akses komentar dari luar aplikasi. Coba lagi beberapa menit kemudian, atau pilih dari daftar VIDEO yang muncul.</p>
-      </details>
-      <details>
-        <summary>Apa beda stiker Gerak dan Diam?</summary>
-        <p>Gerak adalah stiker animasi, Diam adalah gambar biasa. WhatsApp tidak bisa mencampur keduanya dalam satu paket, jadi pilih satu jenis saja.</p>
-      </details>
-      <details>
-        <summary>Kenapa minimal 3 stiker?</summary>
-        <p>Itu syarat WhatsApp untuk membuat paket stiker.</p>
-      </details>
-      <details>
-        <summary>Angka 0/30 itu apa?</summary>
-        <p>Jumlah stiker di paket aktif dibanding batas maksimal 30 stiker per paket.</p>
-      </details>
-      <details>
-        <summary>Paket saya hilang setelah app ditutup?</summary>
-        <p>Tidak. Paket aktif disimpan otomatis di HP ini. Tekan Simpan paket untuk menyimpannya juga di daftar Paket tersimpan.</p>
-      </details>
-      <details>
-        <summary>Tombol Tambah ke WhatsApp tidak bisa dipakai?</summary>
-        <p>Tombol itu hanya berfungsi di aplikasi KYY Sticker Android. Di browser atau iPhone, paket belum bisa langsung masuk ke WhatsApp.</p>
-      </details>
-      <details>
-        <summary>Tombol Tempel tidak bekerja?</summary>
-        <p>Di aplikasi Android, Tempel langsung membaca clipboard. Di browser, tekan lama kolom link lalu pilih Tempel dari menu HP.</p>
-      </details>
-      <details>
-        <summary>Link yang saya tempel dikirim ke mana?</summary>
-        <p>Link dikirim ke server aplikasi ini hanya untuk mengambil stiker dari TikTok. Paket stiker disimpan di HP kamu.</p>
-      </details>
+      <h3 data-i18n="drawer_guide">Panduan</h3>
+      <div class="lrow" id="openGuide" role="button" tabindex="0" style="cursor:pointer">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v.5M12 11v5"/></svg></span>
+        <span><b data-i18n="guide_open">Cara pakai (Android &amp; iOS)</b><small data-i18n="guide_open_sub">Langkah lengkap dari awal sampai ke WhatsApp</small></span>
+      </div>
     </section>
 
     <section class="dsec">
-      <h3>Pengembang</h3>
+      <h3 data-i18n="drawer_faq">FAQ</h3>
+      <div id="faqList"></div>
+    </section>
+
+    <section class="dsec">
+      <h3 data-i18n="drawer_get">Dapatkan aplikasi</h3>
+      <div id="getApp"></div>
+    </section>
+
+    <section class="dsec">
+      <h3 data-i18n="drawer_dev">Pengembang</h3>
       <p class="dev">JR乂REZKYY</p>
       <a class="lrow" href="https://www.tiktok.com/@rizky._kurniawan25">
-        <span class="ico">
-          <svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
-        </span>
+        <span class="ico"><svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span>
         <span><b>TikTok</b><small>@rizky._kurniawan25</small></span>
       </a>
       <a class="lrow" href="https://whatsapp.com/channel/0029Vb7bjsnLY6dD0GSDIB1V">
-        <span class="ico wa">
-          <svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-        </span>
-        <span><b>Saluran WhatsApp</b><small>Gabung saluran KYY</small></span>
+        <span class="ico wa"><svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></span>
+        <span><b data-i18n="wa_title">Saluran WhatsApp</b><small data-i18n="wa_sub">Gabung saluran KYY</small></span>
       </a>
-      <a class="apk" id="apkLink" href="#" hidden>Unduh aplikasi</a>
     </section>
   </div>
 </aside>
+
+<section class="sheet" id="sheetGuide" aria-hidden="true">
+  <div class="grab"></div>
+  <div class="sh-head"><strong data-i18n="guide_title">Cara pakai</strong><button class="dclose" data-close type="button" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+  <div class="sh-body">
+    <div class="tabs2" id="guideTabs">
+      <button type="button" data-p="android">Android</button>
+      <button type="button" data-p="ios">iOS</button>
+    </div>
+    <div id="guideBody"></div>
+  </div>
+</section>
+
+<section class="sheet" id="sheetDl" aria-hidden="true">
+  <div class="grab"></div>
+  <div class="sh-head"><strong data-i18n="dl_title">Unduh stiker</strong><button class="dclose" data-close type="button" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+  <div class="sh-body">
+    <p class="note" data-i18n="dl_note">Ketuk satu per satu untuk menyimpan stiker ke HP. Di iPhone, file akan masuk ke aplikasi Files.</p>
+    <div id="dlList"></div>
+  </div>
+</section>
+
+<div class="confirm" id="confirm" role="dialog" aria-modal="true">
+  <h4 id="cfTitle"></h4>
+  <p id="cfBody"></p>
+  <div class="row">
+    <button class="btn" id="cfNo" type="button" data-i18n="cancel">Batal</button>
+    <button class="btn primary" id="cfOk" type="button" data-i18n="confirm_yes">Ya</button>
+  </div>
+</div>
 
 <script>
 (function () {
   'use strict';
 
-  // Isi link APK Android di sini nanti. Kosongkan jika belum ada.
+  // Tautan (kosongkan jika belum ada)
   const APK_URL = '';
+  const APP_PLAY_URL = '';   // link Play Store aplikasi ini (jika sudah rilis)
+  const APP_STORE_URL = '';  // link App Store aplikasi ini (jika sudah rilis)
+  const ALT_PLAY_URL = 'https://play.google.com/store/search?q=sticker%20maker%20whatsapp&c=apps';
+  const ALT_STORE_URL = 'https://apps.apple.com/search?term=sticker%20maker';
 
   const MAX = 30, MIN = 3;
   const WA_STATIC = 100 * 1024, WA_ANIM = 500 * 1024;
   const $ = (id) => document.getElementById(id);
 
-  let items = [];
-  let selected = new Set();
-  let pack = [];
-  let active = { id: '', name: 'KYY Sticker Pack', author: 'KYY Studio' };
-  let saved = [];
-  let lastLink = '';
-  let busy = false;
-  let timer = null;
-  let localSeq = 0;
-  let tab = 'all';
-  let faceTimer = null;
-  let idleTimer = null;
-  let cloudTaps = 0;
+  /* ---------- Bahasa ---------- */
+  const I18N = {
+    id: {
+      menu: 'MENU', language: 'Bahasa', link_label: 'Link TikTok',
+      link_ph: 'Tempel link video atau komentar stiker', paste: 'Tempel', fetch: 'Ambil', gallery: 'Galeri',
+      status_idle: 'Tempel link TikTok, lalu tekan Ambil.', results: 'Hasil', select_all: 'Pilih semua', clear_sel: 'Batal pilih',
+      tab_all: 'Semua', tab_gerak: 'Gerak', tab_diam: 'Diam',
+      pack_active: 'Paket aktif', clear: 'Kosongkan', pack_name: 'Nama paket', pack_author: 'Pembuat',
+      save_pack: 'Simpan paket', to_wa: 'Tambah ke WhatsApp', download_stickers: 'Unduh stiker',
+      saved_title: 'Paket tersimpan', saved_empty: 'Belum ada paket tersimpan. Tekan Simpan paket setelah stiker terisi.',
+      open: 'Buka', delete: 'Hapus', remove: 'Hapus', add_selected: 'Tambah terpilih ke paket',
+      add_n: 'Tambah {n} stiker terpilih ke paket', pack_empty: 'Paket masih kosong.',
+      hint_shown: '{v} ditampilkan, {n} dipilih.', pack_info: '{n} stiker. {k}. Minimal 3 stiker untuk WhatsApp.',
+      min3: 'Minimal 3 stiker untuk WhatsApp.', kind_gerak: 'Jenis paket: gerak', kind_diam: 'Jenis paket: diam',
+      k_gerak: 'GERAK', k_diam: 'DIAM', tag_komentar: 'KOMENTAR', tag_video: 'VIDEO',
+      st_fetching: 'Mengambil stiker dari TikTok...', st_paste_first: 'Tempel link TikTok dulu.',
+      st_found_comment: '{n} stiker dari komentar ditemukan. Stiker lain dari video juga bisa dipilih.',
+      st_found_video: '{n} stiker ditemukan dari video. Pilih yang diinginkan.',
+      st_none: 'Tidak ada stiker yang bisa diambil.', st_server: 'Server belum terpasang. Pastikan folder api sudah ada di Vercel.',
+      st_fail: 'Gagal mengambil data.', st_processing: 'Memproses {i} dari {n}...', st_image: 'Memproses gambar...',
+      sum_ok: '{n} stiker ditambahkan', sum_dup: '{n} sudah ada di paket', sum_type: '{n} dilewati karena beda jenis (gerak/diam)',
+      sum_full: 'paket penuh, maksimal {max}', sum_fail: '{n} gagal diproses', sum_none: 'Tidak ada perubahan.',
+      t_saved: 'Paket "{name}" disimpan.', t_opened: 'Paket "{name}" dibuka.', t_open_fail: 'Paket ini tidak bisa dibuka. Coba simpan ulang.',
+      t_save_fail: 'Gagal menyimpan paket di HP ini.', t_cleared: 'Paket aktif dikosongkan.', t_deleted: 'Paket "{name}" dihapus.',
+      t_removed: 'Stiker dihapus dari paket.', t_lang: 'Bahasa diganti ke Indonesia.', t_empty_save: 'Paket masih kosong.',
+      t_min: 'Minimal 3 stiker. Sekarang {n}.', t_android_only: 'Tambah ke WhatsApp hanya bisa dari aplikasi Android KYY Sticker.',
+      t_wa_confirm: 'Konfirmasi di WhatsApp untuk menambahkan paket.', t_clip_empty: 'Clipboard kosong. Salin link TikTok dulu.',
+      t_paste_hint: 'Tekan lama kolom link, lalu pilih Tempel.', t_cloud: 'Awan ini suka stiker lucu.', t_prep: 'Menyiapkan paket...',
+      t_pack_fail: 'Gagal menyiapkan paket.', t_dl_empty: 'Belum ada stiker untuk diunduh.',
+      cf_del_title: 'Hapus paket ini?', cf_del_body: 'Paket "{name}" akan dihapus dari HP ini. Tindakan ini tidak bisa dibatalkan.',
+      cf_clear_title: 'Kosongkan paket aktif?', cf_clear_body: 'Semua stiker di paket aktif akan dihapus. Paket tersimpan tidak ikut terhapus.',
+      cancel: 'Batal', confirm_yes: 'Ya, lanjutkan',
+      drawer_guide: 'Panduan', guide_open: 'Cara pakai (Android & iOS)', guide_open_sub: 'Langkah lengkap dari awal sampai ke WhatsApp',
+      guide_title: 'Cara pakai', dl_title: 'Unduh stiker', dl_note: 'Ketuk satu per satu untuk menyimpan stiker ke HP. Di iPhone, file akan masuk ke aplikasi Files.',
+      drawer_faq: 'FAQ', drawer_get: 'Dapatkan aplikasi', drawer_dev: 'Pengembang', wa_title: 'Saluran WhatsApp', wa_sub: 'Gabung saluran KYY',
+      get_apk: 'Unduh aplikasi KYY (APK)', get_play_app: 'KYY Sticker di Play Store', get_app_app: 'KYY Sticker di App Store',
+      get_alt_title: 'Tidak mau pasang aplikasi KYY?', get_alt_sub: 'Pakai aplikasi pembuat stiker resmi, lalu impor stiker yang sudah diunduh.',
+      alt_play: 'Cari Sticker Maker di Play Store', alt_app: 'Cari Sticker Maker di App Store',
+      android_name: 'Android', ios_name: 'iOS', to_wa_note_android: 'Tombol Tambah ke WhatsApp berfungsi di aplikasi Android KYY.',
+      steps_android: [
+        'Buka TikTok, lalu cari video yang komentarnya berisi stiker.',
+        'Tekan lama komentar stiker, pilih Bagikan, lalu Salin link. Bisa juga salin link video.',
+        'Buka KYY Sticker, lalu tempel link di kolom Link TikTok. Kalau tidak otomatis, tekan Tempel.',
+        'Tunggu sampai stiker muncul. Setiap stiker diberi label GERAK atau DIAM.',
+        'Ketuk stiker yang kamu mau. Titik hitam di pojok berarti terpilih. Pakai tab Gerak atau Diam untuk memilah.',
+        'Tekan Tambah terpilih ke paket. Tunggu bar progres sampai selesai.',
+        'Cek jumlah di pojok kanan atas. Paket butuh minimal 3 stiker.',
+        'Tekan Simpan paket kalau mau menyimpan paket ini untuk nanti. Paket tersimpan ada di bagian Paket tersimpan.',
+        'Tekan Tambah ke WhatsApp, lalu tekan Tambah di layar WhatsApp yang muncul.',
+        'Buka chat WhatsApp, tekan ikon stiker, lalu pilih paket KYY Sticker Pack.'
+      ],
+      steps_ios: [
+        'Ambil stiker dengan cara yang sama: tempel link TikTok, tekan Ambil, lalu pilih stiker.',
+        'Tekan Tambah terpilih ke paket, dan pastikan jumlahnya minimal 3 stiker.',
+        'Tekan Unduh stiker. Ketuk setiap stiker satu per satu, file akan tersimpan di aplikasi Files.',
+        'Pasang aplikasi pembuat stiker dari App Store, misalnya Sticker Maker. Pilih yang penerbitnya jelas.',
+        'Di aplikasi itu, buat paket baru, lalu impor stiker dari Files.',
+        'Simpan paket di aplikasi itu, lalu tekan Add to WhatsApp dari aplikasinya.'
+      ],
+      note_ios: 'iPhone belum bisa memasukkan paket langsung dari website ini, jadi WhatsApp perlu lewat aplikasi pembuat stiker.',
+      note_gerak: 'Jangan campur stiker gerak dan diam dalam satu paket. WhatsApp tidak menerimanya.',
+      faq: [
+        { q: 'KYY Sticker itu apa sih?', a: ['Ini alat kecil untuk mengambil stiker dari komentar TikTok, lalu memasukkannya ke WhatsApp sebagai paket stiker sendiri.', 'Kamu tidak perlu mengunduh stiker satu per satu dari TikTok.'] },
+        { q: 'Dari mana saya dapat link stikernya?', a: ['Di TikTok, tekan lama komentar yang ada stikernya, pilih Bagikan, lalu Salin link.', 'Kalau kamu hanya punya link video, aplikasi tetap bisa mengambil stiker yang ada di komentarnya.'] },
+        { q: 'Kenapa stiker yang muncul sedikit?', a: ['TikTok membatasi akses komentar dari luar aplikasinya. Pada video yang komentarnya sangat banyak, tidak semua komentar bisa dibaca dalam satu kali ambil.', 'Coba lagi beberapa menit kemudian. Kalau stiker yang kamu cari tidak muncul, cari komentarnya lalu salin link dari komentar itu.'] },
+        { q: 'Apa beda stiker GERAK dan DIAM?', a: ['GERAK adalah stiker animasi yang bergerak. DIAM adalah gambar biasa.', 'WhatsApp tidak bisa mencampur keduanya dalam satu paket. Kalau kamu memilih stiker dengan jenis berbeda dari paket yang sudah ada, stiker itu akan dilewati dan kamu diberi tahu.'] },
+        { q: 'Kenapa harus minimal 3 stiker?', a: ['Itu aturan WhatsApp untuk paket stiker. Dengan 3 stiker atau lebih, paket bisa ditambahkan ke WhatsApp.'] },
+        { q: 'Angka 0/30 di pojok kanan atas itu apa?', a: ['Itu jumlah stiker di paket aktif dibanding batas maksimal 30 stiker per paket.'] },
+        { q: 'Paket saya hilang setelah aplikasi ditutup?', a: ['Tidak. Paket aktif disimpan otomatis di HP ini, jadi tetap ada saat kamu membuka lagi.', 'Untuk menyimpannya sebagai paket terpisah, tekan Simpan paket. Paket tersimpan ada di daftar Paket tersimpan.'] },
+        { q: 'Paket tersimpan itu disimpan di mana?', a: ['Di HP yang sedang kamu pakai, di browser atau aplikasi ini saja. Kalau kamu pakai HP lain, daftarnya tidak ikut.', 'Kalau kamu menghapus data browser atau aplikasi, paket tersimpan juga ikut hilang.'] },
+        { q: 'Bagaimana cara menghapus paket tersimpan?', a: ['Tekan Hapus di paket yang ingin dihapus. Aplikasi akan minta konfirmasi dulu supaya tidak terhapus tidak sengaja.'] },
+        { q: 'Tombol Tambah ke WhatsApp tidak bisa dipakai?', a: ['Tombol itu hanya berfungsi di aplikasi Android KYY Sticker.', 'Di browser atau iPhone, pakai tombol Unduh stiker, lalu impor stikernya lewat aplikasi pembuat stiker dari App Store atau Play Store.'] },
+        { q: 'Tombol Tempel tidak bekerja?', a: ['Di aplikasi Android, Tempel langsung membaca clipboard. Di browser, tekan lama kolom link lalu pilih Tempel dari menu HP.'] },
+        { q: 'Link yang saya tempel dikirim ke mana?', a: ['Link hanya dikirim ke server aplikasi ini untuk mengambil daftar stiker dari TikTok. Tidak ada akun yang dibuat, dan link tidak disimpan.', 'Paket stiker kamu hanya tersimpan di HP.'] },
+        { q: 'Apakah aman memasukkan stiker ke WhatsApp?', a: ['Setiap stiker diperiksa dulu: harus berupa gambar WebP asli, ukuran 512x512, dan tidak lebih besar dari batas WhatsApp. Kalau ada yang tidak lolos, seluruh paket dibatalkan.', 'Stiker tetap berupa gambar. Tidak ada kode yang ikut dijalankan.'] },
+        { q: 'Kenapa kadang butuh waktu lama?', a: ['Stiker animasi harus diproses dulu agar sesuai format WhatsApp. Biasanya tidak lama, tapi bisa lebih lambat kalau koneksi sedang lemah.'] }
+      ]
+    },
+    en: {
+      menu: 'MENU', language: 'Language', link_label: 'TikTok link',
+      link_ph: 'Paste a video or sticker comment link', paste: 'Paste', fetch: 'Get', gallery: 'Gallery',
+      status_idle: 'Paste a TikTok link, then tap Get.', results: 'Results', select_all: 'Select all', clear_sel: 'Clear',
+      tab_all: 'All', tab_gerak: 'Animated', tab_diam: 'Static',
+      pack_active: 'Active pack', clear: 'Clear', pack_name: 'Pack name', pack_author: 'Author',
+      save_pack: 'Save pack', to_wa: 'Add to WhatsApp', download_stickers: 'Download stickers',
+      saved_title: 'Saved packs', saved_empty: 'No saved packs yet. Tap Save pack after adding stickers.',
+      open: 'Open', delete: 'Delete', remove: 'Remove', add_selected: 'Add selected to pack',
+      add_n: 'Add {n} selected sticker(s) to pack', pack_empty: 'The pack is empty.',
+      hint_shown: '{v} shown, {n} selected.', pack_info: '{n} sticker(s). {k}. At least 3 stickers for WhatsApp.',
+      min3: 'At least 3 stickers for WhatsApp.', kind_gerak: 'Type: animated', kind_diam: 'Type: static',
+      k_gerak: 'ANIMATED', k_diam: 'STATIC', tag_komentar: 'COMMENT', tag_video: 'VIDEO',
+      st_fetching: 'Fetching stickers from TikTok...', st_paste_first: 'Paste a TikTok link first.',
+      st_found_comment: '{n} sticker(s) found from the comment. Other stickers from the video can be selected too.',
+      st_found_video: '{n} sticker(s) found in the video. Pick what you want.',
+      st_none: 'No stickers could be fetched.', st_server: 'The server is not set up yet. Make sure the api folder is deployed on Vercel.',
+      st_fail: 'Failed to fetch data.', st_processing: 'Processing {i} of {n}...', st_image: 'Processing image...',
+      sum_ok: '{n} sticker(s) added', sum_dup: '{n} already in the pack', sum_type: '{n} skipped: different type (animated/static)',
+      sum_full: 'pack is full, max {max}', sum_fail: '{n} failed', sum_none: 'No changes.',
+      t_saved: 'Pack "{name}" saved.', t_opened: 'Pack "{name}" opened.', t_open_fail: 'This pack could not be opened. Try saving it again.',
+      t_save_fail: 'Could not save the pack on this device.', t_cleared: 'Active pack cleared.', t_deleted: 'Pack "{name}" deleted.',
+      t_removed: 'Sticker removed from pack.', t_lang: 'Language set to English.', t_empty_save: 'The pack is empty.',
+      t_min: 'At least 3 stickers. Now {n}.', t_android_only: 'Add to WhatsApp only works in the KYY Sticker Android app.',
+      t_wa_confirm: 'Confirm in WhatsApp to add the pack.', t_clip_empty: 'Clipboard is empty. Copy a TikTok link first.',
+      t_paste_hint: 'Long-press the link field, then choose Paste.', t_cloud: 'This cloud loves cute stickers.', t_prep: 'Preparing pack...',
+      t_pack_fail: 'Could not prepare the pack.', t_dl_empty: 'No stickers to download yet.',
+      cf_del_title: 'Delete this pack?', cf_del_body: '"{name}" will be removed from this device. This cannot be undone.',
+      cf_clear_title: 'Clear the active pack?', cf_clear_body: 'All stickers in the active pack will be removed. Saved packs are not affected.',
+      cancel: 'Cancel', confirm_yes: 'Yes, continue',
+      drawer_guide: 'Guide', guide_open: 'How to use (Android & iOS)', guide_open_sub: 'Full steps from start to WhatsApp',
+      guide_title: 'How to use', dl_title: 'Download stickers', dl_note: 'Tap each one to save it to your phone. On iPhone, files go to the Files app.',
+      drawer_faq: 'FAQ', drawer_get: 'Get the app', drawer_dev: 'Developer', wa_title: 'WhatsApp channel', wa_sub: 'Join the KYY channel',
+      get_apk: 'Download the KYY app (APK)', get_play_app: 'KYY Sticker on Play Store', get_app_app: 'KYY Sticker on App Store',
+      get_alt_title: 'Not installing the KYY app?', get_alt_sub: 'Use an official sticker maker app, then import the stickers you downloaded.',
+      alt_play: 'Find Sticker Maker on Play Store', alt_app: 'Find Sticker Maker on App Store',
+      android_name: 'Android', ios_name: 'iOS', to_wa_note_android: 'The Add to WhatsApp button works in the KYY Android app.',
+      steps_android: [
+        'Open TikTok and find a video whose comments contain stickers.',
+        'Long-press the sticker comment, choose Share, then Copy link. You can also copy the video link.',
+        'Open KYY Sticker and paste the link into the TikTok link field. If it does not appear automatically, tap Paste.',
+        'Wait for the stickers to appear. Each one is labeled ANIMATED or STATIC.',
+        'Tap the stickers you want. A black dot in the corner means selected. Use the Animated or Static tab to filter.',
+        'Tap Add selected to pack. Wait until the progress bar finishes.',
+        'Check the count at the top right. A pack needs at least 3 stickers.',
+        'Tap Save pack if you want to keep this pack for later. Saved packs are listed under Saved packs.',
+        'Tap Add to WhatsApp, then tap Add on the WhatsApp screen that opens.',
+        'Open a WhatsApp chat, tap the sticker icon, then choose the KYY Sticker Pack.'
+      ],
+      steps_ios: [
+        'Get stickers the same way: paste the TikTok link, tap Get, then pick stickers.',
+        'Tap Add selected to pack and make sure there are at least 3 stickers.',
+        'Tap Download stickers. Tap each sticker one by one; the files will be saved to the Files app.',
+        'Install a sticker maker app from the App Store, for example Sticker Maker. Choose one with a clear publisher.',
+        'In that app, create a new pack and import the stickers from Files.',
+        'Save the pack in that app, then tap Add to WhatsApp from there.'
+      ],
+      note_ios: 'iPhone cannot add packs directly to WhatsApp from this website, so WhatsApp needs a sticker maker app.',
+      note_gerak: 'Do not mix animated and static stickers in one pack. WhatsApp will not accept it.',
+      faq: [
+        { q: 'What is KYY Sticker?', a: ['A small tool that pulls stickers from TikTok comments and turns them into a WhatsApp sticker pack.', 'You do not have to save stickers one by one from TikTok.'] },
+        { q: 'Where do I get the sticker link?', a: ['In TikTok, long-press the comment that has the sticker, choose Share, then Copy link.', 'If you only have the video link, the app can still pull the stickers from its comments.'] },
+        { q: 'Why do I only get a few stickers?', a: ['TikTok limits comment access from outside its app. On videos with very many comments, not every comment can be read in one go.', 'Try again after a few minutes. If the sticker you want is still missing, copy the link from that specific comment.'] },
+        { q: 'What is the difference between ANIMATED and STATIC?', a: ['ANIMATED stickers move. STATIC stickers are still images.', 'WhatsApp cannot mix them in one pack. If you pick a sticker of a different type from the pack, it is skipped and you will be told.'] },
+        { q: 'Why do I need at least 3 stickers?', a: ['That is the WhatsApp rule for sticker packs. With 3 or more stickers, the pack can be added to WhatsApp.'] },
+        { q: 'What does 0/30 at the top right mean?', a: ['It is the number of stickers in the active pack, out of the maximum 30 per pack.'] },
+        { q: 'Does my pack disappear when I close the app?', a: ['No. The active pack is saved on this phone automatically, so it is still there when you come back.', 'To keep it as a separate pack, tap Save pack. It will appear in Saved packs.'] },
+        { q: 'Where are saved packs stored?', a: ['On the phone you are using, in this browser or app only. Packs saved on another phone do not appear here.', 'If you clear the browser or app data, saved packs are removed too.'] },
+        { q: 'How do I delete a saved pack?', a: ['Tap Delete on the pack you want to remove. The app will ask for confirmation first, so nothing is deleted by accident.'] },
+        { q: 'Add to WhatsApp does not work?', a: ['That button only works in the KYY Sticker Android app.', 'On a browser or iPhone, use Download stickers, then import them into a sticker maker app from the App Store or Play Store.'] },
+        { q: 'The Paste button does not work?', a: ['In the Android app, Paste reads the clipboard directly. In a browser, long-press the link field and choose Paste from the phone menu.'] },
+        { q: 'Where does the link I paste go?', a: ['The link is only sent to this app\'s server to fetch the sticker list from TikTok. No account is created and the link is not stored.', 'Your sticker packs stay on your phone.'] },
+        { q: 'Is it safe to add stickers to WhatsApp?', a: ['Each sticker is checked first: it must be a real WebP image, 512x512, and within WhatsApp\'s size limit. If any sticker fails, the whole pack is cancelled.', 'Stickers are still images. No code is run with them.'] },
+        { q: 'Why does it sometimes take a while?', a: ['Animated stickers are processed first so they match WhatsApp\'s format. It is usually quick, but slower on a weak connection.'] }
+      ]
+    }
+  };
 
-  document.addEventListener('contextmenu', (e) => e.preventDefault());
-  document.addEventListener('dragstart', (e) => e.preventDefault());
-  document.addEventListener('selectstart', (e) => {
-    if (!(e.target && e.target.closest && e.target.closest('input'))) e.preventDefault();
-  });
+  let lang = 'id';
+  try { lang = localStorage.getItem('kyy.lang') === 'en' ? 'en' : 'id'; } catch (e) {}
 
-  // Penyimpanan permanen
+  function t(key, vars) {
+    let s = I18N[lang][key];
+    if (s === undefined) s = I18N.id[key];
+    if (s === undefined) return key;
+    if (typeof s !== 'string') return s;
+    if (vars) s = s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : ''));
+    return s;
+  }
+
+  function applyStatic() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll('.langbtn').forEach((b) => b.classList.toggle('on', b.dataset.lang === lang));
+    document.querySelectorAll('#guideTabs button').forEach((b) => b.classList.toggle('on', b.dataset.p === guidePlatform));
+    renderFaq();
+    renderGetApp();
+    renderGuide();
+    renderStatus();
+    refreshLabels();
+    renderPack();
+    renderSaved();
+    updateHint();
+  }
+
+  function setLang(l) {
+    if (l === lang) return;
+    lang = l;
+    try { localStorage.setItem('kyy.lang', l); } catch (e) {}
+    applyStatic();
+    toast('t_lang');
+  }
+
+  /* ---------- Toast ---------- */
+  let toastTimer = null;
+  function toast(key, vars, raw) {
+    const msg = raw ? key : t(key, vars);
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  /* ---------- Status ---------- */
+  let statusKey = 'status_idle', statusVars = null, statusRaw = null, statusSpin = false;
+  function renderStatus() {
+    const txt = statusRaw !== null ? statusRaw : t(statusKey, statusVars);
+    const el = $('statusTxt');
+    el.textContent = txt;
+    el.classList.remove('txt');
+    void el.offsetWidth;
+    el.classList.add('txt');
+    $('status').classList.toggle('busy', statusSpin);
+  }
+  function setStatus(key, vars, spin) {
+    statusKey = key; statusVars = vars || null; statusRaw = null; statusSpin = !!spin;
+    renderStatus();
+  }
+  function setStatusRaw(text, spin) {
+    statusRaw = text; statusSpin = !!spin;
+    renderStatus();
+  }
+
+  /* ---------- Penyimpanan ---------- */
   const DB = (() => {
     let p = null;
     function open() {
@@ -361,33 +656,45 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     async function set(k, v) {
       const db = await open();
       return new Promise((res, rej) => {
-        const t = db.transaction('kv', 'readwrite');
-        t.objectStore('kv').put(v, k);
-        t.oncomplete = () => res();
-        t.onerror = () => rej(t.error);
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(v, k);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
       });
     }
-    return { get, set };
+    async function del(k) {
+      const db = await open();
+      return new Promise((res, rej) => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').delete(k);
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+    }
+    return { get, set, del };
   })();
+
+  let active = { id: '', name: 'KYY Sticker Pack', author: 'KYY Studio' };
+  let pack = [];
+  let saved = [];   // indeks: {id, name, author, count, animated, thumb, updated}
+  let items = [];
+  let selected = new Set();
+  let lastLink = '';
+  let busy = false;
+  let timer = null;
+  let localSeq = 0;
+  let tab = 'all';
+  let faceTimer = null, idleTimer = null, cloudTaps = 0;
+  let guidePlatform = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'android';
 
   function saveActive() {
     active.name = $('pname').value.trim() || 'KYY Sticker Pack';
     active.author = $('pauthor').value.trim() || 'KYY Studio';
     DB.set('active', { id: active.id, name: active.name, author: active.author, pack: pack }).catch(() => {});
   }
-  function saveList() { DB.set('saved', saved).catch(() => {}); }
   function newId() { return 'kyy' + Date.now().toString(36); }
 
-  function setStatus(t, spinning) {
-    $('statusTxt').textContent = t;
-    $('status').classList.toggle('busy', !!spinning);
-  }
-
-  function setProgress(done, total) {
-    $('prog').classList.toggle('on', total > 0);
-    $('progBar').style.width = total ? Math.round((done / total) * 100) + '%' : '0';
-  }
-
+  /* ---------- Gambar & stiker ---------- */
   function sizeOf(d) { return Math.floor((d.length - d.indexOf(',') - 1) * 3 / 4); }
 
   function webpInfo(u8) {
@@ -406,7 +713,7 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     return new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(r.result);
-      r.onerror = () => rej(new Error('Gagal membaca file.'));
+      r.onerror = () => rej(new Error('read'));
       r.readAsDataURL(blob);
     });
   }
@@ -415,7 +722,7 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     return new Promise((res, rej) => {
       const i = new Image();
       i.onload = () => res(i);
-      i.onerror = () => rej(new Error('Format gambar tidak didukung.'));
+      i.onerror = () => rej(new Error('image'));
       i.src = src;
     });
   }
@@ -427,7 +734,7 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
       if (info.w === 512 && info.h === 512 && blob.size <= WA_ANIM) {
         return { data: await readAsDataURL(blob), animated: true };
       }
-      throw new Error('Stiker gerak tidak memenuhi syarat WhatsApp (512x512, maks 500 KB).');
+      throw new Error('anim');
     }
     if (info && info.w === 512 && info.h === 512 && blob.size <= WA_STATIC) {
       return { data: await readAsDataURL(blob), animated: false };
@@ -447,12 +754,22 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
         q = Math.round((q - 0.1) * 10) / 10;
         d = cv.toDataURL('image/webp', q);
       }
-      if (!d.startsWith('data:image/webp')) throw new Error('Browser ini tidak bisa membuat WebP.');
-      if (sizeOf(d) > WA_STATIC) throw new Error('Gambar terlalu besar untuk stiker diam.');
+      if (!d.startsWith('data:image/webp') || sizeOf(d) > WA_STATIC) throw new Error('webp');
       return { data: d, animated: false };
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+
+  async function makeTray(data, size) {
+    const img = await loadImage(data);
+    const cv = document.createElement('canvas');
+    cv.width = size; cv.height = size;
+    const cx = cv.getContext('2d');
+    const k = Math.min(size / img.naturalWidth, size / img.naturalHeight);
+    const w = img.naturalWidth * k, h = img.naturalHeight * k;
+    cx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+    return cv.toDataURL('image/png');
   }
 
   async function detectKind(it) {
@@ -472,9 +789,7 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
   async function detectAll() {
     const queue = items.filter((it) => it.animated === null && !it.broken);
     const workers = [];
-    for (let w = 0; w < 4; w++) {
-      workers.push((async () => { while (queue.length) await detectKind(queue.shift()); })());
-    }
+    for (let w = 0; w < 4; w++) workers.push((async () => { while (queue.length) await detectKind(queue.shift()); })());
     await Promise.all(workers);
     applyFilter();
   }
@@ -489,15 +804,15 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
 
   function summary(c) {
     const parts = [];
-    if (c.ok) parts.push(c.ok + ' stiker ditambahkan');
-    if (c.dup) parts.push(c.dup + ' sudah ada di paket');
-    if (c.type) parts.push(c.type + ' dilewati karena beda jenis (gerak/diam)');
-    if (c.full) parts.push('paket penuh, maksimal ' + MAX);
-    if (c.fail) parts.push(c.fail + ' gagal diproses');
-    return parts.length ? parts.join('. ') + '.' : 'Tidak ada perubahan.';
+    if (c.ok) parts.push(t('sum_ok', { n: c.ok }));
+    if (c.dup) parts.push(t('sum_dup', { n: c.dup }));
+    if (c.type) parts.push(t('sum_type', { n: c.type }));
+    if (c.full) parts.push(t('sum_full', { max: MAX }));
+    if (c.fail) parts.push(t('sum_fail', { n: c.fail }));
+    return parts.length ? parts.join('. ') + '.' : t('sum_none');
   }
 
-  /* ---------- Karakter: ekspresi, tatapan, reaksi ---------- */
+  /* ---------- Karakter ---------- */
   function setFace(f, ms) {
     const c = $('char');
     c.dataset.face = f;
@@ -515,7 +830,6 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     if (cls === 'bad') setFace('sad', 1500);
   }
 
-  // Mata selalu mengarah ke jari atau kursor
   function gaze(x, y) {
     const c = $('char');
     const r = c.getBoundingClientRect();
@@ -544,7 +858,6 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
   document.addEventListener('touchmove', onPointer, { passive: true });
   document.addEventListener('touchstart', onPointer, { passive: true });
 
-  // Ketuk awan: ekspresi acak. Ketuk 7 kali untuk kejutan.
   $('char').addEventListener('click', (e) => {
     e.stopPropagation();
     cloudTaps++;
@@ -555,22 +868,32 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
       c.classList.add('spin');
       setTimeout(() => c.classList.remove('spin'), 1100);
       setFace('surprised', 1300);
-      setStatus('Awan ini suka stiker lucu.');
+      toast('t_cloud');
       return;
     }
     const list = ['wink', 'surprised', 'happy'];
     setFace(list[Math.floor(Math.random() * list.length)], 1100);
   });
 
-  /* ---------- Penempelan (clipboard) ---------- */
+  function setBusy(v) {
+    busy = v;
+    $('char').classList.toggle('busy', !!v);
+    if (v) setFace('focus');
+    else if ($('char').dataset.face === 'focus') setFace('normal');
+    $('btnFetch').disabled = v;
+    $('btnPaste').disabled = v;
+    $('btnSave').disabled = v;
+    renderPack();
+    updateHint();
+  }
+
+  /* ---------- Clipboard ---------- */
   async function readClipboardText() {
     if (window.AndroidBridge && typeof window.AndroidBridge.readClipboard === 'function') {
       try { return String(window.AndroidBridge.readClipboard() || ''); } catch (e) {}
     }
-    if (navigator.clipboard && navigator.clipboard.readText) {
-      return await navigator.clipboard.readText();
-    }
-    throw new Error('clipboard tidak tersedia');
+    if (navigator.clipboard && navigator.clipboard.readText) return await navigator.clipboard.readText();
+    throw new Error('clipboard');
   }
 
   /* ---------- Ambil stiker ---------- */
@@ -585,27 +908,16 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     for (let i = 0; i < 6; i++) {
       const d = document.createElement('div');
       d.className = 'skel';
+      d.style.animationDelay = (i * 0.08) + 's';
       g.appendChild(d);
     }
-  }
-
-  function setBusy(v) {
-    busy = v;
-    $('char').classList.toggle('busy', !!v);
-    if (v) setFace('focus');
-    else if ($('char').dataset.face === 'focus') setFace('normal');
-    $('btnFetch').disabled = v;
-    $('btnPaste').disabled = v;
-    $('btnSave').disabled = v;
-    renderPack();
-    updateHint();
   }
 
   async function fetchLink(auto) {
     if (busy) return;
     const m = $('link').value.match(/https?:\/\/\S+/);
     if (!m || !/tiktok\.com/i.test(m[0])) {
-      if (!auto) setStatus('Tempel link TikTok dulu.');
+      if (!auto) setStatus('st_paste_first');
       return;
     }
     const link = m[0].replace(/[)\]}>.,;]+$/, '');
@@ -613,23 +925,21 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     if (auto && link === lastLink) return;
 
     setBusy(true);
-    setStatus('Mengambil stiker dari TikTok...', true);
+    setStatus('st_fetching', null, true);
     showSkeleton();
     try {
       const r = await fetch('/api/comment-sticker?url=' + encodeURIComponent(link));
       let j;
-      try { j = await r.json(); } catch (e) {
-        throw new Error('Server belum terpasang. Pastikan folder api sudah ada di Vercel.');
-      }
-      if (!j.ok) throw new Error(j.error || 'Gagal mengambil data.');
+      try { j = await r.json(); } catch (e) { throw new Error(t('st_server')); }
+      if (!j.ok) throw new Error(j.error || t('st_fail'));
       lastLink = link;
       items = j.items.map((it) => ({ key: it.src, src: it.src, isTarget: it.isTarget, broken: false, animated: null, el: null }));
       selected = new Set(items.filter((it) => it.isTarget).map((it) => it.key));
       renderGrid();
       const nt = items.filter((it) => it.isTarget).length;
-      setStatus(j.found
-        ? nt + ' stiker dari komentar ditemukan. Stiker lain dari video juga bisa dipilih.'
-        : items.length + ' stiker ditemukan dari video. Pilih yang diinginkan.');
+      if (j.found) setStatus('st_found_comment', { n: nt }, false);
+      else if (items.length) setStatus('st_found_video', { n: items.length }, false);
+      else setStatus('st_none', null, false);
       setBusy(false);
       flashChar('done');
       detectAll();
@@ -637,18 +947,36 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
       items = [];
       selected = new Set();
       renderGrid();
-      setStatus(e.message || 'Gagal mengambil data.');
+      setStatusRaw(e.message || t('st_fail'), false);
       setBusy(false);
       flashChar('bad');
     }
   }
 
+  function kindLabel(it) {
+    if (it.animated === null) return '...';
+    return it.animated ? t('k_gerak') : t('k_diam');
+  }
+
   function refreshTile(it) {
     if (!it.el) return;
     const k = it.el.querySelector('.kind');
-    if (k) k.textContent = it.animated === null ? '...' : (it.animated ? 'GERAK' : 'DIAM');
+    if (k) k.textContent = kindLabel(it);
     it.el.dataset.kind = it.animated === null ? '' : (it.animated ? 'gerak' : 'diam');
     applyFilter();
+  }
+
+  function refreshLabels() {
+    items.forEach((it) => {
+      if (!it.el) return;
+      const k = it.el.querySelector('.kind');
+      const g = it.el.querySelector('.tag');
+      if (k) k.textContent = kindLabel(it);
+      if (g) g.textContent = it.isTarget ? t('tag_komentar') : t('tag_video');
+    });
+    document.querySelectorAll('#seg button').forEach((b) => { b.textContent = t('tab_' + b.dataset.tab); });
+    moveSegIndicator();
+    $('btnAll').textContent = t(selected.size && selected.size === items.filter((x) => !x.broken).length ? 'clear_sel' : 'select_all');
   }
 
   function applyFilter() {
@@ -662,10 +990,11 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
   function renderGrid() {
     const g = $('grid');
     g.textContent = '';
-    items.forEach((it) => {
+    items.forEach((it, idx) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'tile' + (selected.has(it.key) ? ' on' : '') + (it.broken ? ' broken' : '');
+      b.style.setProperty('--i', Math.min(idx, 14));
       b.disabled = it.broken;
       const img = new Image();
       img.draggable = false;
@@ -681,10 +1010,10 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
       img.src = it.src;
       const kind = document.createElement('span');
       kind.className = 'kind';
-      kind.textContent = it.animated === null ? '...' : (it.animated ? 'GERAK' : 'DIAM');
+      kind.textContent = kindLabel(it);
       const tag = document.createElement('span');
       tag.className = 'tag';
-      tag.textContent = it.isTarget ? 'KOMENTAR' : 'VIDEO';
+      tag.textContent = it.isTarget ? t('tag_komentar') : t('tag_video');
       b.append(img, kind, tag);
       b.dataset.kind = it.animated === null ? '' : (it.animated ? 'gerak' : 'diam');
       b.onclick = () => {
@@ -702,10 +1031,16 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     const n = selected.size;
     const usable = items.filter((it) => !it.broken).length;
     const visible = items.filter((it) => it.el && it.el.style.display !== 'none' && !it.broken).length;
-    $('hint').textContent = items.length ? visible + ' ditampilkan, ' + n + ' dipilih.' : '';
+    $('hint').textContent = items.length ? t('hint_shown', { v: visible, n: n }) : '';
     $('btnAdd').disabled = busy || n === 0;
-    $('btnAll').textContent = usable && n === usable ? 'Batal pilih' : 'Pilih semua';
-    $('btnAddTxt').textContent = n ? 'Tambah ' + n + ' stiker terpilih ke paket' : 'Tambah terpilih ke paket';
+    $('btnAll').textContent = t(usable && n === usable ? 'clear_sel' : 'select_all');
+    $('btnAddTxt').textContent = n ? t('add_n', { n: n }) : t('add_selected');
+  }
+
+  function moveSegIndicator() {
+    const btns = [...document.querySelectorAll('#seg button')];
+    const idx = Math.max(0, btns.findIndex((b) => b.dataset.tab === tab));
+    $('segInd').style.transform = 'translateX(' + (idx * 100) + '%)';
   }
 
   async function addSelected() {
@@ -713,37 +1048,41 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     if (!list.length) return;
     setBusy(true);
     $('btnAdd').classList.add('busy');
+    $('prog').classList.add('on');
     const c = { ok: 0, dup: 0, type: 0, full: 0, fail: 0 };
     for (let i = 0; i < list.length; i++) {
-      setProgress(i, list.length);
-      setStatus('Memproses ' + (i + 1) + ' dari ' + list.length + '...', true);
+      $('progBar').style.width = Math.round((i / list.length) * 100) + '%';
+      setStatus('st_processing', { i: i + 1, n: list.length }, true);
       if (pack.length >= MAX) { c.full += list.length - i; break; }
       if (pack.some((p) => p.key === list[i].key)) { c.dup++; continue; }
       try {
         const r = await fetch(list[i].src + '&n=1');
-        if (!r.ok) throw new Error('gagal unduh');
+        if (!r.ok) throw new Error('fetch');
         const s = await blobToSticker(await r.blob());
         c[pushSticker(list[i].key, s)]++;
       } catch (e) {
         c.fail++;
       }
     }
-    setProgress(list.length, list.length);
-    setTimeout(() => setProgress(0, 0), 400);
+    $('progBar').style.width = '100%';
+    setTimeout(() => $('prog').classList.remove('on'), 500);
+    setTimeout(() => { $('progBar').style.width = '0'; }, 900);
     $('btnAdd').classList.remove('busy');
     setBusy(false);
-    setStatus(summary(c));
+    setStatusRaw(summary(c), false);
+    toast(summary(c), null, true);
     renderPack();
     saveActive();
   }
 
-  /* ---------- Paket ---------- */
+  /* ---------- Paket aktif ---------- */
   function renderPack() {
     const g = $('packGrid');
     g.textContent = '';
     pack.forEach((p, i) => {
       const d = document.createElement('div');
       d.className = 'ptile';
+      d.style.animationDelay = Math.min(i, 10) * 0.03 + 's';
       const img = new Image();
       img.draggable = false;
       img.alt = '';
@@ -751,23 +1090,29 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
       const x = document.createElement('button');
       x.type = 'button';
       x.className = 'x';
-      x.textContent = 'Hapus';
-      x.onclick = () => { pack.splice(i, 1); renderPack(); saveActive(); };
+      x.textContent = t('remove');
+      x.onclick = () => {
+        pack.splice(i, 1);
+        renderPack();
+        saveActive();
+        toast('t_removed');
+      };
       d.append(img, x);
       g.appendChild(d);
     });
     if (!pack.length) {
       const p = document.createElement('p');
       p.className = 'hint';
-      p.textContent = 'Paket masih kosong.';
+      p.textContent = t('pack_empty');
       g.appendChild(p);
     }
     $('badge').textContent = pack.length + '/' + MAX;
     $('btnWA').disabled = busy || pack.length < MIN;
-    const kind = pack.length ? (pack[0].animated ? 'Jenis paket: gerak' : 'Jenis paket: diam') : '';
+    const k = pack.length ? (pack[0].animated ? t('kind_gerak') : t('kind_diam')) : '';
     $('packHint').textContent = pack.length
-      ? pack.length + ' stiker. ' + kind + '. Minimal ' + MIN + ' stiker untuk WhatsApp.'
-      : 'Minimal ' + MIN + ' stiker untuk WhatsApp.';
+      ? t('pack_info', { n: pack.length, k: k })
+      : t('min3');
+    $('btnDownload').disabled = !pack.length;
   }
 
   function renderSaved() {
@@ -776,103 +1121,285 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     if (!saved.length) {
       const e = document.createElement('p');
       e.className = 'empty';
-      e.textContent = 'Belum ada paket tersimpan. Tekan Simpan paket setelah stiker terisi.';
+      e.textContent = t('saved_empty');
       box.appendChild(e);
       return;
     }
     saved.forEach((p, i) => {
       const row = document.createElement('div');
       row.className = 'prow';
+      row.style.animationDelay = Math.min(i, 8) * 0.04 + 's';
+
       const info = document.createElement('div');
-      const t = document.createElement('strong');
-      t.textContent = p.name;
-      const s = document.createElement('small');
-      s.textContent = p.items.length + ' stiker, ' + (p.items.length && p.items[0].animated ? 'gerak' : 'diam');
-      info.append(t, s);
+      info.className = 'info';
+      const th = document.createElement('div');
+      th.className = 'thumb';
+      if (p.thumb) { const im = new Image(); im.src = p.thumb; im.draggable = false; th.appendChild(im); }
+      const txt = document.createElement('div');
+      txt.className = 'txt';
+      const name = document.createElement('strong');
+      name.textContent = p.name;
+      const meta = document.createElement('small');
+      meta.textContent = p.count + ' - ' + (p.animated ? t('k_gerak') : t('k_diam'));
+      txt.append(name, meta);
+      info.append(th, txt);
+
       const acts = document.createElement('div');
       acts.className = 'acts';
       const open = document.createElement('button');
       open.type = 'button';
       open.className = 'mini primary';
-      open.textContent = 'Buka';
-      open.onclick = () => {
-        pack = p.items.map((x) => ({ key: x.key, data: x.data, animated: x.animated }));
-        active = { id: p.id, name: p.name, author: p.author };
-        $('pname').value = p.name;
-        $('pauthor').value = p.author;
-        renderPack();
-        saveActive();
-        setStatus('Paket "' + p.name + '" dibuka.');
-      };
+      open.textContent = t('open');
+      open.onclick = () => openSaved(p.id);
       const del = document.createElement('button');
       del.type = 'button';
-      del.className = 'mini';
-      del.textContent = 'Hapus';
-      del.onclick = () => { saved.splice(i, 1); saveList(); renderSaved(); };
+      del.className = 'mini danger';
+      del.textContent = t('delete');
+      del.onclick = () => deleteSaved(p.id);
       acts.append(open, del);
+
       row.append(info, acts);
       box.appendChild(row);
     });
   }
 
-  function saveCurrent() {
-    if (pack.length < 1) { setStatus('Paket masih kosong.'); return; }
+  async function makeThumb(data) {
+    try { return await makeTray(data, 96); } catch (e) { return ''; }
+  }
+
+  async function saveCurrent() {
+    if (!pack.length) { toast('t_empty_save'); return; }
     const entry = {
       id: active.id || newId(),
       name: $('pname').value.trim() || 'KYY Sticker Pack',
       author: $('pauthor').value.trim() || 'KYY Studio',
       items: pack.map((p) => ({ key: p.key, data: p.data, animated: p.animated }))
     };
+    try {
+      await DB.set('pack:' + entry.id, entry);
+    } catch (e) {
+      toast('t_save_fail');
+      return;
+    }
+    const meta = {
+      id: entry.id, name: entry.name, author: entry.author, count: pack.length,
+      animated: !!pack[0].animated, thumb: await makeThumb(pack[0].data), updated: Date.now()
+    };
+    const idx = saved.findIndex((x) => x.id === entry.id);
+    if (idx >= 0) saved[idx] = meta; else saved.unshift(meta);
+    try { await DB.set('saved', saved); } catch (e) {}
     active.id = entry.id;
-    const idx = saved.findIndex((p) => p.id === entry.id);
-    if (idx >= 0) saved[idx] = entry; else saved.unshift(entry);
-    saveList();
     saveActive();
     renderSaved();
-    setStatus('Paket "' + entry.name + '" disimpan.');
+    toast('t_saved', { name: entry.name });
   }
 
-  async function makeTray(data) {
-    const img = await loadImage(data);
-    const cv = document.createElement('canvas');
-    cv.width = 96; cv.height = 96;
-    const cx = cv.getContext('2d');
-    const k = Math.min(96 / img.naturalWidth, 96 / img.naturalHeight);
-    const w = img.naturalWidth * k, h = img.naturalHeight * k;
-    cx.drawImage(img, (96 - w) / 2, (96 - h) / 2, w, h);
-    return cv.toDataURL('image/png');
-  }
-
-  async function sendWA() {
-    if (pack.length < MIN) { setStatus('Minimal ' + MIN + ' stiker. Sekarang ' + pack.length + '.'); return; }
-    if (!window.AndroidBridge) { setStatus('Tambah ke WhatsApp hanya bisa dari aplikasi KYY Sticker Android.'); return; }
-    setBusy(true);
-    setStatus('Menyiapkan paket...', true);
+  async function openSaved(id) {
     try {
-      if (!active.id) active.id = newId();
-      const tray = await makeTray(pack[0].data);
-      window.AndroidBridge.addStickerPackToWhatsApp(JSON.stringify({
-        identifier: active.id,
-        name: $('pname').value.trim() || 'KYY Sticker Pack',
-        publisher: $('pauthor').value.trim() || 'KYY Studio',
-        tray_image: tray,
-        stickers: pack.map((p) => ({ data: p.data, emojis: [] }))
-      }));
-      setStatus('Konfirmasi di WhatsApp untuk menambahkan paket.');
-    } catch (e) {
-      setStatus('Gagal menyiapkan paket.');
+      const e = await DB.get('pack:' + id);
+      if (!e || !Array.isArray(e.items)) throw new Error('missing');
+      pack = e.items.map((x) => ({ key: x.key, data: x.data, animated: x.animated }));
+      active = { id: e.id, name: e.name, author: e.author };
+      $('pname').value = e.name;
+      $('pauthor').value = e.author;
+      renderPack();
+      saveActive();
+      $('packGrid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast('t_opened', { name: e.name });
+    } catch (err) {
+      toast('t_open_fail');
     }
-    setBusy(false);
   }
 
-  /* ---------- Menu ---------- */
-  function openMenu(on) {
-    $('drawer').classList.toggle('on', on);
-    $('overlay').classList.toggle('on', on);
-    $('drawer').setAttribute('aria-hidden', on ? 'false' : 'true');
+  function askConfirm(titleKey, bodyKey, vars, cb) {
+    $('cfTitle').textContent = t(titleKey, vars);
+    $('cfBody').textContent = t(bodyKey, vars);
+    confirmCb = cb;
+    $('confirm').classList.add('on');
+    $('ov').classList.add('on');
+  }
+  let confirmCb = null;
+  function closeConfirm() {
+    $('confirm').classList.remove('on');
+    $('ov').classList.remove('on');
+    confirmCb = null;
+  }
+  $('cfNo').onclick = closeConfirm;
+  $('cfOk').onclick = () => { const cb = confirmCb; closeConfirm(); if (cb) cb(); };
+
+  function deleteSaved(id) {
+    const meta = saved.find((x) => x.id === id);
+    const name = meta ? meta.name : '';
+    askConfirm('cf_del_title', 'cf_del_body', { name: name }, async () => {
+      saved = saved.filter((x) => x.id !== id);
+      try { await DB.del('pack:' + id); } catch (e) {}
+      try { await DB.set('saved', saved); } catch (e) {}
+      renderSaved();
+      toast('t_deleted', { name: name });
+    });
   }
 
-  /* ---------- Event ---------- */
+  /* ---------- Unduh stiker ---------- */
+  function openDownload() {
+    if (!pack.length) { toast('t_dl_empty'); return; }
+    const list = $('dlList');
+    list.textContent = '';
+    pack.forEach((p, i) => {
+      const a = document.createElement('a');
+      a.className = 'dlrow';
+      a.href = p.data;
+      a.download = 'kyy-' + String(i + 1).padStart(2, '0') + '.webp';
+      const left = document.createElement('span');
+      left.className = 'n';
+      const im = new Image();
+      im.src = p.data;
+      im.draggable = false;
+      const label = document.createElement('span');
+      label.textContent = (i + 1) + '. ' + (p.animated ? t('k_gerak') : t('k_diam'));
+      left.append(im, label);
+      const arrow = document.createElement('span');
+      arrow.textContent = '↓';
+      a.append(left, arrow);
+      list.appendChild(a);
+    });
+    openPanel('sheetDl');
+  }
+
+  /* ---------- Panduan, FAQ, dapatkan aplikasi ---------- */
+  function renderGuide() {
+    const body = $('guideBody');
+    if (!body) return;
+    body.textContent = '';
+    const steps = document.createElement('ol');
+    steps.className = 'steps';
+    const list = guidePlatform === 'ios' ? t('steps_ios') : t('steps_android');
+    (Array.isArray(list) ? list : []).forEach((s) => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      steps.appendChild(li);
+    });
+    body.appendChild(steps);
+
+    const note = document.createElement('p');
+    note.className = 'note';
+    note.textContent = guidePlatform === 'ios' ? t('note_ios') : t('to_wa_note_android');
+    body.appendChild(note);
+    const note2 = document.createElement('p');
+    note2.className = 'note';
+    note2.textContent = t('note_gerak');
+    body.appendChild(note2);
+
+    const box = document.createElement('div');
+    box.className = 'storebtns';
+    if (guidePlatform === 'android' && APK_URL) box.appendChild(linkBtn(APK_URL, t('get_apk'), ''));
+    if (guidePlatform === 'android') box.appendChild(linkBtn(ALT_PLAY_URL, t('alt_play'), 'Play Store'));
+    if (guidePlatform === 'ios') box.appendChild(linkBtn(ALT_STORE_URL, t('alt_app'), 'App Store'));
+    if (APP_PLAY_URL && guidePlatform === 'android') box.appendChild(linkBtn(APP_PLAY_URL, t('get_play_app'), 'Play Store'));
+    if (APP_STORE_URL && guidePlatform === 'ios') box.appendChild(linkBtn(APP_STORE_URL, t('get_app_app'), 'App Store'));
+    body.appendChild(box);
+  }
+
+  function linkBtn(href, label, sub) {
+    const a = document.createElement('a');
+    a.href = href;
+    const s = document.createElement('small');
+    s.textContent = sub;
+    a.append(document.createTextNode(label), s);
+    return a;
+  }
+
+  function renderFaq() {
+    const box = $('faqList');
+    box.textContent = '';
+    (t('faq') || []).forEach((f) => {
+      const d = document.createElement('details');
+      const s = document.createElement('summary');
+      s.textContent = f.q;
+      const ans = document.createElement('div');
+      ans.className = 'ans';
+      f.a.forEach((line) => {
+        const p = document.createElement('p');
+        p.textContent = line;
+        ans.appendChild(p);
+      });
+      d.append(s, ans);
+      box.appendChild(d);
+    });
+  }
+
+  function renderGetApp() {
+    const box = $('getApp');
+    box.textContent = '';
+    if (APK_URL) box.appendChild(getRow(APK_URL, t('get_apk'), 'APK'));
+    if (APP_PLAY_URL) box.appendChild(getRow(APP_PLAY_URL, t('get_play_app'), 'Play Store'));
+    if (APP_STORE_URL) box.appendChild(getRow(APP_STORE_URL, t('get_app_app'), 'App Store'));
+    const sub = document.createElement('p');
+    sub.className = 'note';
+    sub.style.marginTop = box.childElementCount ? '12px' : '0';
+    sub.innerHTML = '';
+    const bold = document.createElement('b');
+    bold.textContent = t('get_alt_title');
+    sub.appendChild(bold);
+    sub.appendChild(document.createElement('br'));
+    sub.appendChild(document.createTextNode(t('get_alt_sub')));
+    box.appendChild(sub);
+    box.appendChild(getRow(ALT_PLAY_URL, t('alt_play'), 'Play Store'));
+    box.appendChild(getRow(ALT_STORE_URL, t('alt_app'), 'App Store'));
+  }
+
+  function getRow(href, label, sub) {
+    const a = document.createElement('a');
+    a.className = 'lrow';
+    a.href = href;
+    const ico = document.createElement('span');
+    ico.className = 'ico';
+    ico.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+    const txt = document.createElement('span');
+    const b = document.createElement('b');
+    b.textContent = label;
+    const s = document.createElement('small');
+    s.textContent = sub;
+    txt.append(b, s);
+    a.append(ico, txt);
+    return a;
+  }
+
+  /* ---------- Panel: drawer, sheet, overlay ---------- */
+  function openPanel(id) {
+    closePanels(true);
+    const el = $(id);
+    el.classList.add('on');
+    el.setAttribute('aria-hidden', 'false');
+    $('ov').classList.add('on');
+  }
+
+  function closePanels(keepOverlay) {
+    document.querySelectorAll('.drawer.on, .sheet.on').forEach((p) => {
+      p.classList.remove('on');
+      p.setAttribute('aria-hidden', 'true');
+    });
+    if (!keepOverlay) $('ov').classList.remove('on');
+  }
+
+  $('btnMenu').onclick = () => openPanel('drawer');
+  $('btnClose').onclick = () => closePanels();
+  $('ov').onclick = () => { closePanels(); if ($('confirm').classList.contains('on')) closeConfirm(); };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closePanels(); closeConfirm(); }
+  });
+  document.querySelectorAll('[data-close]').forEach((b) => { b.onclick = () => closePanels(); });
+  $('openGuide').onclick = () => { openPanel('sheetGuide'); renderGuide(); };
+  $('openGuide').onkeydown = (e) => { if (e.key === 'Enter') { openPanel('sheetGuide'); renderGuide(); } };
+  document.querySelectorAll('#guideTabs button').forEach((b) => {
+    b.onclick = () => {
+      guidePlatform = b.dataset.p;
+      document.querySelectorAll('#guideTabs button').forEach((x) => x.classList.toggle('on', x === b));
+      renderGuide();
+    };
+  });
+  document.querySelectorAll('.langbtn').forEach((b) => { b.onclick = () => setLang(b.dataset.lang); });
+
+  /* ---------- Event utama ---------- */
   $('link').addEventListener('focus', () => { if (!busy) setFace('focus'); });
   $('link').addEventListener('blur', () => { if (!busy) setFace('normal'); });
   $('link').addEventListener('input', () => scheduleFetch(700));
@@ -881,13 +1408,13 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
   $('btnFetch').onclick = () => fetchLink(false);
   $('btnPaste').onclick = async () => {
     try {
-      const t = (await readClipboardText()).trim();
-      if (!t) { setStatus('Clipboard kosong. Salin link TikTok dulu.'); return; }
-      $('link').value = t;
+      const txt = (await readClipboardText()).trim();
+      if (!txt) { toast('t_clip_empty'); return; }
+      $('link').value = txt;
       fetchLink(true);
     } catch (e) {
       $('link').focus();
-      setStatus('Tekan lama kolom link, lalu pilih Tempel.');
+      toast('t_paste_hint');
     }
   };
   $('btnAll').onclick = () => {
@@ -901,6 +1428,7 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     b.onclick = () => {
       tab = b.dataset.tab;
       document.querySelectorAll('#seg button').forEach((x) => x.classList.toggle('on', x === b));
+      moveSegIndicator();
       applyFilter();
     };
   });
@@ -911,62 +1439,115 @@ details p{padding:0 14px 14px;font-size:14px;color:#333}
     e.target.value = '';
     if (!f) return;
     setBusy(true);
-    setStatus('Memproses gambar...', true);
+    setStatus('st_image', null, true);
     try {
       const s = await blobToSticker(f);
-      const c = {}; c[pushSticker('local-' + (++localSeq), s)] = 1;
-      setStatus(summary(c));
+      const c = {};
+      c[pushSticker('local-' + (++localSeq), s)] = 1;
+      setStatusRaw(summary(c), false);
+      toast(summary(c), null, true);
     } catch (err) {
-      setStatus(err.message || 'Gagal memproses gambar.');
+      setStatusRaw(t('st_fail'), false);
     }
     setBusy(false);
     renderPack();
     saveActive();
   };
   $('btnReset').onclick = () => {
-    pack = [];
-    active.id = newId();
-    renderPack();
-    saveActive();
-    setStatus('Paket dikosongkan.');
+    if (!pack.length) { toast('t_cleared'); return; }
+    askConfirm('cf_clear_title', 'cf_clear_body', {}, () => {
+      pack = [];
+      active.id = newId();
+      renderPack();
+      saveActive();
+      toast('t_cleared');
+    });
   };
   $('btnSave').onclick = saveCurrent;
+  $('btnDownload').onclick = openDownload;
   $('btnWA').onclick = sendWA;
   $('pname').addEventListener('change', saveActive);
   $('pauthor').addEventListener('change', saveActive);
 
-  $('btnMenu').onclick = () => openMenu(true);
-  $('btnClose').onclick = () => openMenu(false);
-  $('overlay').onclick = () => openMenu(false);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') openMenu(false); });
-
-  if (APK_URL) {
-    const a = document.getElementById('apkLink');
-    if (a) { a.href = APK_URL; a.hidden = false; }
+  async function sendWA() {
+    if (pack.length < MIN) { toast('t_min', { n: pack.length }); return; }
+    if (!window.AndroidBridge) { toast('t_android_only'); return; }
+    setBusy(true);
+    setStatus('t_prep', null, true);
+    try {
+      if (!active.id) active.id = newId();
+      const tray = await makeTray(pack[0].data, 96);
+      window.AndroidBridge.addStickerPackToWhatsApp(JSON.stringify({
+        identifier: active.id,
+        name: $('pname').value.trim() || 'KYY Sticker Pack',
+        publisher: $('pauthor').value.trim() || 'KYY Studio',
+        tray_image: tray,
+        stickers: pack.map((p) => ({ data: p.data, emojis: [] }))
+      }));
+      setStatusRaw(t('t_wa_confirm'), false);
+      toast('t_wa_confirm');
+    } catch (e) {
+      setStatusRaw(t('t_pack_fail'), false);
+    }
+    setBusy(false);
   }
 
+  /* ---------- Splash + muat data ---------- */
   async function init() {
-    try {
-      const a = await DB.get('active');
-      if (a) {
-        pack = a.pack || [];
-        active = { id: a.id || newId(), name: a.name, author: a.author };
-        $('pname').value = a.name || 'KYY Sticker Pack';
-        $('pauthor').value = a.author || 'KYY Studio';
-      } else {
-        active.id = newId();
-      }
-      saved = (await DB.get('saved')) || [];
-    } catch (e) {
+    const MIN_MS = 2600;
+    const start = performance.now();
+    const pctEl = $('spPct');
+    const barEl = $('spBar');
+    const eyes = $('spEyes');
+    const total = 3;
+    let doneTasks = 0;
+    const loaded = { active: null, saved: [] };
+    const finishTask = () => { doneTasks++; };
+
+    const tasks = [
+      (document.fonts ? document.fonts.ready : Promise.resolve()).catch(() => {}).then(finishTask),
+      DB.get('active').catch(() => null).then((v) => { loaded.active = v; finishTask(); }),
+      DB.get('saved').catch(() => []).then((v) => { loaded.saved = v || []; finishTask(); })
+    ];
+
+    let shown = 0;
+    const setPct = (p) => {
+      shown = Math.max(shown, Math.min(100, Math.round(p)));
+      pctEl.textContent = shown;
+      barEl.style.width = shown + '%';
+    };
+    const ticker = setInterval(() => {
+      const el = performance.now() - start;
+      setPct(Math.max(Math.min(el / MIN_MS, 1) * 92, (doneTasks / total) * 92));
+    }, 40);
+
+    await Promise.all(tasks);
+    const a = loaded.active;
+    if (a) {
+      pack = a.pack || [];
+      active = { id: a.id || newId(), name: a.name, author: a.author };
+      $('pname').value = a.name || 'KYY Sticker Pack';
+      $('pauthor').value = a.author || 'KYY Studio';
+    } else {
       active.id = newId();
     }
-    renderPack();
-    renderSaved();
-    updateHint();
+    saved = Array.isArray(loaded.saved) ? loaded.saved : [];
+
+    const wait = Math.max(0, MIN_MS - (performance.now() - start));
+    await new Promise((r) => setTimeout(r, wait));
+    clearInterval(ticker);
+    setPct(100);
+    eyes.classList.remove('loading');
+    eyes.classList.add('done');
+    applyStatic();
+    moveSegIndicator();
     resetIdle();
-    setTimeout(() => $('splash').classList.add('hide'), 2000);
-    setTimeout(() => $('splash').remove(), 2600);
+    await new Promise((r) => setTimeout(r, 900));
+    $('splash').classList.add('hide');
+    setTimeout(() => $('splash').remove(), 600);
   }
+
+  applyStatic();
   init();
 })();
 </script>

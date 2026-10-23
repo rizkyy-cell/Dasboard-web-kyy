@@ -45,6 +45,8 @@ a{color:inherit;text-decoration:none}
 .char.bad{animation:shake .5s}
 .char.spin{animation:spin 1s var(--ease)}
 
+[hidden]{display:none!important}
+
 /* Header */
 .top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px))}
 .top h1{font-size:16px;font-weight:700;letter-spacing:.08em}
@@ -350,6 +352,14 @@ details .ans p+p{margin-top:8px}
     </section>
 
     <section class="dsec">
+      <h3 data-i18n="drawer_share">Bagikan</h3>
+      <div class="lrow" id="btnShare2" role="button" tabindex="0" style="cursor:pointer">
+        <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.2 11l7.6-4M8.2 13l7.6 4"/></svg></span>
+        <span><b data-i18n="share_btn2">Bagikan KYY Sticker</b><small data-i18n="share_sub">Kirim link ke teman</small></span>
+      </div>
+    </section>
+
+    <section class="dsec">
       <h3 data-i18n="drawer_dev">Pengembang</h3>
       <p class="dev">JR乂REZKYY</p>
       <a class="lrow" href="https://www.tiktok.com/@rizky._kurniawan25">
@@ -399,7 +409,10 @@ details .ans p+p{margin-top:8px}
   'use strict';
 
   // Tautan (kosongkan jika belum ada)
-  const APK_URL = '';
+  const APK_URL = 'https://www.mediafire.com/file/9gozdtl3pc22dt7/KYY_STICKER_1.0.apk/file';
+  const SHARE_URL = 'https://jrxrezkyy-dashboard.vercel.app/extract-sticker.html';
+  const IN_APP = !!window.AndroidBridge;
+  const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent); // Tempel link MediaFire di sini, contoh: 'https://www.mediafire.com/file/xxxx/KYY-Sticker.apk/file'
   const APP_PLAY_URL = '';   // link Play Store aplikasi ini (jika sudah rilis)
   const APP_STORE_URL = '';  // link App Store aplikasi ini (jika sudah rilis)
   const ALT_PLAY_URL = 'https://play.google.com/store/search?q=sticker%20maker%20whatsapp&c=apps';
@@ -441,6 +454,8 @@ details .ans p+p{margin-top:8px}
       cf_del_title: 'Hapus paket ini?', cf_del_body: 'Paket "{name}" akan dihapus dari HP ini. Tindakan ini tidak bisa dibatalkan.',
       cf_clear_title: 'Kosongkan paket aktif?', cf_clear_body: 'Semua stiker di paket aktif akan dihapus. Paket tersimpan tidak ikut terhapus.',
       cancel: 'Batal', confirm_yes: 'Ya, lanjutkan',
+      dl_app: 'Unduh aplikasi', share_btn: 'Bagikan', share_btn2: 'Bagikan KYY Sticker', share_sub: 'Kirim link ke teman', drawer_share: 'Bagikan',
+      share_title: 'KYY Sticker', share_text: 'Ambil stiker dari komentar TikTok dan jadikan stiker WhatsApp dengan KYY Sticker.', t_link_copied: 'Link disalin.',
       drawer_guide: 'Panduan', guide_open: 'Cara pakai (Android & iOS)', guide_open_sub: 'Langkah lengkap dari awal sampai ke WhatsApp',
       guide_title: 'Cara pakai', dl_title: 'Unduh stiker', dl_note: 'Ketuk satu per satu untuk menyimpan stiker ke HP. Di iPhone, file akan masuk ke aplikasi Files.',
       drawer_faq: 'FAQ', drawer_get: 'Dapatkan aplikasi', drawer_dev: 'Pengembang', wa_title: 'Saluran WhatsApp', wa_sub: 'Gabung saluran KYY',
@@ -517,6 +532,8 @@ details .ans p+p{margin-top:8px}
       cf_del_title: 'Delete this pack?', cf_del_body: '"{name}" will be removed from this device. This cannot be undone.',
       cf_clear_title: 'Clear the active pack?', cf_clear_body: 'All stickers in the active pack will be removed. Saved packs are not affected.',
       cancel: 'Cancel', confirm_yes: 'Yes, continue',
+      dl_app: 'Get the app', share_btn: 'Share', share_btn2: 'Share KYY Sticker', share_sub: 'Send the link to friends', drawer_share: 'Share',
+      share_title: 'KYY Sticker', share_text: 'Grab stickers from TikTok comments and turn them into WhatsApp stickers with KYY Sticker.', t_link_copied: 'Link copied.',
       drawer_guide: 'Guide', guide_open: 'How to use (Android & iOS)', guide_open_sub: 'Full steps from start to WhatsApp',
       guide_title: 'How to use', dl_title: 'Download stickers', dl_note: 'Tap each one to save it to your phone. On iPhone, files go to the Files app.',
       drawer_faq: 'FAQ', drawer_get: 'Get the app', drawer_dev: 'Developer', wa_title: 'WhatsApp channel', wa_sub: 'Join the KYY channel',
@@ -1291,7 +1308,7 @@ details .ans p+p{margin-top:8px}
 
     const box = document.createElement('div');
     box.className = 'storebtns';
-    if (guidePlatform === 'android' && APK_URL) box.appendChild(linkBtn(APK_URL, t('get_apk'), ''));
+    if (guidePlatform === 'android' && APK_URL && !IN_APP) box.appendChild(linkBtn(APK_URL, t('get_apk'), ''));
     if (guidePlatform === 'android') box.appendChild(linkBtn(ALT_PLAY_URL, t('alt_play'), 'Play Store'));
     if (guidePlatform === 'ios') box.appendChild(linkBtn(ALT_STORE_URL, t('alt_app'), 'App Store'));
     if (APP_PLAY_URL && guidePlatform === 'android') box.appendChild(linkBtn(APP_PLAY_URL, t('get_play_app'), 'Play Store'));
@@ -1330,7 +1347,9 @@ details .ans p+p{margin-top:8px}
   function renderGetApp() {
     const box = $('getApp');
     box.textContent = '';
-    if (APK_URL) box.appendChild(getRow(APK_URL, t('get_apk'), 'APK'));
+    const sec = box.closest('.dsec');
+    if (sec) sec.hidden = IN_APP;
+    if (APK_URL && !IN_APP && !IS_IOS) box.appendChild(getRow(APK_URL, t('get_apk'), 'APK'));
     if (APP_PLAY_URL) box.appendChild(getRow(APP_PLAY_URL, t('get_play_app'), 'Play Store'));
     if (APP_STORE_URL) box.appendChild(getRow(APP_STORE_URL, t('get_app_app'), 'App Store'));
     const sub = document.createElement('p');
@@ -1398,6 +1417,34 @@ details .ans p+p{margin-top:8px}
     };
   });
   document.querySelectorAll('.langbtn').forEach((b) => { b.onclick = () => setLang(b.dataset.lang); });
+
+  /* ---------- Bagikan & unduh aplikasi ---------- */
+  async function shareApp() {
+    const text = t('share_text');
+    try {
+      if (window.AndroidBridge && typeof window.AndroidBridge.shareText === 'function') {
+        window.AndroidBridge.shareText(text + '\n' + SHARE_URL);
+        return;
+      }
+    } catch (e) {}
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t('share_title'), text: text, url: SHARE_URL });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      toast('t_link_copied');
+    } catch (e) {
+      toast(SHARE_URL, null, true);
+    }
+  }
+
+  $('btnShare2').onclick = shareApp;
+  $('btnShare2').onkeydown = (e) => { if (e.key === 'Enter') shareApp(); };
 
   /* ---------- Event utama ---------- */
   $('link').addEventListener('focus', () => { if (!busy) setFace('focus'); });
